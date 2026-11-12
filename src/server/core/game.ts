@@ -24,6 +24,15 @@ import {
   type Progress,
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
+import { courseItems } from '../../shared/course';
+import {
+  MAX_MOVES,
+  MAX_RIVALS,
+  RACE_DT,
+  isValidMoves,
+  replayRace,
+  startLane,
+} from '../../shared/race';
 import {
   PACE_LABEL,
   checkpoints,
@@ -33,7 +42,8 @@ import {
 } from '../../shared/sim';
 import type {
   CrewProgress,
-  GhostRun,
+  RunnerTrack,
+  Incident,
   InitResponse,
   LeaderRow,
   Profile,
@@ -54,7 +64,7 @@ export class GameError extends Error {
   }
 }
 
-const GHOST_LIMIT = 12;
+const RUNNER_LIMIT = 12;
 const LEADERBOARD_LIMIT = 10;
 
 const parse = <T>(raw: string | undefined | null): T | null => {
@@ -188,23 +198,23 @@ export const leaderboard = async (
   }));
 };
 
-const ghosts = async (
+const runnersOnRoad = async (
   store: Store,
   dateKey: string,
   self: string | null
-): Promise<GhostRun[]> => {
-  const rows = await store.zRange(keys.leaderboard(dateKey), 0, GHOST_LIMIT, {
+): Promise<RunnerTrack[]> => {
+  const rows = await store.zRange(keys.leaderboard(dateKey), 0, RUNNER_LIMIT, {
     by: 'rank',
   });
   const names = rows
     .map((r) => r.member)
     .filter((m) => m !== self)
-    .slice(0, GHOST_LIMIT);
+    .slice(0, RUNNER_LIMIT);
   if (names.length === 0) return [];
-  const raw = await store.hMGet(keys.ghosts(dateKey), names);
+  const raw = await store.hMGet(keys.tracks(dateKey), names);
   return raw
-    .map((r) => parse<GhostRun>(r))
-    .filter((g): g is GhostRun => g !== null);
+    .map((r) => parse<RunnerTrack>(r))
+    .filter((g): g is RunnerTrack => g !== null);
 };
 
 const myRank = async (
@@ -250,7 +260,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     board,
     rank,
     total,
-    ghostRuns,
+    runnerTracks,
     crew,
     cheers,
     todayPostId,
@@ -262,7 +272,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     leaderboard(store, dateKey),
     myRank(store, dateKey, username),
     store.zCard(keys.leaderboard(dateKey)),
-    ghosts(store, dateKey, username),
+    runnersOnRoad(store, dateKey, username),
     crewProgress(store, day),
     username ? store.hGet(keys.cheers(dateKey), username) : undefined,
     dateKey === today
@@ -281,7 +291,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     leaderboard: board,
     myRank: rank,
     totalRunners: total,
-    ghosts: ghostRuns,
+    runners: runnerTracks,
     crew,
     cheersReceived: Number(cheers ?? '0'),
     journeyId,
@@ -314,10 +324,51 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
   };
 };
 
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/**
+ * Records a collision on a runner who already finished: their time, replay, splits and leaderboard place change,
+ * and their result card lists the incident.
+ */
+const applyIncident = async (
+  store: Store,
+  dateKey: string,
+  username: string,
+  incident: Incident & { at: number }
+) => {
+  const [trackRaw, recordRaw] = await Promise.all([
+    store.hGet(keys.tracks(dateKey), username),
+    store.get(keys.run(dateKey, username)),
+  ]);
+  const track = parse<RunnerTrack>(trackRaw);
+  const record = parse<RunRecord>(recordRaw);
+  if (!track || !record) return;
+  const add = incident.seconds;
+  track.marks = track.marks.map((m) => (m > incident.at ? round1(m + add) : m));
+  track.seconds = round1(track.seconds + add);
+  record.seconds = track.seconds;
+  const kmIndex = Math.min(record.splits.length - 1, Math.floor(incident.km));
+  record.splits = record.splits.map((sp, i) =>
+    i === kmIndex ? { ...sp, seconds: round1(sp.seconds + add) } : sp
+  );
+  const { at: _at, ...rest } = incident;
+  record.incidents = [...(record.incidents ?? []), rest];
+  await Promise.all([
+    store.hSet(keys.tracks(dateKey), { [username]: JSON.stringify(track) }),
+    store.set(keys.run(dateKey, username), JSON.stringify(record)),
+    store.zAdd(keys.leaderboard(dateKey), {
+      member: username,
+      score: track.seconds,
+    }),
+  ]);
+};
+
 export const run = async (
   deps: Deps,
   planInput: unknown,
-  journeyId: string | null
+  journeyId: string | null,
+  movesInput: unknown = [],
+  rivalsInput: unknown = []
 ): Promise<RunResponse> => {
   const { store } = deps;
   const username = await requireUser(deps);
@@ -333,6 +384,9 @@ export const run = async (
   if (!isValidPlan(day.stage, planInput))
     throw new GameError('That race plan is not valid.');
   const plan = planInput;
+  if (!isValidMoves(movesInput))
+    throw new GameError('That run could not be checked.');
+  const moves = movesInput;
 
   if (await store.get(keys.run(dateKey, username))) {
     throw new GameError(
@@ -346,20 +400,69 @@ export const run = async (
       .progress(journeyId, 0.5, 'plan_submitted')
       .catch(() => undefined);
 
-  const result = simulate(day.stage, day.weather.id, plan);
+  // The runners this player raced with: the same ones the client was shown, read back from Redis.
+  const rivalNames = Array.isArray(rivalsInput)
+    ? rivalsInput
+        .filter((n): n is string => typeof n === 'string' && n !== username)
+        .slice(0, MAX_RIVALS)
+    : [];
+  const rivalRuns = rivalNames.length
+    ? (await store.hMGet(keys.tracks(dateKey), rivalNames))
+        .map((r) => parse<RunnerTrack>(r))
+        .filter((g): g is RunnerTrack => g !== null)
+    : [];
+
+  // The server replays the whole race: pace plan, lane changes, the day's course and every collision.
+  // Nobody can post a time they did not run.
+  const sim = simulate(day.stage, day.weather.id, plan);
+  const race = replayRace(
+    {
+      base: checkpoints(sim.splits),
+      items: courseItems(dateKey, day.stage, day.weather.id),
+      rivals: rivalRuns,
+      startLane: startLane(username),
+    },
+    moves
+  );
+  const result = {
+    totalSeconds: race.finalSeconds,
+    splits: sim.splits.map((sp, i) => ({
+      ...sp,
+      seconds: round1((race.marks[i + 1] ?? 0) - (race.marks[i] ?? 0)),
+    })),
+  };
+  const itemEvents = race.events.filter((e) => e.kind !== 'bump');
+  const bumps: Incident[] = race.events.flatMap((e) =>
+    e.kind === 'bump'
+      ? [{ with: e.rival, km: e.km, seconds: e.seconds, atFault: e.atFault }]
+      : []
+  );
   const profile = await loadProfile(store, username);
+
+  // A collision is real: the other runner's official time changes too.
+  for (const e of race.events) {
+    if (e.kind !== 'bump') continue;
+    await applyIncident(store, dateKey, e.rival, {
+      with: username,
+      km: e.km,
+      seconds: e.rivalSeconds,
+      atFault: !e.atFault,
+      at: e.step * RACE_DT,
+    });
+  }
 
   await store.zAdd(keys.leaderboard(dateKey), {
     member: username,
     score: result.totalSeconds,
   });
-  const ghost: GhostRun = {
+  const track: RunnerTrack = {
     username,
     look: profile.look,
-    marks: checkpoints(result.splits),
+    marks: race.marks,
     seconds: result.totalSeconds,
+    moves: moves.slice(0, MAX_MOVES),
   };
-  await store.hSet(keys.ghosts(dateKey), { [username]: JSON.stringify(ghost) });
+  await store.hSet(keys.tracks(dateKey), { [username]: JSON.stringify(track) });
 
   const [rankIndex, total] = await Promise.all([
     store.zRank(keys.leaderboard(dateKey), username),
@@ -413,6 +516,11 @@ export const run = async (
     seconds: result.totalSeconds,
     plan,
     splits: result.splits,
+    moves,
+    rivals: rivalRuns.map((r) => r.username),
+    course: round1(itemEvents.reduce((t, e) => t + e.seconds, 0)),
+    met: itemEvents.map((e) => e.kind),
+    incidents: bumps,
     rank,
     totalRunners: total,
     reward,

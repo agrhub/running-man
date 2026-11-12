@@ -1,4 +1,16 @@
 import type { CityId, WeatherId } from './content';
+import type { ItemKind } from './course';
+import type { Move } from './race';
+
+export type Incident = {
+  /** The other runner. */
+  with: string;
+  km: number;
+  /** Seconds this runner lost. */
+  seconds: number;
+  /** True when this runner ran into the other from behind. */
+  atFault: boolean;
+};
 import type { Look, PetId, RewardBreakdown } from './economy';
 import type { KmSplit, Plan } from './sim';
 
@@ -25,12 +37,14 @@ export type Profile = {
   totalRuns: number;
 };
 
-export type GhostRun = {
+export type RunnerTrack = {
   username: string;
   look: Look;
   /** Cumulative seconds at km 0..6. */
   marks: number[];
   seconds: number;
+  /** Lane changes, so other players see this runner where they really ran. */
+  moves?: Move[];
 };
 
 export type LeaderRow = {
@@ -52,6 +66,15 @@ export type RunRecord = {
   seconds: number;
   plan: Plan;
   splits: KmSplit[];
+  /** Lane changes during the run, replayed by the server against the day's course. */
+  moves: Move[];
+  /** The other runners on the road during this run, in order. */
+  rivals: string[];
+  /** Net seconds from cones, puddles and high fives. */
+  course: number;
+  met: ItemKind[];
+  /** Collisions with other runners, including ones that happened after this run (they ran into you). */
+  incidents: Incident[];
   rank: number;
   totalRunners: number;
   reward: RewardBreakdown;
@@ -76,7 +99,7 @@ export type InitResponse = {
   leaderboard: LeaderRow[];
   myRank: number | null;
   totalRunners: number;
-  ghosts: GhostRun[];
+  runners: RunnerTrack[];
   crew: CrewProgress;
   cheersReceived: number;
   journeyId: string | null;
@@ -93,7 +116,13 @@ export type SplashResponse = {
   username: string;
 };
 
-export type RunRequest = { plan: Plan; journeyId?: string | null };
+export type RunRequest = {
+  plan: Plan;
+  moves: Move[];
+  /** Usernames of the runners on the road, in the order the client raced them. */
+  rivals: string[];
+  journeyId?: string | null;
+};
 
 export type RunResponse = {
   type: 'run';

@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { addDays, dayInfo } from '../../shared/content';
-import { defaultPlan, type Plan } from '../../shared/sim';
+import {
+  checkpoints,
+  defaultPlan,
+  simulate,
+  type Plan,
+} from '../../shared/sim';
+import { courseItems } from '../../shared/course';
+import { replayRace, startLane, type Move } from '../../shared/race';
 import type {
   InitResponse,
   ProfileResponse,
@@ -146,6 +153,88 @@ describe('game API', () => {
     expect(again.status).toBe(409);
   });
 
+  it('replays the race on the server, and a collision changes both runners’ times', async () => {
+    const date = '2026-11-12';
+    const info = dayInfo(date);
+    const plan = planFor(date);
+    // fast start, then easy: alice (steady) catches up in the middle lane
+    const slowPlan = planFor(date, [
+      'push',
+      'push',
+      'easy',
+      'easy',
+      'easy',
+      'easy',
+    ]);
+    const middle: Move[] = [{ step: 0, lane: 0 }];
+    const slow = await call<RunResponse>(h.as('slowpoke'), 'POST', '/run', {
+      plan: slowPlan,
+      moves: middle,
+      rivals: [],
+    });
+    const before = slow.json.run.seconds;
+
+    // alice stays in the middle lane and runs into slowpoke from behind
+    const res = await call<RunResponse>(h.as('alice'), 'POST', '/run', {
+      plan,
+      moves: middle,
+      rivals: ['slowpoke'],
+    });
+    const sim = simulate(info.stage, info.weather.id, plan);
+    const race = replayRace(
+      {
+        base: checkpoints(sim.splits),
+        items: courseItems(date, info.stage, info.weather.id),
+        rivals: [
+          {
+            username: 'slowpoke',
+            moves: middle,
+            marks: slow.json.run.splits.reduce(
+              (m, s) => [
+                ...m,
+                Math.round(((m.at(-1) ?? 0) + s.seconds) * 10) / 10,
+              ],
+              [0]
+            ),
+          },
+        ],
+        startLane: startLane('alice'),
+      },
+      middle
+    );
+    expect(res.json.run.seconds).toBe(race.finalSeconds);
+    expect(res.json.run.incidents[0]).toMatchObject({
+      with: 'slowpoke',
+      atFault: true,
+    });
+    const sum = res.json.run.splits.reduce((t, s) => t + s.seconds, 0);
+    expect(sum).toBeCloseTo(res.json.run.seconds, 0);
+
+    const victim = await call<InitResponse>(h.as('slowpoke'), 'GET', '/init');
+    expect(victim.json.myRun?.incidents[0]).toMatchObject({
+      with: 'alice',
+      atFault: false,
+    });
+    const lost = (victim.json.myRun?.incidents ?? []).reduce(
+      (t, i) => t + i.seconds,
+      0
+    );
+    expect(victim.json.myRun?.incidents).toHaveLength(
+      res.json.run.incidents.length
+    );
+    expect(victim.json.myRun?.seconds).toBeCloseTo(before + lost, 1);
+    expect(
+      victim.json.leaderboard.find((r) => r.username === 'slowpoke')?.seconds
+    ).toBe(victim.json.myRun?.seconds);
+
+    const bad = await call(h.as('bob'), 'POST', '/run', {
+      plan,
+      moves: [{ step: 1, lane: 5 }],
+      rivals: [],
+    });
+    expect(bad.status).toBe(400);
+  });
+
   it('rejects invalid plans', async () => {
     const { status } = await call(h, 'POST', '/run', {
       plan: { paces: ['push'], drinks: [] },
@@ -168,16 +257,16 @@ describe('game API', () => {
     expect(later.json.profile.bestStreak).toBe(3);
   });
 
-  it('shows ghosts of other runners but not yourself', async () => {
+  it('puts the other runners on the road, but not yourself', async () => {
     const date = '2026-11-12';
     for (const u of ['bob', 'cara', 'alice'])
       await call(h.as(u), 'POST', '/run', { plan: planFor(date) });
     const init = await call<InitResponse>(h.as('alice'), 'GET', '/init');
-    expect(init.json.ghosts.map((g) => g.username).sort()).toEqual([
+    expect(init.json.runners.map((g) => g.username).sort()).toEqual([
       'bob',
       'cara',
     ]);
-    expect(init.json.ghosts[0]?.marks).toHaveLength(7);
+    expect(init.json.runners[0]?.marks).toHaveLength(7);
     expect(init.json.myRun?.rank).toBeGreaterThan(0);
   });
 

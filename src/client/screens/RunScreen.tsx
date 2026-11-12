@@ -31,6 +31,7 @@ import {
   type Chat,
 } from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
+import { ambience, onSoundChange, setSound, sfx, soundOn } from '../lib/sound';
 
 export type RaceOutcome = {
   moves: Move[];
@@ -151,6 +152,8 @@ export const RunScreen = ({
   const chatRef = useRef<Chat[]>([]);
   const stepRef = useRef(0);
   const worldRef = useRef<RunWorld | null>(null);
+  const [sound, setSoundState] = useState(soundOn);
+  useEffect(() => onSoundChange(setSoundState), []);
 
   const sayLine = (line: number) => {
     setChatOpen(false);
@@ -160,6 +163,7 @@ export const RunScreen = ({
     if (chatRef.current.length >= MAX_CHATS) return;
     chatRef.current.push({ step, line });
     worldRef.current?.say('__me', QUICK_CHAT[line] ?? '');
+    sfx.chat();
   };
   const finishRef = useRef(onFinish);
 
@@ -259,7 +263,19 @@ export const RunScreen = ({
     let replayIndex = 0;
     let raf = 0;
     let reported = false;
+    let lastCount = 0;
+    let lastGate = 0;
+    let stepPhase = 0;
+    let stepLeft = false;
     worldRef.current = world;
+    // A quiet bed of sound for the terrain; starts again if sound is switched on mid-race.
+    let stopAmbience = soundOn()
+      ? ambience(day.stage.terrain)
+      : () => undefined;
+    const offSound = onSoundChange((on) => {
+      stopAmbience();
+      stopAmbience = on ? ambience(day.stage.terrain) : () => undefined;
+    });
     const chatIndex = new Map<string, number>();
     let myChatIndex = 0;
     const pick = (lines: readonly string[], n: number) =>
@@ -276,8 +292,13 @@ export const RunScreen = ({
           world.say(e.rival, pick(REACTIONS.bumped, e.step));
           world.fall('__me');
           world.fall(e.rival);
+          sfx.crash();
         } else {
           world.hitItem(e.item);
+          if (e.kind === 'fan') sfx.highFive();
+          else if (e.kind === 'puddle') sfx.splash();
+          else if (e.kind === 'cone' || e.kind === 'cups') sfx.stumble();
+          else sfx.snack();
         }
         show(eventToast(e), 1.8);
       }
@@ -291,6 +312,10 @@ export const RunScreen = ({
 
       if (countdown > 0) {
         countdown -= dt;
+        const n = Math.ceil(Math.max(0, countdown) / 0.8);
+        if (n !== lastCount && n > 0) sfx.countdown();
+        if (n === 0 && lastCount > 0) sfx.go();
+        lastCount = n;
       } else if (!state.done) {
         if (skipRef.current) {
           const before = state.events.length;
@@ -368,6 +393,26 @@ export const RunScreen = ({
               ? 1
               : (lmLeft + 0.05) / 0.17;
       gaze += (Math.max(0, Math.min(1, raw)) - gaze) * Math.min(1, dt * 3);
+
+      // Footsteps follow your pace; a bell at every km gate.
+      if (
+        countdown <= 0 &&
+        !state.done &&
+        !fastRef.current &&
+        !skipRef.current
+      ) {
+        stepPhase += dt * (limping ? 1.2 : 1.7 + 2.1 * mySpeed);
+        if (stepPhase >= 1) {
+          stepPhase -= 1;
+          stepLeft = !stepLeft;
+          sfx.step(stepLeft);
+        }
+      }
+      const gate = Math.floor(state.km);
+      if (gate > lastGate) {
+        lastGate = gate;
+        if (gate < 6 && !skipRef.current) sfx.gate();
+      }
       world.frame(
         animT,
         positions,
@@ -379,6 +424,7 @@ export const RunScreen = ({
       if (!lmShown && state.km >= lm.km - 0.55) {
         lmShown = true;
         show({ title: `📍 ${lm.name}`, body: lm.blurb, tone: 'info' }, 4.5);
+        sfx.landmark();
       }
       for (const s of sim.splits) {
         if (s.drank && state.km >= s.km && !shownDrinks.has(s.km)) {
@@ -388,6 +434,7 @@ export const RunScreen = ({
               { title: '💧 Water!', body: 'Stamina topped up.', tone: 'good' },
               1.6
             );
+          sfx.water();
         }
       }
       if (toast && animT > toastUntil) toast = null;
@@ -428,7 +475,10 @@ export const RunScreen = ({
         });
       }
 
-      if (state.done && finishedAt === null) finishedAt = animT;
+      if (state.done && finishedAt === null) {
+        finishedAt = animT;
+        sfx.finish();
+      }
       if (finishedAt !== null && animT - finishedAt > 1.8 && !reported) {
         reported = true;
         finishRef.current({
@@ -443,6 +493,8 @@ export const RunScreen = ({
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      offSound();
+      stopAmbience();
       worldRef.current = null;
       world.dispose();
     };
@@ -503,6 +555,17 @@ export const RunScreen = ({
           </p>
         </div>
       </div>
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        onClick={() => setSound(!sound)}
+        className="chunky absolute left-1/2 top-3 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[18px]"
+        aria-label={sound ? 'Turn sound off' : 'Turn sound on'}
+        aria-pressed={sound}
+      >
+        {sound ? '🔊' : '🔇'}
+      </button>
       <div className="pointer-events-none absolute left-3 right-3 top-[86px]">
         <div
           className="h-3 rounded-full border-2 border-ink bg-white overflow-hidden"

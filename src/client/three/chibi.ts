@@ -12,13 +12,13 @@ export type Painter = (
   extra?: { emissive?: string; opacity?: number }
 ) => THREE.Material;
 
-export const makePainter = (ghost = false): Painter => {
+export const makePainter = (): Painter => {
   const cache = new Map<string, THREE.Material>();
   return (color, extra) => {
     const key = `${color}|${extra?.emissive ?? ''}|${extra?.opacity ?? 1}`;
     const hit = cache.get(key);
     if (hit) return hit;
-    const opacity = ghost ? 0.38 : (extra?.opacity ?? 1);
+    const opacity = extra?.opacity ?? 1;
     // Soft, rounded vinyl-toy shading that sits well in the lit city.
     const mat = new THREE.MeshStandardMaterial({
       color,

@@ -34,7 +34,7 @@ const Preview = ({ day, profile }: { day: DayInfo; profile: Profile }) => {
       canvas,
       city: day.city,
       stage: day.stage,
-      runners: [{ name: 'me', look: profile.look, ghost: false, lane: 0 }],
+      runners: [{ name: 'me', look: profile.look, other: false }],
       preview: true,
     });
     const reduce = window.matchMedia(

@@ -19,7 +19,7 @@ import { Leaderboard } from './components/Leaderboard';
 import { LockerScreen } from './screens/LockerScreen';
 import { PlanScreen } from './screens/PlanScreen';
 import { ResultScreen } from './screens/ResultScreen';
-import { RunScreen } from './screens/RunScreen';
+import { RunScreen, type RaceOutcome } from './screens/RunScreen';
 
 type Screen = 'plan' | 'run' | 'result' | 'locker' | 'closed';
 
@@ -64,15 +64,41 @@ export const App = () => {
     if (day) applyCityTheme(day.city);
   }, [day]);
 
+  // The runners who were on the road during the player's own run, for the replay.
+  const replayRivals = useMemo(() => {
+    if (!data?.myRun) return [];
+    const byName = new Map(data.runners.map((g) => [g.username, g]));
+    return (data.myRun.rivals ?? []).flatMap((n) => {
+      const g = byName.get(n);
+      return g ? [g] : [];
+    });
+  }, [data]);
+
   const patch = (next: Partial<InitResponse>) =>
     setData((d) => (d ? { ...d, ...next } : d));
 
-  const startRun = async (plan: Plan) => {
+  const [livePlan, setLivePlan] = useState<Plan | null>(null);
+
+  const startRun = (plan: Plan) => {
+    if (!data) return;
+    if (data.profile.username === 'guest') {
+      showLoginPrompt();
+      showToast('Log in to Reddit to run.');
+      return;
+    }
+    setLivePlan(plan);
+    setScreen('run');
+  };
+
+  // The race was run on the client; the server replays it and records the official time.
+  const submitRun = async (plan: Plan, outcome: RaceOutcome) => {
     if (!data) return;
     setBusy(true);
     try {
       const res = await request<RunResponse>('/run', {
         plan,
+        moves: outcome.moves,
+        rivals: outcome.rivals,
         journeyId: data.journeyId,
       });
       patch({
@@ -84,10 +110,14 @@ export const App = () => {
         totalRunners: res.run.totalRunners,
       });
       setJustFinished(true);
-      setScreen('run');
+      setLivePlan(null);
+      setScreen('result');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) showLoginPrompt();
       else showToast(message(e));
+      setLivePlan(null);
+      if (e instanceof ApiError && e.status === 409) void load();
+      else setScreen('plan');
     } finally {
       setBusy(false);
     }
@@ -199,12 +229,29 @@ export const App = () => {
         </div>
       );
     case 'run':
+      if (livePlan) {
+        return (
+          <RunScreen
+            day={day}
+            profile={data.profile}
+            plan={livePlan}
+            rivals={data.runners}
+            mode="live"
+            firstRun={data.profile.totalRuns === 0}
+            saving={busy}
+            onFinish={(outcome) => void submitRun(livePlan, outcome)}
+          />
+        );
+      }
       return data.myRun ? (
         <RunScreen
           day={day}
           profile={data.profile}
-          run={data.myRun}
-          ghosts={data.ghosts}
+          plan={data.myRun.plan}
+          rivals={replayRivals}
+          mode="replay"
+          replayMoves={data.myRun.moves}
+          firstRun={false}
           onFinish={() => setScreen('result')}
         />
       ) : null;
@@ -249,7 +296,7 @@ export const App = () => {
           crew={data.crew}
           totalRunners={data.totalRunners}
           starting={busy}
-          onStart={(plan) => void startRun(plan)}
+          onStart={startRun}
           onLocker={openLocker}
         />
       );

@@ -12,7 +12,8 @@ export type Painter = (
   extra?: { emissive?: string; opacity?: number }
 ) => THREE.Material;
 
-export const makePainter = (): Painter => {
+/** `fadeable` materials can be faded when a runner stands between the camera and you. */
+export const makePainter = (fadeable = false): Painter => {
   const cache = new Map<string, THREE.Material>();
   return (color, extra) => {
     const key = `${color}|${extra?.emissive ?? ''}|${extra?.opacity ?? 1}`;
@@ -23,7 +24,7 @@ export const makePainter = (): Painter => {
     const mat = new THREE.MeshStandardMaterial({
       color,
       roughness: 0.55,
-      transparent: opacity < 1,
+      transparent: fadeable || opacity < 1,
       opacity,
       depthWrite: opacity >= 1,
       ...(extra?.emissive

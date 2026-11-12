@@ -136,6 +136,13 @@ with sync_playwright() as p:
     cheer.click()
     page.wait_for_selector('text=Cheer sent today')
     check('cheer sent once a day', page.locator('button[aria-label^="Cheer for"]').count() == 0)
+    vote = page.get_by_role('region', name='Vote for the next city')
+    check('result shows the next-city vote', vote.is_visible() and vote.get_by_role('button').count() == 4)
+    vote.get_by_role('button', name=re.compile('Seoul')).click()
+    page.wait_for_selector('[aria-label="Seoul: 1 vote, your vote"]')
+    vote.scroll_into_view_if_needed()
+    page.screenshot(path=f'{OUT}/06b-vote.png')
+    check('vote is counted once and shows the result', vote.get_by_role('button').count() == 0 and 'Seoul leads' in vote.inner_text())
 
     # 5. Locker
     page.get_by_role('button', name=re.compile(r'^Locker')).click()

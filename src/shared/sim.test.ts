@@ -9,6 +9,7 @@ import {
   simulate,
   type Plan,
 } from './sim';
+import { NEXT_CITIES, voteLeader, emptyCounts } from './vote';
 import {
   conditionMet,
   runReward,
@@ -188,5 +189,23 @@ describe('terrains', () => {
       'zoo',
     ]);
     for (const c of CITIES) expect(c.stages).toHaveLength(7);
+  });
+});
+
+describe('next-city vote', () => {
+  const vote = (counts: Partial<ReturnType<typeof emptyCounts>>) => ({
+    season: 0,
+    counts: { ...emptyCounts(), ...counts },
+    total: 0,
+    mine: null,
+  });
+  it('names the city ahead, and nobody on a tie or with no votes', () => {
+    expect(NEXT_CITIES).toHaveLength(4);
+    expect(voteLeader(vote({}))).toBeNull();
+    expect(voteLeader(vote({ seoul: 3, rio: 1 }))).toBe('seoul');
+    expect(voteLeader(vote({ seoul: 2, rio: 2 }))).toBeNull();
+    expect(voteLeader(vote({ london: 1, seoul: 2, rio: 2, newyork: 4 }))).toBe(
+      'newyork'
+    );
   });
 });

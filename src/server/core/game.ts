@@ -9,6 +9,12 @@ import {
   type DayInfo,
 } from '../../shared/content';
 import {
+  NEXT_CITIES,
+  emptyCounts,
+  isNextCity,
+  type CityVote,
+} from '../../shared/vote';
+import {
   CHEER_REWARD,
   HAIR_STYLES,
   HAIR_TONES,
@@ -310,6 +316,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     crew,
     cheers,
     todayPostId,
+    vote,
     journeyId,
   ] = await Promise.all([
     username
@@ -324,6 +331,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     dateKey === today
       ? null
       : store.get(keys.dayPost(today)).then((p) => p ?? null),
+    cityVote(store, dayInfo(today).season, username),
     deps.telemetry.start().catch(() => null),
   ]);
 
@@ -340,6 +348,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     runners: runnerTracks,
     crew,
     cheersReceived: Number(cheers ?? '0'),
+    vote,
     journeyId,
   };
 };
@@ -712,6 +721,48 @@ export const cheer = async (
   return {
     profile,
     message: `Cheer sent to u/${target}! +${CHEER_REWARD} badges`,
+  };
+};
+
+export const cityVote = async (
+  store: Deps['store'],
+  season: number,
+  username: string | null
+): Promise<CityVote> => {
+  const [raw, mine] = await Promise.all([
+    store.hGetAll(keys.votes(season)),
+    username ? store.hGet(keys.voters(season), username) : undefined,
+  ]);
+  const counts = emptyCounts();
+  for (const c of NEXT_CITIES) counts[c.id] = Number(raw[c.id] ?? '0');
+  return {
+    season,
+    counts,
+    total: Object.values(counts).reduce((a, n) => a + n, 0),
+    mine: isNextCity(mine) ? mine : null,
+  };
+};
+
+/** One vote per runner per season, for runners who have run a stage that week. */
+export const castVote = async (
+  deps: Deps,
+  cityId: string
+): Promise<{ vote: CityVote; message: string }> => {
+  const username = await requireUser(deps);
+  if (!isNextCity(cityId)) throw new GameError('Pick one of the four cities.');
+  const { season } = dayInfo(toDateKey(deps.now()));
+  const profile = await loadProfile(deps.store, username);
+  if ((profile.stagesBySeason[String(season)] ?? 0) === 0)
+    throw new GameError('Run a stage this week to vote.', 409);
+  const already = await deps.store.hGet(keys.voters(season), username);
+  if (already) throw new GameError('You already voted this week.', 409);
+  await deps.store.hSet(keys.voters(season), { [username]: cityId });
+  await deps.store.hIncrBy(keys.votes(season), cityId, 1);
+  const city = NEXT_CITIES.find((c) => c.id === cityId);
+  return {
+    vote: await cityVote(deps.store, season, username),
+    message:
+      `Vote counted for ${city?.name ?? cityId} ${city?.flag ?? ''}`.trim(),
   };
 };
 

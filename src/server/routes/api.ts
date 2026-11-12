@@ -9,11 +9,14 @@ import type {
   ProfileResponse,
   RunRequest,
   ShareResponse,
+  VoteRequest,
+  VoteResponse,
 } from '../../shared/api';
 import type { Deps } from '../core/deps';
 import {
   GameError,
   buyItem,
+  castVote,
   carePet,
   cheer,
   choosePet,
@@ -178,6 +181,17 @@ export const createApi = (deps: Deps): Hono => {
       );
       await track(deps, body.journeyId, 'cheer_sent');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/vote', async (c) => {
+    try {
+      const body = await readJson<VoteRequest>(c);
+      const { vote, message } = await castVote(deps, String(body.cityId ?? ''));
+      await track(deps, body.journeyId, 'city_voted', String(body.cityId));
+      return c.json<VoteResponse>({ type: 'vote', vote, message });
     } catch (e) {
       return fail(c, e);
     }

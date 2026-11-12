@@ -16,7 +16,7 @@ redditors who ran that day. Every finish adds to a shared goal the whole subredd
 
 | Judging criterion | How the game meets it                                                                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- |
-| Delightful UX     | Cute 3D chibis, a pet running beside you, a palette per city, a living city around the road                     |
+| Delightful UX     | Cute 3D chibis, a pet beside you, a palette per city, a living city, sound and haptics                          |
 | Polish            | Small scope done well: 4 cities, 7 terrains, 4 pets, 21 outfit items, traffic, crowds, birds and a TV motorbike |
 | Reddit-y          | The subreddit is one running club; real redditors share the road and crashes hurt both; quick chat; bibs; flair |
 | Daily content     | A new stage every day with its own terrain, landmark and weather; a new city every week                         |
@@ -61,6 +61,10 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
   finish 🏁"…). Lines are saved at the step you said them and shown as speech bubbles to everyone who runs the stage
   after you. Crashes and snacks trigger short automatic reactions. There is no free text, so nothing to moderate.
 - On the approach to the stage's landmark the camera widens and pans and the race slows for a moment.
+- **Sound and vibration**, all synthesised in the browser: countdown beeps, footsteps that follow your pace, a
+  soundscape per terrain (crowd in town, waves, desert wind, birds in the green stages), a thud for a crash, a bonk
+  for a cone, a splash for a puddle, chimes for snacks and high fives, a bell at each km gate and a finish fanfare.
+  Phones buzz on a crash. The 🔊 button mutes it all, remembered on that device.
 - **Finish without steering** skips to the end with your plan alone.
 
 ### Result (one screen)
@@ -84,6 +88,9 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 - **The comments are the strategy room:** each stage post pins a "Today's strategy?" comment, and sharing a result
   posts a compact result card as a comment.
 - **Cheers:** one free cheer a day for another runner (+5 badges to you).
+- **Next-city vote:** on the result screen, everyone who ran a stage that week gets one vote for the next city to
+  build: London, New York, Seoul or Rio. Votes are counted on the server, one per runner per week, with live
+  percentages and the city in the lead.
 
 ## Runner, outfits and pets
 
@@ -157,7 +164,7 @@ Four cities with seven stages each, one city a week. Weather changes by day, so 
 | Hanoi | Sunny yellow, moss green | Turtle Tower, Iron River Bridge, Temple of Scholars       | Narrow tube houses, cables    |
 | Dubai | Sand gold, turquoise     | Needle Tower, Sail Hotel, Giant Wheel, Desert Fort        | Sand towers, beach and desert |
 
-Later: London, New York, Seoul, Rio; mountain trail and snow stages.
+Next: whichever of London, New York, Seoul and Rio the crew votes for; then mountain trail and snow stages.
 
 ### Terrains
 
@@ -217,6 +224,8 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 | `post:{postId}`   | string     | Which day a post belongs to                                         |
 | `bibs`            | counter    | The next bib number                                                 |
 | `day:{date}:post` | string     | The stage post for that day                                         |
+| `votes:{season}`  | hash       | Next-city vote counts for that week                                 |
+| `voters:{season}` | hash       | Who voted for which city that week (one vote each)                  |
 
 ### Stage simulation (deterministic, runs on client and server)
 

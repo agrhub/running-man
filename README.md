@@ -52,7 +52,13 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Snacks on the road:** water bottles, soda, cake and candy speed you up; cones, puddles and cups slow you down.
   Every item is placed by the date, so everyone faces the same road.
 - **Quick chat:** eight friendly preset lines (no free text, so nothing to moderate) shown as speech bubbles, saved
-  with your run and replayed for everyone who runs after you, plus automatic reactions when you crash or grab a snack.- **Cheat-proof:** the client sends only the plan and the lane changes. The server replays the whole race step by step
+  with your run and replayed for everyone who runs after you, plus automatic reactions when you crash or grab a snack.
+- **Sound and vibration:** every sound is synthesised in the browser (no audio files): countdown, footsteps that
+  follow your pace, a soundscape per terrain (crowd, waves, desert wind, birds), crashes, snacks, high fives, km gates
+  and a finish fanfare. Phones buzz on a crash. One tap mutes it, and the choice is remembered.
+- **Next-city vote:** after a run, everyone who ran a stage that week gets one vote for the next city to build
+  (London, New York, Seoul or Rio), counted on the server.
+- **Cheat-proof:** the client sends only the plan and the lane changes. The server replays the whole race step by step
   (same course, same runners) and records the time it computes.
 - **Crew marathon:** every runner adds 6 km to the subreddit's goal of ten marathons (421.95 km) per city. When the crew
   finishes, everyone who ran that week gets badges and the city's hat.
@@ -91,7 +97,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 58 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 61 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -101,7 +107,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (26 checks: register, corral, steering, chat, result, replay, locker; needs Playwright for Python):
+Browser end-to-end check (30 checks: register, corral, steering, sound, chat, result, vote, replay, locker; needs Playwright for Python):
 
 ```bash
 npm run dev:local

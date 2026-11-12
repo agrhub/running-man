@@ -80,7 +80,15 @@ export const createApi = (deps: Deps): Hono => {
   api.post('/run', async (c) => {
     try {
       const body = await readJson<RunRequest>(c);
-      return c.json(await run(deps, body.plan, body.journeyId ?? null));
+      return c.json(
+        await run(
+          deps,
+          body.plan,
+          body.journeyId ?? null,
+          body.moves ?? [],
+          body.rivals ?? []
+        )
+      );
     } catch (e) {
       return fail(c, e);
     }

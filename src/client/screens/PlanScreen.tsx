@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { CrewProgress, Profile } from '../../shared/api';
-import type { DayInfo } from '../../shared/content';
+import { TERRAIN, type DayInfo } from '../../shared/content';
 import {
   PACES,
   PACE_LABEL,
@@ -79,7 +79,8 @@ export const PlanScreen = ({
       <header className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[13px] font-extrabold text-ink-soft">
-            {city.flag} {city.name}, stage {day.stageIndex + 1} of 7
+            {city.flag} {city.name}, stage {day.stageIndex + 1} of 7 ·{' '}
+            {TERRAIN[stage.terrain].icon} {TERRAIN[stage.terrain].label}
           </p>
           <h1 className="font-display text-[30px] leading-[1.05] font-extrabold">
             {stage.name}

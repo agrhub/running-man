@@ -4,7 +4,7 @@ import { StrictMode, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { requestExpandedMode } from '@devvit/web/client';
 import type { SplashResponse } from '../shared/api';
-import { dayInfo, toDateKey, type City } from '../shared/content';
+import { TERRAIN, dayInfo, toDateKey, type City } from '../shared/content';
 import { hashString, mulberry32 } from '../shared/rng';
 import { CrewBar } from './components/CrewBar';
 import { request } from './lib/api';
@@ -165,7 +165,8 @@ export const Splash = () => {
             {day.stage.name}
           </h1>
           <p className="text-[13px] font-bold">
-            {day.weather.icon} {day.weather.label}
+            {TERRAIN[day.stage.terrain].icon} {TERRAIN[day.stage.terrain].label}{' '}
+            · {day.weather.icon} {day.weather.label}
             {data && data.streak > 0
               ? `, and you are on a ${data.streak}-day streak 🔥`
               : ''}

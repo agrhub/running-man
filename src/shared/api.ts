@@ -1,4 +1,5 @@
 import type { CityId, WeatherId } from './content';
+import type { Chat } from './chat';
 import type { ItemKind } from './course';
 import type { Move } from './race';
 
@@ -50,6 +51,8 @@ export type RunnerTrack = {
   seconds: number;
   /** Lane changes, so other players see this runner where they really ran. */
   moves?: Move[];
+  /** Quick-chat lines said during the run. */
+  chat?: Chat[];
 };
 
 export type LeaderRow = {
@@ -75,6 +78,7 @@ export type RunRecord = {
   moves: Move[];
   /** The other runners on the road during this run, in order. */
   rivals: string[];
+  chat?: Chat[];
   /** Net seconds from cones, puddles and high fives. */
   course: number;
   met: ItemKind[];
@@ -126,6 +130,7 @@ export type RunRequest = {
   moves: Move[];
   /** Usernames of the runners on the road, in the order the client raced them. */
   rivals: string[];
+  chat?: Chat[];
   journeyId?: string | null;
 };
 

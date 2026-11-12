@@ -20,6 +20,7 @@ import { ITEMS, PETS } from '../shared/economy';
 import { mulberry32 } from '../shared/rng';
 import { PACES, type Plan } from '../shared/sim';
 import type { Lane } from '../shared/course';
+import { QUICK_CHAT, type Chat } from '../shared/chat';
 import type { Move } from '../shared/race';
 import { noTelemetry, type Deps, type NewPost } from '../server/core/deps';
 import { ensureDailyPost, loadProfile, run } from '../server/core/game';
@@ -164,7 +165,19 @@ const seed = async (today: string, days: number, perDay: number) => {
         }
         step += 40 + Math.floor(rand() * 160);
       }
-      await asUser(user, date, postId, () => run(deps, plan, null, moves, []));
+      // ...and say a few quick-chat lines on the way.
+      const chat: Chat[] = [];
+      for (
+        let c = 0, at = 60 + Math.floor(rand() * 80);
+        c < 3 && at < 3200;
+        c++
+      ) {
+        chat.push({ step: at, line: Math.floor(rand() * QUICK_CHAT.length) });
+        at += 240 + Math.floor(rand() * 600);
+      }
+      await asUser(user, date, postId, () =>
+        run(deps, plan, null, moves, [], chat)
+      );
     }
   }
 };

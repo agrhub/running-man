@@ -138,6 +138,7 @@ export const App = () => {
         plan,
         moves: outcome.moves,
         rivals: outcome.rivals,
+        chat: outcome.chat,
         journeyId: data.journeyId,
       });
       patch({
@@ -309,6 +310,7 @@ export const App = () => {
           rivals={replayRivals}
           mode="replay"
           replayMoves={data.myRun.moves}
+          {...(data.myRun.chat ? { replayChat: data.myRun.chat } : {})}
           firstRun={false}
           onFinish={() => setScreen('result')}
         />

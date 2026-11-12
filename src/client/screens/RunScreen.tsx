@@ -23,9 +23,21 @@ import {
   type Pace,
   type Plan,
 } from '../../shared/sim';
+import {
+  CHAT_GAP_STEPS,
+  MAX_CHATS,
+  QUICK_CHAT,
+  REACTIONS,
+  type Chat,
+} from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
 
-export type RaceOutcome = { moves: Move[]; rivals: string[]; seconds: number };
+export type RaceOutcome = {
+  moves: Move[];
+  rivals: string[];
+  seconds: number;
+  chat: Chat[];
+};
 
 type Props = {
   day: DayInfo;
@@ -36,6 +48,8 @@ type Props = {
   /** Live: the player steers. Replay: the recorded lane changes drive the runner. */
   mode: 'live' | 'replay';
   replayMoves?: Move[];
+  /** Your own chat lines, replayed with your run. */
+  replayChat?: Chat[];
   firstRun: boolean;
   saving?: boolean;
   onFinish: (outcome: RaceOutcome) => void;
@@ -73,6 +87,24 @@ const eventToast = (e: RaceEvent): Toast => {
       ? { title: `💥 You ran into u/${e.rival}`, body, tone: 'bad' }
       : { title: `💥 u/${e.rival} ran into you`, body, tone: 'bad' };
   }
+  if (
+    e.kind === 'bottle' ||
+    e.kind === 'soda' ||
+    e.kind === 'cake' ||
+    e.kind === 'candy'
+  ) {
+    const what = {
+      bottle: '💧 Water bottle',
+      soda: '🥤 Soda',
+      cake: '🍰 Cake',
+      candy: '🍬 Candy',
+    }[e.kind];
+    return {
+      title: `${what}!`,
+      body: `Burst of speed: ${e.seconds}s`,
+      tone: 'good',
+    };
+  }
   if (e.kind === 'fan')
     return {
       title: '🙌 High five!',
@@ -94,6 +126,7 @@ export const RunScreen = ({
   rivals,
   mode,
   replayMoves,
+  replayChat,
   firstRun,
   saving,
   onFinish,
@@ -114,6 +147,20 @@ export const RunScreen = ({
   const fastRef = useRef(false);
   const laneRef = useRef<Lane>(startLane(profile.username));
   const skipRef = useRef(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatRef = useRef<Chat[]>([]);
+  const stepRef = useRef(0);
+  const worldRef = useRef<RunWorld | null>(null);
+
+  const sayLine = (line: number) => {
+    setChatOpen(false);
+    const step = stepRef.current;
+    const last = chatRef.current.at(-1);
+    if (last && step - last.step < CHAT_GAP_STEPS) return;
+    if (chatRef.current.length >= MAX_CHATS) return;
+    chatRef.current.push({ step, line });
+    worldRef.current?.say('__me', QUICK_CHAT[line] ?? '');
+  };
   const finishRef = useRef(onFinish);
 
   useEffect(() => {
@@ -122,6 +169,12 @@ export const RunScreen = ({
   useEffect(() => {
     fastRef.current = fast;
   }, [fast]);
+  // The steering hint goes away on the first swipe, or after a few seconds.
+  useEffect(() => {
+    if (!showHelp) return;
+    const id = window.setTimeout(() => setShowHelp(false), 9000);
+    return () => window.clearTimeout(id);
+  }, [showHelp]);
 
   const steer = (dir: -1 | 1) => {
     if (!live) return;
@@ -179,6 +232,7 @@ export const RunScreen = ({
         labelled: true,
       },
     ];
+    chatRef.current = [];
     const world = new RunWorld({
       canvas,
       city: day.city,
@@ -194,7 +248,7 @@ export const RunScreen = ({
     const shownDrinks = new Set<number>();
 
     let animT = 0;
-    let last = performance.now();
+    let last = -1;
     let budget = 0;
     let countdown = live ? 2.4 : 0;
     let finishedAt: number | null = null;
@@ -205,6 +259,11 @@ export const RunScreen = ({
     let replayIndex = 0;
     let raf = 0;
     let reported = false;
+    worldRef.current = world;
+    const chatIndex = new Map<string, number>();
+    let myChatIndex = 0;
+    const pick = (lines: readonly string[], n: number) =>
+      lines[n % lines.length] ?? lines[0] ?? '';
 
     const show = (t: Toast, seconds: number) => {
       toast = t;
@@ -214,6 +273,7 @@ export const RunScreen = ({
     const handle = (events: RaceEvent[]) => {
       for (const e of events) {
         if (e.kind === 'bump') {
+          world.say(e.rival, pick(REACTIONS.bumped, e.step));
           world.fall('__me');
           world.fall(e.rival);
         } else {
@@ -224,6 +284,7 @@ export const RunScreen = ({
     };
 
     const loop = (now: number) => {
+      if (last < 0) last = now;
       const dt = Math.min(0.25, (now - last) / 1000);
       last = now;
       animT += dt;
@@ -331,6 +392,25 @@ export const RunScreen = ({
       }
       if (toast && animT > toastUntil) toast = null;
 
+      // Lines other runners said at this point of their race, and your own lines in a replay
+      stepRef.current = state.step;
+      for (const r of rivals) {
+        if (!r.chat || r.chat.length === 0) continue;
+        const i = chatIndex.get(r.username) ?? 0;
+        const c = r.chat[i];
+        if (c && state.t >= c.step * RACE_DT) {
+          world.say(r.username, QUICK_CHAT[c.line] ?? '');
+          chatIndex.set(r.username, i + 1);
+        }
+      }
+      if (!live && replayChat) {
+        const c = replayChat[myChatIndex];
+        if (c && state.step >= c.step) {
+          world.say('__me', QUICK_CHAT[c.line] ?? '');
+          myChatIndex += 1;
+        }
+      }
+
       if (now - lastHud > 90 || state.done) {
         lastHud = now;
         const prev =
@@ -355,6 +435,7 @@ export const RunScreen = ({
           moves: state.moves,
           rivals: rivalList.map((r) => r.username),
           seconds: state.finalSeconds,
+          chat: chatRef.current,
         });
       }
       raf = requestAnimationFrame(loop);
@@ -362,6 +443,7 @@ export const RunScreen = ({
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      worldRef.current = null;
       world.dispose();
     };
   }, [
@@ -373,6 +455,7 @@ export const RunScreen = ({
     rivals,
     live,
     replayMoves,
+    replayChat,
   ]);
 
   // Swipe to change lanes
@@ -458,6 +541,27 @@ export const RunScreen = ({
           {hud.countdown}
         </p>
       )}
+      {chatOpen && live && !finished && (
+        <div
+          className="pop-in absolute inset-x-3 bottom-[148px] mx-auto grid max-w-[380px] grid-cols-2 gap-1.5 rounded-2xl border-2 border-ink bg-white/95 p-2"
+          role="menu"
+          aria-label="Quick chat lines"
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+        >
+          {QUICK_CHAT.map((line, i) => (
+            <button
+              key={line}
+              type="button"
+              role="menuitem"
+              onClick={() => sayLine(i)}
+              className="rounded-xl bg-[var(--sky)] px-2 py-1.5 text-left text-[13px] font-extrabold"
+            >
+              {line}
+            </button>
+          ))}
+        </div>
+      )}
       {showHelp && !finished && (
         <div className="pop-in pointer-events-none absolute inset-x-6 bottom-[104px] mx-auto max-w-[340px] rounded-xl bg-ink px-3 py-2 text-center text-[13px] font-bold text-white">
           Swipe or tap ◀ ▶ to change lanes. Dodge cones, high-five fans, and
@@ -484,15 +588,31 @@ export const RunScreen = ({
             >
               ◀
             </button>
-            <button
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => (skipRef.current = true)}
-              className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
-              disabled={finished}
-            >
-              Finish without steering
-            </button>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setShowHelp(false);
+                  setChatOpen((o) => !o);
+                }}
+                className="chunky h-12 w-12 rounded-full bg-gold text-[22px]"
+                aria-label="Quick chat"
+                aria-expanded={chatOpen}
+                disabled={finished || hud.countdown > 0}
+              >
+                💬
+              </button>
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => (skipRef.current = true)}
+                className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
+                disabled={finished}
+              >
+                Finish without steering
+              </button>
+            </div>
             <button
               type="button"
               onPointerDown={(e) => {

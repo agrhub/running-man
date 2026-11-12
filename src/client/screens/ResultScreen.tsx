@@ -8,6 +8,8 @@ import type { DayInfo } from '../../shared/content';
 import { itemById, petById } from '../../shared/economy';
 import { PACE_LABEL, formatTime } from '../../shared/sim';
 import { CrewBar } from '../components/CrewBar';
+import { VoteCard } from '../components/VoteCard';
+import type { CityVote, NextCityId } from '../../shared/vote';
 import { Leaderboard } from '../components/Leaderboard';
 import { PACE_COLOR } from '../lib/theme';
 
@@ -26,6 +28,9 @@ type Props = {
   onLocker: () => void;
   onReplay: () => void;
   onCheer: (username: string) => void;
+  vote: CityVote;
+  voting: boolean;
+  onVote: (cityId: NextCityId) => void;
 };
 
 const KIND_WORD: Record<string, [string, string]> = {
@@ -233,6 +238,8 @@ export const ResultScreen = (p: Props) => {
           />
         </div>
       </section>
+
+      <VoteCard vote={p.vote} busy={p.voting} onVote={p.onVote} />
 
       <button
         type="button"

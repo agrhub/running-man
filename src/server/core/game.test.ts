@@ -13,6 +13,7 @@ import type {
   ProfileResponse,
   RunResponse,
   ShareResponse,
+  VoteResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -470,6 +471,53 @@ describe('game API', () => {
     ).toBe(409);
     const bob = await call<InitResponse>(h.as('bob'), 'GET', '/init');
     expect(bob.json.cheersReceived).toBe(1);
+  });
+
+  it('lets runners vote once a week on the next city', async () => {
+    const date = '2026-11-12';
+    expect(
+      (await call(h.as(undefined), 'POST', '/vote', { cityId: 'seoul' })).status
+    ).toBe(401);
+    // Only runners who ran a stage this week can vote.
+    expect(
+      (await call(h.as('alice'), 'POST', '/vote', { cityId: 'seoul' })).status
+    ).toBe(409);
+    await call(h.as('alice'), 'POST', '/run', { plan: planFor(date) });
+    await call(h.as('bob'), 'POST', '/run', { plan: planFor(date) });
+    expect(
+      (await call(h.as('alice'), 'POST', '/vote', { cityId: 'atlantis' }))
+        .status
+    ).toBe(400);
+    const first = await call<VoteResponse>(h.as('alice'), 'POST', '/vote', {
+      cityId: 'seoul',
+      journeyId: 'journey-1',
+    });
+    expect(first.json.vote.counts.seoul).toBe(1);
+    expect(first.json.vote.mine).toBe('seoul');
+    expect(h.events).toContain('city_voted');
+    expect(
+      (await call(h.as('alice'), 'POST', '/vote', { cityId: 'rio' })).status
+    ).toBe(409);
+    await call(h.as('bob'), 'POST', '/vote', { cityId: 'seoul' });
+    const bob = await call<InitResponse>(h.as('bob'), 'GET', '/init');
+    expect(bob.json.vote).toMatchObject({ total: 2, mine: 'seoul' });
+    const guest = await call<InitResponse>(h.as(undefined), 'GET', '/init');
+    expect(guest.json.vote.mine).toBeNull();
+    // A new week (a new city) starts a new vote, and last week's runners need a new run.
+    const nextWeek = addDays(date, 7);
+    const later = await call<InitResponse>(
+      h.as('alice').at(nextWeek),
+      'GET',
+      '/init'
+    );
+    expect(later.json.vote.total).toBe(0);
+    expect(
+      (
+        await call(h.as('alice').at(nextWeek), 'POST', '/vote', {
+          cityId: 'rio',
+        })
+      ).status
+    ).toBe(409);
   });
 
   it('shares the result to the comments once', async () => {

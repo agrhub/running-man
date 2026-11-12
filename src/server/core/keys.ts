@@ -8,4 +8,6 @@ export const keys = {
   cheers: (dateKey: string) => `cheers:${dateKey}`,
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
+  votes: (season: number) => `votes:${season}`,
+  voters: (season: number) => `voters:${season}`,
 };

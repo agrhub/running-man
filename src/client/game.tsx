@@ -9,9 +9,11 @@ import type {
   RunRecord,
   RunResponse,
   ShareResponse,
+  VoteResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
+import type { NextCityId } from '../shared/vote';
 import type { Plan } from '../shared/sim';
 import { ApiError, request } from './lib/api';
 import { applyCityTheme } from './lib/theme';
@@ -185,6 +187,25 @@ export const App = () => {
     }
   };
 
+  const vote = async (cityId: NextCityId) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      const res = await request<VoteResponse>('/vote', {
+        cityId,
+        journeyId: data.journeyId,
+      });
+      patch({ vote: res.vote });
+      showToast(res.message);
+      sfx.snack();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const share = async () => {
     if (!data?.myRun) return;
     setBusy(true);
@@ -336,6 +357,9 @@ export const App = () => {
           onLocker={openLocker}
           onReplay={() => setScreen('run')}
           onCheer={(username) => void profileCall('/cheer', { username })}
+          vote={data.vote}
+          voting={busy}
+          onVote={(cityId) => void vote(cityId)}
         />
       ) : null;
     case 'locker':

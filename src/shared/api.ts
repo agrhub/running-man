@@ -13,6 +13,7 @@ export type Incident = {
   atFault: boolean;
 };
 import type { Look, PetId, RewardBreakdown } from './economy';
+import type { CityVote } from './vote';
 import type { KmSplit, Plan } from './sim';
 
 export type Profile = {
@@ -111,6 +112,8 @@ export type InitResponse = {
   runners: RunnerTrack[];
   crew: CrewProgress;
   cheersReceived: number;
+  /** This week's vote on the next city to build. */
+  vote: CityVote;
   journeyId: string | null;
 };
 
@@ -153,6 +156,9 @@ export type RegisterRequest = {
 export type ItemRequest = { itemId: string; journeyId?: string | null };
 export type PetRequest = { petId: PetId; journeyId?: string | null };
 export type CheerRequest = { username: string; journeyId?: string | null };
+export type VoteRequest = { cityId: string; journeyId?: string | null };
+
+export type VoteResponse = { type: 'vote'; vote: CityVote; message: string };
 export type JourneyRequest = { journeyId?: string | null };
 
 export type ProfileResponse = {

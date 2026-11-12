@@ -43,6 +43,9 @@ type RunnerView = {
   z: number;
   x: number;
   fellAt: number;
+  /** Materials of other runners, faded while they stand between the camera and you. */
+  materials: THREE.Material[];
+  opacity: number;
 };
 
 const makeLabel = (text: string, color: string): THREE.Sprite => {
@@ -215,10 +218,25 @@ export class RunWorld {
     const paint = makePainter();
     for (const runner of opts.runners) {
       const holder = new THREE.Group();
-      const chibi = buildChibi(runner.look, makePainter(), runner.bib ?? null);
+      const chibi = buildChibi(
+        runner.look,
+        makePainter(runner.other),
+        runner.bib ?? null
+      );
       chibi.group.rotation.y = opts.preview ? 0 : FORWARD;
       holder.add(chibi.group);
       this.scene.add(holder);
+      const materials = new Set<THREE.Material>();
+      if (runner.other) {
+        chibi.group.traverse((o) => {
+          if (
+            o instanceof THREE.Mesh &&
+            !Array.isArray(o.material) &&
+            o.material.transparent
+          )
+            materials.add(o.material);
+        });
+      }
       let pet: Animated | null = null;
       if (!runner.other) {
         pet = buildPet(runner.look.pet, paint);
@@ -242,6 +260,8 @@ export class RunWorld {
         z: 0,
         x: runner.offset ?? 0,
         fellAt: -10,
+        materials: [...materials],
+        opacity: 1,
       });
     }
 
@@ -366,6 +386,22 @@ export class RunWorld {
     }
 
     for (const it of this.items) it.update(t);
+
+    // Runners between the camera and you fade so they never hide your runner.
+    const meView = this.views.get(focus);
+    if (meView && !this.opts.preview) {
+      for (const v of this.views.values()) {
+        if (!v.runner.other || v.materials.length === 0) continue;
+        const behind = v.z > meView.z + 0.6 && v.z < meView.z + 7.5;
+        const target = behind && Math.abs(v.x - meView.x * 0.7) < 2.8 ? 0.3 : 1;
+        if (Math.abs(target - v.opacity) < 0.01) continue;
+        v.opacity += (target - v.opacity) * Math.min(1, dt * 10);
+        for (const m of v.materials) {
+          m.opacity = v.opacity;
+          m.depthWrite = v.opacity > 0.95;
+        }
+      }
+    }
 
     for (const [name, b] of this.bubbles) {
       const v = this.views.get(name);

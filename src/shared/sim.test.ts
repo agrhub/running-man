@@ -116,7 +116,8 @@ describe('daily schedule', () => {
     const next = dayInfo(addDays('2026-11-09', 7));
     expect(next.city.id).toBe('paris');
     expect(next.season).toBe(1);
-    expect(dayInfo(addDays('2026-11-09', 21)).city.id).toBe('tokyo');
+    expect(dayInfo(addDays('2026-11-09', 21)).city.id).toBe('dubai');
+    expect(dayInfo(addDays('2026-11-09', 28)).city.id).toBe('tokyo');
   });
 
   it('gives everyone the same weather on the same day', () => {
@@ -157,5 +158,23 @@ describe('economy', () => {
     expect(conditionMet({ kind: 'streak', days: 3 }, p)).toBe(true);
     expect(conditionMet({ kind: 'streak', days: 7 }, p)).toBe(false);
     expect(conditionMet({ kind: 'cityFinish', city: 'tokyo' }, p)).toBe(false);
+  });
+});
+
+describe('terrains', () => {
+  it('gives every stage a terrain, with all seven kinds somewhere in the rotation', () => {
+    const kinds = new Set(
+      CITIES.flatMap((c) => c.stages.map((st) => st.terrain))
+    );
+    expect([...kinds].sort()).toEqual([
+      'beach',
+      'city',
+      'desert',
+      'forest',
+      'hills',
+      'park',
+      'zoo',
+    ]);
+    for (const c of CITIES) expect(c.stages).toHaveLength(7);
   });
 });

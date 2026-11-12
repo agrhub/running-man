@@ -1,6 +1,20 @@
 import { mulberry32, hashString } from './rng';
 
-export type CityId = 'tokyo' | 'paris' | 'hanoi';
+export type CityId = 'tokyo' | 'paris' | 'hanoi' | 'dubai';
+
+/** What the course runs through. Each terrain has its own scenery. */
+export type Terrain =
+  'city' | 'park' | 'forest' | 'zoo' | 'hills' | 'beach' | 'desert';
+
+export const TERRAIN: Record<Terrain, { label: string; icon: string }> = {
+  city: { label: 'City streets', icon: '🏙️' },
+  park: { label: 'Park', icon: '🌳' },
+  forest: { label: 'Forest', icon: '🌲' },
+  zoo: { label: 'Zoo', icon: '🦒' },
+  hills: { label: 'Hills', icon: '⛰️' },
+  beach: { label: 'Beach', icon: '🏖️' },
+  desert: { label: 'Desert', icon: '🏜️' },
+};
 
 export type LandmarkKind =
   | 'tower'
@@ -10,7 +24,10 @@ export type LandmarkKind =
   | 'arch'
   | 'lake'
   | 'crossing'
-  | 'basilica';
+  | 'basilica'
+  | 'sail'
+  | 'wheel'
+  | 'fort';
 
 export type Landmark = {
   name: string;
@@ -27,6 +44,7 @@ export type Stage = {
   /** Water stations sit at the end of these kilometres (1-based km marks). */
   waterAfterKm: number[];
   landmark: Landmark;
+  terrain: Terrain;
 };
 
 export type CityPalette = {
@@ -74,6 +92,7 @@ export const CITIES: City[] = [
     stages: [
       {
         name: 'Asakusa Lanterns',
+        terrain: 'city',
         grades: [0, 1, 0, -1, 0, 1],
         waterAfterKm: [2, 4],
         landmark: {
@@ -86,6 +105,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Sumida Riverside',
+        terrain: 'city',
         grades: [0, -1, -1, 0, 2, 0],
         waterAfterKm: [3],
         landmark: {
@@ -97,6 +117,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Shibuya Scramble',
+        terrain: 'city',
         grades: [1, 0, 0, 0, -1, 0],
         waterAfterKm: [2, 5],
         landmark: {
@@ -108,6 +129,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Meiji Forest',
+        terrain: 'forest',
         grades: [2, 3, 1, -2, -2, 0],
         waterAfterKm: [2, 4],
         landmark: {
@@ -120,6 +142,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Rainbow Bridge',
+        terrain: 'city',
         grades: [0, 3, 2, -3, -2, 0],
         waterAfterKm: [1, 4],
         landmark: {
@@ -130,18 +153,21 @@ export const CITIES: City[] = [
         },
       },
       {
-        name: 'Shinjuku Neon',
+        name: 'Ueno Zoo Loop',
+        terrain: 'zoo',
         grades: [0, 1, 1, 0, 0, -1],
         waterAfterKm: [3],
         landmark: {
-          name: 'Government Towers',
-          kind: 'tower',
-          km: 4,
-          blurb: 'Twin towers with free observation decks on the 45th floor.',
+          name: 'Five-Storey Pagoda',
+          kind: 'temple',
+          km: 3.2,
+          blurb:
+            'This pagoda stands inside the zoo grounds. It was rebuilt in 1639.',
         },
       },
       {
         name: 'Imperial Gardens',
+        terrain: 'park',
         grades: [0, 0, 1, 2, -1, -2],
         waterAfterKm: [2, 4],
         landmark: {
@@ -170,6 +196,7 @@ export const CITIES: City[] = [
     stages: [
       {
         name: 'Seine Embankment',
+        terrain: 'city',
         grades: [0, 0, -1, 0, 0, 1],
         waterAfterKm: [3],
         landmark: {
@@ -181,6 +208,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Champs Sprint',
+        terrain: 'city',
         grades: [1, 1, 2, 1, 0, -2],
         waterAfterKm: [2, 4],
         landmark: {
@@ -192,6 +220,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Montmartre Climb',
+        terrain: 'hills',
         grades: [2, 4, 6, 3, -5, -4],
         waterAfterKm: [2, 4],
         landmark: {
@@ -203,6 +232,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Latin Quarter',
+        terrain: 'city',
         grades: [0, 2, 1, -1, -1, 0],
         waterAfterKm: [3],
         landmark: {
@@ -214,18 +244,21 @@ export const CITIES: City[] = [
         },
       },
       {
-        name: 'Bridges Loop',
+        name: 'Vincennes Woods',
+        terrain: 'forest',
         grades: [0, -1, 1, -1, 1, 0],
         waterAfterKm: [2, 5],
         landmark: {
-          name: 'Golden Bridge',
-          kind: 'bridge',
+          name: 'Vincennes Castle',
+          kind: 'fort',
           km: 2.6,
-          blurb: 'Golden statues stand on its four corner pillars.',
+          blurb:
+            'Its 52 m keep is the tallest medieval fortified tower in Europe.',
         },
       },
       {
         name: 'Garden Paths',
+        terrain: 'park',
         grades: [0, 0, 0, 1, 0, 0],
         waterAfterKm: [3],
         landmark: {
@@ -238,6 +271,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Grand Finale',
+        terrain: 'city',
         grades: [-1, 0, 1, 1, 0, 0],
         waterAfterKm: [2, 4],
         landmark: {
@@ -266,6 +300,7 @@ export const CITIES: City[] = [
     stages: [
       {
         name: 'Sword Lake Loop',
+        terrain: 'park',
         grades: [0, 0, 0, 0, 0, 0],
         waterAfterKm: [3],
         landmark: {
@@ -277,6 +312,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Old Quarter Alleys',
+        terrain: 'city',
         grades: [0, 1, -1, 1, 0, -1],
         waterAfterKm: [2, 4],
         landmark: {
@@ -288,6 +324,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Long Bridge',
+        terrain: 'city',
         grades: [0, 2, 1, 0, -2, -1],
         waterAfterKm: [1, 4],
         landmark: {
@@ -300,6 +337,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'West Lake Breeze',
+        terrain: 'park',
         grades: [0, 0, 1, 0, -1, 0],
         waterAfterKm: [3],
         landmark: {
@@ -312,6 +350,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Literature Temple',
+        terrain: 'city',
         grades: [1, 0, 0, 1, 0, -1],
         waterAfterKm: [2, 4],
         landmark: {
@@ -323,6 +362,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Train Street',
+        terrain: 'city',
         grades: [0, 0, -1, 0, 1, 0],
         waterAfterKm: [3],
         landmark: {
@@ -335,6 +375,7 @@ export const CITIES: City[] = [
       },
       {
         name: 'Ba Dinh Finale',
+        terrain: 'city',
         grades: [0, 1, 2, 0, -1, -1],
         waterAfterKm: [2, 4],
         landmark: {
@@ -342,6 +383,112 @@ export const CITIES: City[] = [
           kind: 'tower',
           km: 4.5,
           blurb: 'Built in 1812, it survived when most of the citadel did not.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'dubai',
+    name: 'Dubai',
+    country: 'United Arab Emirates',
+    flag: '🇦🇪',
+    palette: {
+      sky: '#ffe3c2',
+      skyLow: '#fff6ea',
+      ground: '#ecd9b4',
+      road: '#5a5862',
+      roadLine: '#fff4dc',
+      accent: '#d99a1e',
+      buildings: ['#e9d8b8', '#cfe3ec', '#f1e4cf', '#b9d3df', '#e6cfa8'],
+    },
+    stages: [
+      {
+        name: 'Downtown Boulevard',
+        terrain: 'city',
+        grades: [0, 1, 0, 0, -1, 0],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Needle Tower',
+          kind: 'tower',
+          km: 3,
+          blurb:
+            'At 828 m, the tallest building in the world rises over this boulevard.',
+        },
+      },
+      {
+        name: 'Jumeirah Beach',
+        terrain: 'beach',
+        grades: [0, 0, -1, 0, 1, 0],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Sail Hotel',
+          kind: 'sail',
+          km: 3.4,
+          blurb:
+            'Built on its own island, the sail-shaped hotel rises 321 m over the sea.',
+        },
+      },
+      {
+        name: 'Bluewaters Boardwalk',
+        terrain: 'beach',
+        grades: [0, 1, 0, -1, 0, 0],
+        waterAfterKm: [3],
+        landmark: {
+          name: 'Giant Wheel',
+          kind: 'wheel',
+          km: 2.5,
+          blurb:
+            'At 250 m, this is the tallest observation wheel in the world.',
+        },
+      },
+      {
+        name: 'Desert Dunes',
+        terrain: 'desert',
+        grades: [2, 3, -2, 3, -3, -1],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Desert Fort',
+          kind: 'fort',
+          km: 3,
+          blurb:
+            'Mud-brick forts once guarded the oases on the old caravan routes.',
+        },
+      },
+      {
+        name: 'Safari Park',
+        terrain: 'zoo',
+        grades: [0, 1, 0, 1, -1, -1],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Safari Gate',
+          kind: 'gate',
+          km: 1.5,
+          blurb:
+            'Giraffes, rhinos and lions roam the park on the edge of the desert.',
+        },
+      },
+      {
+        name: 'Creek Old Town',
+        terrain: 'city',
+        grades: [0, -1, 0, 0, 1, 0],
+        waterAfterKm: [3],
+        landmark: {
+          name: 'Old Fort',
+          kind: 'fort',
+          km: 2.2,
+          blurb: 'Built around 1787, it is the oldest building in the city.',
+        },
+      },
+      {
+        name: 'Marina Finale',
+        terrain: 'city',
+        grades: [0, 0, 1, 0, 0, -1],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Twisted Tower',
+          kind: 'tower',
+          km: 4,
+          blurb: 'This tower turns a full 90 degrees from its base to its top.',
         },
       },
     ],

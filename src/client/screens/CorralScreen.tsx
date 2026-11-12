@@ -96,7 +96,8 @@ export const CorralScreen = ({
         <ul className="mt-3 flex flex-col gap-1 text-[13px]">
           <li>◀ ▶ Swipe or tap to change lanes.</li>
           <li>
-            🚧 Cones, puddles and cups cost seconds. 🙌 Fans give a high five.
+            🚧 Cones, puddles and cups cost seconds. 🍬 Snacks and 🙌 high fives
+            speed you up.
           </li>
           <li>💥 Run into a runner and you both fall.</li>
         </ul>

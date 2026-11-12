@@ -23,7 +23,6 @@ export const RACE_DT = 0.5;
 export const BUMP_SECONDS = 4;
 /** No collisions in the start crowd, and not twice with the same runner within this many seconds. */
 export const BUMP_GRACE_KM = 0.5;
-const BUMP_COOLDOWN = 45;
 /** Runners closer than this (km) in the same lane are touching. */
 const TOUCH_KM = 0.0025;
 export const MAX_RIVALS = 12;
@@ -239,8 +238,8 @@ export const stepRace = (
         continue;
       const crossed = prevSide !== undefined && prevSide !== side;
       if (!crossed && Math.abs(gap) > TOUCH_KM) continue;
-      const last = s.lastBump[r.username];
-      if (last !== undefined && s.t - last < BUMP_COOLDOWN) continue;
+      // After a crash two runners keep apart: each pair collides at most once a race.
+      if (s.lastBump[r.username] !== undefined) continue;
       s.lastBump[r.username] = s.t;
       // Whoever was behind before the contact ran into the other.
       const atFault = (prevSide ?? side) < 0;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { City, CityId, Landmark, Stage } from '../../shared/content';
-import type { CourseItem } from '../../shared/course';
+import { isPickup, type CourseItem } from '../../shared/course';
 import { hashString, mulberry32 } from '../../shared/rng';
 
 /*
@@ -1848,6 +1848,157 @@ export const buildItem = (item: CourseItem, laneWidth: number): ItemView => {
             Math.floor(i / 4) * 0.35 - 0.2 - k * (0.8 + (i % 3) * 0.4);
           c.rotation.x = k * 4 * (i % 2 ? 1 : -1);
         });
+      },
+    };
+  }
+
+  if (isPickup(item.kind)) {
+    const snack = new THREE.Group();
+    const add = (
+      geo: THREE.BufferGeometry,
+      color: string,
+      x = 0,
+      y = 0,
+      z = 0,
+      extra: Partial<THREE.MeshStandardMaterialParameters> = {}
+    ) => {
+      const m = new THREE.Mesh(geo, std(color, extra));
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      snack.add(m);
+      return m;
+    };
+    if (item.kind === 'bottle') {
+      add(
+        new THREE.CylinderGeometry(0.13, 0.13, 0.42, 14),
+        '#7fd3ff',
+        0,
+        0,
+        0,
+        { transparent: true, opacity: 0.85, roughness: 0.1 }
+      );
+      add(
+        new THREE.CylinderGeometry(0.135, 0.135, 0.14, 14),
+        '#38b6e8',
+        0,
+        -0.02,
+        0
+      );
+      add(
+        new THREE.CylinderGeometry(0.06, 0.1, 0.1, 12),
+        '#7fd3ff',
+        0,
+        0.26,
+        0,
+        { transparent: true, opacity: 0.85 }
+      );
+      add(
+        new THREE.CylinderGeometry(0.065, 0.065, 0.06, 12),
+        '#1d6fd1',
+        0,
+        0.33,
+        0
+      );
+    } else if (item.kind === 'soda') {
+      add(
+        new THREE.CylinderGeometry(0.13, 0.13, 0.34, 16),
+        '#e63946',
+        0,
+        0,
+        0,
+        { metalness: 0.5, roughness: 0.3 }
+      );
+      add(
+        new THREE.CylinderGeometry(0.11, 0.13, 0.04, 16),
+        '#d9dde2',
+        0,
+        0.19,
+        0,
+        { metalness: 0.7 }
+      );
+      add(
+        new THREE.TorusGeometry(0.133, 0.02, 6, 20),
+        '#ffffff',
+        0,
+        0.03,
+        0
+      ).rotateX(Math.PI / 2);
+    } else if (item.kind === 'cake') {
+      add(
+        new THREE.CylinderGeometry(
+          0.24,
+          0.24,
+          0.2,
+          3,
+          1,
+          false,
+          0,
+          Math.PI / 2.2
+        ),
+        '#f6d7a7',
+        0,
+        -0.05,
+        0
+      );
+      add(
+        new THREE.CylinderGeometry(
+          0.245,
+          0.245,
+          0.06,
+          3,
+          1,
+          false,
+          0,
+          Math.PI / 2.2
+        ),
+        '#ff9fc2',
+        0,
+        0.08,
+        0
+      );
+      add(new THREE.SphereGeometry(0.05, 10, 8), '#e63946', 0.08, 0.15, 0.08);
+    } else {
+      add(new THREE.SphereGeometry(0.13, 14, 10), '#ff5d8f');
+      add(new THREE.ConeGeometry(0.09, 0.14, 8), '#ffd166', 0.17, 0, 0).rotateZ(
+        Math.PI / 2
+      );
+      add(
+        new THREE.ConeGeometry(0.09, 0.14, 8),
+        '#ffd166',
+        -0.17,
+        0,
+        0
+      ).rotateZ(-Math.PI / 2);
+    }
+    snack.scale.setScalar(1.6);
+    snack.position.y = 0.85;
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.42, 0.55, 28),
+      new THREE.MeshBasicMaterial({
+        color: '#fff3a3',
+        transparent: true,
+        opacity: 0.75,
+        depthWrite: false,
+      })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.03;
+    g.add(snack, ring);
+    return {
+      group: g,
+      hit: (t) => (hitAt = t),
+      update: (t) => {
+        if (hitAt < 0) {
+          snack.rotation.y = t * 2.2;
+          snack.position.y = 0.85 + Math.sin(t * 3 + item.km * 10) * 0.08;
+          ring.scale.setScalar(1 + Math.sin(t * 4) * 0.08);
+          return;
+        }
+        const k = (t - hitAt) / 0.45;
+        snack.visible = k < 1;
+        ring.visible = k < 1;
+        snack.position.y = 0.85 + k * 1.2;
+        snack.scale.setScalar(1.6 * Math.max(0.01, 1 - k));
       },
     };
   }

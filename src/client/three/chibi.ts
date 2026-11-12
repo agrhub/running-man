@@ -35,6 +35,38 @@ export const makePainter = (): Painter => {
   };
 };
 
+let blobTex: THREE.CanvasTexture | null = null;
+
+/** A soft round shadow under a character: one quad instead of a shadow pass per body part. */
+export const blobShadow = (size: number): THREE.Mesh => {
+  if (!blobTex) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    if (g) {
+      const r = g.createRadialGradient(32, 32, 1, 32, 32, 31);
+      r.addColorStop(0, 'rgba(0,0,0,.42)');
+      r.addColorStop(0.6, 'rgba(0,0,0,.18)');
+      r.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = r;
+      g.fillRect(0, 0, 64, 64);
+    }
+    blobTex = new THREE.CanvasTexture(c);
+  }
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(size, size),
+    new THREE.MeshBasicMaterial({
+      map: blobTex,
+      transparent: true,
+      depthWrite: false,
+    })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = 0.02;
+  m.renderOrder = 1;
+  return m;
+};
+
 const mesh = (
   geo: THREE.BufferGeometry,
   mat: THREE.Material,
@@ -56,7 +88,38 @@ export type Animated = {
 /**
  * Builds a chibi runner facing +x. About 1.4 units tall: big head, tiny body.
  */
-export const buildChibi = (look: Look, paint: Painter): Animated => {
+const bibTextures = new Map<number, THREE.CanvasTexture>();
+
+/** The race bib pinned on the runner's back: a white square with the number. */
+const bibTexture = (bib: number): THREE.CanvasTexture => {
+  const hit = bibTextures.get(bib);
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 96;
+  const g = c.getContext('2d');
+  if (g) {
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, 128, 96);
+    g.fillStyle = '#ff5f4f';
+    g.fillRect(0, 0, 128, 16);
+    g.fillStyle = '#2a2340';
+    g.font = '800 54px "Baloo 2", sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(String(bib).padStart(4, '0'), 64, 60, 120);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  bibTextures.set(bib, t);
+  return t;
+};
+
+export const buildChibi = (
+  look: Look,
+  paint: Painter,
+  bib: number | null = null
+): Animated => {
   const group = new THREE.Group();
   const skin = paint(SKIN_TONES[look.skin] ?? SKIN_TONES[0]!);
   const hairColor = HAIR_TONES[look.hair] ?? HAIR_TONES[0]!;
@@ -72,6 +135,16 @@ export const buildChibi = (look: Look, paint: Painter): Animated => {
 
   // Torso
   const shirtColor = top?.color ?? '#ff7a6b';
+  if (bib !== null) {
+    // the bib on the back (the runner faces +x)
+    const bibMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.3, 0.22),
+      new THREE.MeshStandardMaterial({ map: bibTexture(bib), roughness: 0.8 })
+    );
+    bibMesh.position.set(-0.212, 0.2, 0);
+    bibMesh.rotation.y = -Math.PI / 2;
+    body.add(bibMesh);
+  }
   const torso = mesh(
     new THREE.CapsuleGeometry(0.2, 0.16, 4, 12),
     paint(shirtColor),
@@ -116,6 +189,54 @@ export const buildChibi = (look: Look, paint: Painter): Animated => {
   );
   hair.rotation.z = 0.25;
   head.add(hair);
+  const hairMat = paint(hairColor);
+  switch (look.hairStyle ?? 0) {
+    case 1: {
+      // spiky: a crown of little cones
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        const spike = mesh(
+          new THREE.ConeGeometry(0.07, 0.2, 6),
+          hairMat,
+          Math.cos(a) * 0.17 - 0.04,
+          0.33,
+          Math.sin(a) * 0.17
+        );
+        spike.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+        head.add(spike);
+      }
+      break;
+    }
+    case 2: {
+      // bob: hair down to the jaw at the sides and back
+      const bob = mesh(
+        new THREE.SphereGeometry(
+          0.375,
+          20,
+          14,
+          Math.PI * 0.6,
+          Math.PI * 1.8,
+          0,
+          Math.PI * 0.78
+        ),
+        hairMat,
+        -0.02,
+        0.0,
+        0
+      );
+      head.add(bob);
+      break;
+    }
+    case 3: {
+      // bun on top at the back
+      head.add(
+        mesh(new THREE.SphereGeometry(0.13, 12, 10), hairMat, -0.18, 0.3, 0)
+      );
+      break;
+    }
+    default:
+      break;
+  }
   const eyeGeo = new THREE.SphereGeometry(0.045, 10, 8);
   head.add(
     mesh(eyeGeo, ink, 0.3, 0.0, 0.12),
@@ -305,8 +426,9 @@ export const buildChibi = (look: Look, paint: Painter): Animated => {
   const legL = makeLeg(1);
   const legR = makeLeg(-1);
 
+  group.add(blobShadow(1.1));
   group.traverse((o) => {
-    if (o instanceof THREE.Mesh) o.castShadow = true;
+    if (o instanceof THREE.Mesh) o.castShadow = false;
   });
 
   return {
@@ -347,6 +469,7 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
   const legs: THREE.Object3D[] = [];
   const bodyPivot = new THREE.Group();
   group.add(bodyPivot);
+  group.add(blobShadow(0.7));
 
   if (id === 'penguin') {
     const body = mesh(new THREE.SphereGeometry(0.22, 16, 12), main, 0, 0.3, 0);

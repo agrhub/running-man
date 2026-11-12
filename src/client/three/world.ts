@@ -382,7 +382,8 @@ export class RunWorld {
           view.pet.group.position.set(view.x + 0.75, 0, z + 0.6);
         view.pet.update(t, p.speed);
       }
-      if (view.label) view.label.position.set(view.x, 2.05 - drop, z);
+      // Just above the head (hair buns and hats included), so the tag reads as this runner's even up close.
+      if (view.label) view.label.position.set(view.x, 1.74 - drop, z);
     }
 
     for (const it of this.items) it.update(t);
@@ -414,7 +415,7 @@ export class RunWorld {
       }
       b.sprite.position.set(
         v.x,
-        2.65 + Math.min(0.15, (b.until - t) * 0.1),
+        2.1 + Math.min(0.1, (b.until - t) * 0.06),
         v.z
       );
       b.sprite.visible = v.holder.visible;

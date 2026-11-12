@@ -1,0 +1,54 @@
+import { describe, expect, it } from 'vitest';
+import { dayInfo } from './content';
+import { courseItems } from './course';
+
+const day = dayInfo('2026-11-12');
+const items = courseItems(day.dateKey, day.stage, day.weather.id);
+
+describe('courseItems', () => {
+  it('is the same for everyone on the same day', () => {
+    expect(courseItems(day.dateKey, day.stage, day.weather.id)).toEqual(items);
+    expect(courseItems('2026-11-13', day.stage, day.weather.id)).not.toEqual(
+      items
+    );
+  });
+
+  it('spreads 15 to 30 items over the stage and never blocks all lanes', () => {
+    expect(items.length).toBeGreaterThanOrEqual(15);
+    expect(items.length).toBeLessThanOrEqual(30);
+    const byKm = new Map<number, Set<number>>();
+    for (const it of items) {
+      expect(it.km).toBeGreaterThan(0.3);
+      expect(it.km).toBeLessThan(6);
+      if (it.kind !== 'fan')
+        byKm.set(it.km, (byKm.get(it.km) ?? new Set()).add(it.lane));
+    }
+    for (const lanes of byKm.values()) expect(lanes.size).toBeLessThan(3);
+  });
+
+  it('puts fans only on the outer lanes and puddles only in the rain', () => {
+    expect(
+      items.filter((i) => i.kind === 'fan').every((i) => i.lane !== 0)
+    ).toBe(true);
+    const rainDay = [
+      '2026-11-01',
+      '2026-11-02',
+      '2026-11-03',
+      '2026-11-04',
+      '2026-11-05',
+      '2026-11-06',
+    ]
+      .map((d) => ({ d, info: dayInfo(d) }))
+      .find(({ info }) => info.weather.id !== 'rain');
+    if (rainDay) {
+      const dry = courseItems(
+        rainDay.d,
+        rainDay.info.stage,
+        rainDay.info.weather.id
+      );
+      expect(dry.some((i) => i.kind === 'puddle')).toBe(false);
+    }
+    const wet = courseItems('x', day.stage, 'rain');
+    expect(wet.some((i) => i.kind === 'puddle')).toBe(true);
+  });
+});

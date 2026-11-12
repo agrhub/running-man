@@ -159,6 +159,18 @@ describe('economy', () => {
     expect(conditionMet({ kind: 'streak', days: 7 }, p)).toBe(false);
     expect(conditionMet({ kind: 'cityFinish', city: 'tokyo' }, p)).toBe(false);
   });
+
+  it('gives every city a hat for finishing it together', () => {
+    for (const c of CITIES) {
+      const hat = ITEMS.find(
+        (i) =>
+          i.slot === 'hat' &&
+          i.unlock.kind === 'cityFinish' &&
+          i.unlock.city === c.id
+      );
+      expect(hat, c.id).toBeDefined();
+    }
+  });
 });
 
 describe('terrains', () => {

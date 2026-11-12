@@ -320,6 +320,38 @@ export const buildChibi = (
       );
       break;
     }
+    case 'visor': {
+      // Open-top sun visor: a band, a wide brim and a gold sun on the front.
+      const mat = paint(hat.color);
+      head.add(
+        mesh(
+          new THREE.CylinderGeometry(0.355, 0.355, 0.1, 24, 1, true),
+          mat,
+          0,
+          0.14,
+          0
+        )
+      );
+      const brim = mesh(
+        new THREE.CylinderGeometry(0.24, 0.24, 0.035, 20),
+        mat,
+        0.36,
+        0.1,
+        0
+      );
+      brim.scale.set(1.25, 1, 1.5);
+      head.add(brim);
+      head.add(
+        mesh(
+          new THREE.CircleGeometry(0.06, 16),
+          paint('#ffc93c'),
+          0.358,
+          0.15,
+          0
+        ).rotateY(Math.PI / 2)
+      );
+      break;
+    }
     case 'tophat': {
       const mat = paint(hat.color);
       head.add(

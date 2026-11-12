@@ -78,7 +78,11 @@ watch you go by.
 
 The result is a race bib: your rank among today's runners, your time and splits, your streak and the badges you
 earned. One tap shares it to the comments, where the pinned strategy thread is already arguing about where to push.
-You can send one cheer a day to another runner.
+You can send one cheer a day to another runner, and once a week you vote on which city the crew should get next.
+
+Everything has sound, all synthesised in the browser: footsteps that follow your pace, the crowd in town, waves on the
+beach, wind in the desert, a bonk for a cone, a chime for cake, a thud when two runners go down, and a fanfare at the
+finish. Phones buzz on a crash.
 
 Every finished stage adds 6 km to the crew's goal of ten marathons in the city. When the crew finishes, everyone who
 ran that week gets badges and the city's hat (a hachimaki, a beret, a leaf hat or a sun visor). Badges, streaks and weather unlock
@@ -103,7 +107,7 @@ Pets and outfits never change race times.
 - The Devvit scheduler posts each day's stage with a pinned strategy comment. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 58 unit tests and a 26-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 61 unit tests and a 30-check Playwright run cover the full loop.
 
 **Challenges we ran into**
 
@@ -134,7 +138,7 @@ that only the community can finish works better.
 
 **What's next for Chibi City Marathon**
 
-More cities (London, New York, Seoul, Rio), mountain trail and snow stages, community-voted next city, weekly "half marathon" weekend specials,
+Building the cities the crew votes for (London, New York, Seoul, Rio), mountain trail and snow stages, weekly "half marathon" weekend specials,
 sub-communities racing as clubs, and premium cosmetics through Reddit's payments once eligible.
 
 ## 3. Demo video script (about 2 minutes)
@@ -172,6 +176,7 @@ In `docs/screenshots/` (portrait, 2x):
 11. `11-beach-dubai.png`: a beach stage in Dubai
 12. `12-desert-dubai.png`: a desert stage in Dubai
 13. `13-zoo.png`: a zoo stage
+14. `14-city-vote.png`: the next-city vote on the result screen
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

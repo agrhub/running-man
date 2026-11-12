@@ -27,6 +27,7 @@ import {
   type Progress,
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
+import { isValidChat } from '../../shared/chat';
 import { courseItems } from '../../shared/course';
 import {
   MAX_MOVES,
@@ -413,7 +414,8 @@ export const run = async (
   planInput: unknown,
   journeyId: string | null,
   movesInput: unknown = [],
-  rivalsInput: unknown = []
+  rivalsInput: unknown = [],
+  chatInput: unknown = []
 ): Promise<RunResponse> => {
   const { store } = deps;
   const username = await requireUser(deps);
@@ -432,6 +434,9 @@ export const run = async (
   if (!isValidMoves(movesInput))
     throw new GameError('That run could not be checked.');
   const moves = movesInput;
+  if (!isValidChat(chatInput))
+    throw new GameError('That chat could not be saved.');
+  const chat = chatInput;
 
   if (await store.get(keys.run(dateKey, username))) {
     throw new GameError(
@@ -510,6 +515,7 @@ export const run = async (
     marks: race.marks,
     seconds: result.totalSeconds,
     moves: moves.slice(0, MAX_MOVES),
+    chat,
   };
   await store.hSet(keys.tracks(dateKey), { [username]: JSON.stringify(track) });
 
@@ -567,6 +573,7 @@ export const run = async (
     splits: result.splits,
     moves,
     rivals: rivalRuns.map((r) => r.username),
+    chat,
     course: round1(itemEvents.reduce((t, e) => t + e.seconds, 0)),
     met: itemEvents.map((e) => e.kind),
     incidents: bumps,

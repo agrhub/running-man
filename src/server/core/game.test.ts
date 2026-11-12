@@ -298,6 +298,41 @@ describe('game API', () => {
     expect(quick?.bib).toBe(1);
   });
 
+  it('records quick-chat lines with the run and shows them to later runners', async () => {
+    const date = '2026-11-12';
+    const chat = [
+      { step: 40, line: 0 },
+      { step: 120, line: 2 },
+    ];
+    const ok = await call<RunResponse>(h.as('talker'), 'POST', '/run', {
+      plan: planFor(date),
+      moves: [],
+      rivals: [],
+      chat,
+    });
+    expect(ok.status).toBe(200);
+    const later = await call<InitResponse>(h.as('listener'), 'GET', '/init');
+    expect(
+      later.json.runners.find((r) => r.username === 'talker')?.chat
+    ).toEqual(chat);
+
+    const spam = Array.from({ length: 5 }, (_, i) => ({ step: i, line: 1 }));
+    const bad = await call(h.as('spammer'), 'POST', '/run', {
+      plan: planFor(date),
+      moves: [],
+      rivals: [],
+      chat: spam,
+    });
+    expect(bad.status).toBe(400);
+    const unknown = await call(h.as('rude'), 'POST', '/run', {
+      plan: planFor(date),
+      moves: [],
+      rivals: [],
+      chat: [{ step: 1, line: 99 }],
+    });
+    expect(unknown.status).toBe(400);
+  });
+
   it('rejects invalid plans', async () => {
     const { status } = await call(h, 'POST', '/run', {
       plan: { paces: ['push'], drinks: [] },

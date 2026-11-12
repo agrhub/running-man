@@ -72,6 +72,42 @@ const makeLabel = (text: string, color: string): THREE.Sprite => {
   return sprite;
 };
 
+const makeBubble = (text: string): THREE.Sprite => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.font = '700 40px Nunito, sans-serif';
+    const w = Math.min(496, ctx.measureText(text).width + 44);
+    const x = (512 - w) / 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#2a2340';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.roundRect(x, 8, w, 84, 30);
+    ctx.moveTo(240, 90);
+    ctx.lineTo(256, 118);
+    ctx.lineTo(272, 90);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(242, 84, 28, 8);
+    ctx.fillStyle = '#2a2340';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 256, 52, 470);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })
+  );
+  sprite.scale.set(2.4, 0.6, 1);
+  sprite.renderOrder = 11;
+  return sprite;
+};
+
 export type WorldOptions = {
   canvas: HTMLCanvasElement;
   city: City;
@@ -126,6 +162,10 @@ export class RunWorld {
   private finishTurn = 0;
   private baseFov = 55;
   private frames = 0;
+  private readonly bubbles = new Map<
+    string,
+    { sprite: THREE.Sprite; until: number }
+  >();
 
   constructor(private readonly opts: WorldOptions) {
     this.renderer = new THREE.WebGLRenderer({
@@ -242,6 +282,24 @@ export class RunWorld {
     this.camera.updateProjectionMatrix();
   }
 
+  private capSize(sprite: THREE.Sprite, w: number, h: number) {
+    const k = Math.min(1, this.camera.position.distanceTo(sprite.position) / 9);
+    sprite.scale.set(w * k, h * k, 1);
+  }
+
+  /** Shows a speech bubble over a runner for a few seconds. */
+  say(name: string, text: string) {
+    const old = this.bubbles.get(name);
+    if (old) {
+      this.scene.remove(old.sprite);
+      old.sprite.material.map?.dispose();
+      old.sprite.material.dispose();
+    }
+    const sprite = makeBubble(text);
+    this.scene.add(sprite);
+    this.bubbles.set(name, { sprite, until: this.lastT + 2.8 });
+  }
+
   /** A runner trips and falls (collisions). */
   fall(name: string) {
     const v = this.views.get(name);
@@ -308,6 +366,23 @@ export class RunWorld {
     }
 
     for (const it of this.items) it.update(t);
+
+    for (const [name, b] of this.bubbles) {
+      const v = this.views.get(name);
+      if (!v || t > b.until) {
+        this.scene.remove(b.sprite);
+        b.sprite.material.map?.dispose();
+        b.sprite.material.dispose();
+        this.bubbles.delete(name);
+        continue;
+      }
+      b.sprite.position.set(
+        v.x,
+        2.65 + Math.min(0.15, (b.until - t) * 0.1),
+        v.z
+      );
+      b.sprite.visible = v.holder.visible;
+    }
 
     const me = this.views.get(focus);
     if (this.opts.preview) {
@@ -381,6 +456,10 @@ export class RunWorld {
       attr.needsUpdate = true;
     }
 
+    // Name tags and bubbles never grow bigger on screen than they look 9 units away.
+    for (const v of this.views.values())
+      if (v.label) this.capSize(v.label, 1.5, 0.38);
+    for (const b of this.bubbles.values()) this.capSize(b.sprite, 2.4, 0.6);
     this.renderer.render(this.scene, this.camera);
     // Cheap stats on the canvas for profiling (read from devtools or the e2e test).
     if (++this.frames % 30 === 0) {

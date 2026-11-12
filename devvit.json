@@ -1,0 +1,54 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "chibi-marathon",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "inline": true,
+        "entry": "splash.html"
+      },
+      "game": {
+        "entry": "game.html"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "permissions": {
+    "redis": true,
+    "journeys": true,
+    "reddit": {
+      "enable": true,
+      "scope": "user"
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Post today's marathon stage",
+        "description": "Creates (or re-opens) today's Chibi City Marathon post",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-today"
+      }
+    ]
+  },
+  "scheduler": {
+    "tasks": {
+      "daily-stage": {
+        "endpoint": "/internal/scheduler/daily-stage",
+        "cron": "1 0 * * *"
+      }
+    }
+  },
+  "triggers": {
+    "onAppInstall": "/internal/triggers/on-app-install"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  }
+}

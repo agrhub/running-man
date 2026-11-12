@@ -26,6 +26,7 @@ export const LANE_WIDTH = 2.3;
 export type Runner = {
   name: string;
   look: Look;
+  bib?: number | null;
   /** False for the player. */
   other: boolean;
   /** Small sideways offset so runners in one lane do not overlap exactly. */
@@ -124,6 +125,7 @@ export class RunWorld {
   private lastT = 0;
   private finishTurn = 0;
   private baseFov = 55;
+  private frames = 0;
 
   constructor(private readonly opts: WorldOptions) {
     this.renderer = new THREE.WebGLRenderer({
@@ -173,7 +175,7 @@ export class RunWorld {
     const paint = makePainter();
     for (const runner of opts.runners) {
       const holder = new THREE.Group();
-      const chibi = buildChibi(runner.look, makePainter());
+      const chibi = buildChibi(runner.look, makePainter(), runner.bib ?? null);
       chibi.group.rotation.y = opts.preview ? 0 : FORWARD;
       holder.add(chibi.group);
       this.scene.add(holder);
@@ -346,6 +348,17 @@ export class RunWorld {
       this.sun.position.set(10, 22, this.camZ + 8);
       this.sun.target.position.set(0, 0, this.camZ - 6);
       this.city?.update(t, dt, this.camZ, finished);
+      // Far runners and items are lost in the fog anyway: skip drawing them.
+      const camZ = this.camZ;
+      for (const v of this.views.values()) {
+        const near = v.z < camZ + 12 && v.z > camZ - 110;
+        v.holder.visible = near;
+        if (v.label) v.label.visible = near;
+      }
+      for (const it of this.items) {
+        const z = it.group.position.z;
+        it.group.visible = z < camZ + 12 && z > camZ - 110;
+      }
     }
 
     if (this.trail && me) {
@@ -369,11 +382,32 @@ export class RunWorld {
     }
 
     this.renderer.render(this.scene, this.camera);
+    // Cheap stats on the canvas for profiling (read from devtools or the e2e test).
+    if (++this.frames % 30 === 0) {
+      const { calls, triangles } = this.renderer.info.render;
+      this.opts.canvas.dataset.drawCalls = String(calls);
+      this.opts.canvas.dataset.triangles = String(triangles);
+    }
   }
 
-  /** Turns the preview runner towards the camera with a gentle sway; used by the locker. */
-  sway(t: number, still: boolean) {
-    const angle = -0.95 + (still ? 0 : Math.sin(t * 0.8) * 0.6);
+  /**
+   * Turns the preview runner towards the camera with a gentle sway; used by the locker and registration.
+   * With `showBack`, the runner turns round every few seconds to show the bib.
+   */
+  sway(t: number, still: boolean, showBack = false) {
+    let angle = -0.95 + (still ? 0 : Math.sin(t * 0.8) * 0.6);
+    if (showBack && !still) {
+      const phase = t % 9;
+      const k =
+        phase < 6
+          ? 0
+          : phase < 6.6
+            ? (phase - 6) / 0.6
+            : phase < 8.4
+              ? 1
+              : 1 - (phase - 8.4) / 0.6;
+      angle += k * Math.PI;
+    }
     for (const v of this.views.values()) {
       v.chibi.group.rotation.y = angle;
       if (v.pet) {

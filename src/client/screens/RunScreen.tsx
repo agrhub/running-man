@@ -166,11 +166,18 @@ export const RunScreen = ({
       ...rivals.map((g, i) => ({
         name: g.username,
         look: g.look,
+        bib: g.bib ?? null,
         other: true,
         offset: OFFSETS[i % OFFSETS.length] ?? 0,
         labelled: i < 5,
       })),
-      { name: '__me', look: profile.look, other: false, labelled: true },
+      {
+        name: '__me',
+        look: profile.look,
+        bib: profile.bib,
+        other: false,
+        labelled: true,
+      },
     ];
     const world = new RunWorld({
       canvas,
@@ -357,7 +364,16 @@ export const RunScreen = ({
       cancelAnimationFrame(raf);
       world.dispose();
     };
-  }, [day, profile.look, profile.username, plan, rivals, live, replayMoves]);
+  }, [
+    day,
+    profile.look,
+    profile.bib,
+    profile.username,
+    plan,
+    rivals,
+    live,
+    replayMoves,
+  ]);
 
   // Swipe to change lanes
   const touch = useRef<{ x: number; y: number } | null>(null);

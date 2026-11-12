@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Profile } from '../../shared/api';
 import type { DayInfo } from '../../shared/content';
 import {
@@ -11,7 +11,7 @@ import {
   type Pet,
   type Slot,
 } from '../../shared/economy';
-import { RunWorld } from '../three/world';
+import { RunnerPreview } from '../components/RunnerPreview';
 
 type Props = {
   day: DayInfo;
@@ -23,40 +23,6 @@ type Props = {
   onBuy: (itemId: string) => void;
   onPet: (petId: Pet['id']) => void;
   onCare: () => void;
-};
-
-const Preview = ({ day, profile }: { day: DayInfo; profile: Profile }) => {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const world = new RunWorld({
-      canvas,
-      city: day.city,
-      stage: day.stage,
-      runners: [{ name: 'me', look: profile.look, other: false }],
-      preview: true,
-    });
-    const reduce = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-    let raf = 0;
-    const start = performance.now();
-    const loop = (now: number) => {
-      const t = (now - start) / 1000;
-      world.sway(t, reduce);
-      world.frame(t, [{ name: 'me', km: 0, speed: 0.15 }], 'me');
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      world.dispose();
-    };
-  }, [day, profile.look]);
-  return (
-    <canvas ref={ref} className="h-full w-full" aria-label="Your runner" />
-  );
 };
 
 const ItemCard = ({
@@ -156,7 +122,12 @@ export const LockerScreen = (p: Props) => {
         </p>
       </div>
       <div className="h-[34%] min-h-[170px]">
-        <Preview day={p.day} profile={profile} />
+        <RunnerPreview
+          day={p.day}
+          look={profile.look}
+          bib={profile.bib}
+          showBack
+        />
       </div>
       <nav
         className="flex gap-1 overflow-x-auto px-4 pb-2"

@@ -72,6 +72,12 @@ export const ResultScreen = (p: Props) => {
         </p>
         <p className="font-display text-[18px] font-extrabold">
           u/{profile.username}
+          {profile.bib ? (
+            <span className="text-ink-soft">
+              {' '}
+              · bib #{String(profile.bib).padStart(4, '0')}
+            </span>
+          ) : null}
         </p>
         <div className="mt-2 flex items-center justify-center gap-4">
           <div>

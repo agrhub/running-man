@@ -235,6 +235,69 @@ describe('game API', () => {
     expect(bad.status).toBe(400);
   });
 
+  it('registers a runner with a look and hands out bibs in order', async () => {
+    const before = await call<InitResponse>(h.as('newbie'), 'GET', '/init');
+    expect(before.json.profile.registered).toBe(false);
+    expect(before.json.profile.bib).toBeNull();
+
+    const bad = await call(h, 'POST', '/register', {
+      skin: 9,
+      hair: 0,
+      hairStyle: 0,
+      top: 'tee-mint',
+    });
+    expect(bad.status).toBe(400);
+    const locked = await call(h, 'POST', '/register', {
+      skin: 1,
+      hair: 2,
+      hairStyle: 3,
+      top: 'finisher-tee',
+    });
+    expect(locked.status).toBe(400);
+
+    const first = await call<ProfileResponse>(
+      h.as('newbie'),
+      'POST',
+      '/register',
+      { skin: 1, hair: 2, hairStyle: 3, top: 'tee-mint' }
+    );
+    expect(first.json.profile).toMatchObject({ registered: true, bib: 1 });
+    expect(first.json.profile.look).toMatchObject({
+      skin: 1,
+      hair: 2,
+      hairStyle: 3,
+      top: 'tee-mint',
+    });
+    expect(first.json.message).toBe('Bib #0001 is yours!');
+
+    const again = await call<ProfileResponse>(
+      h.as('newbie'),
+      'POST',
+      '/register',
+      { skin: 0, hair: 0, hairStyle: 0, top: 'tee-sky' }
+    );
+    expect(again.json.profile.bib).toBe(1);
+    const second = await call<ProfileResponse>(
+      h.as('other'),
+      'POST',
+      '/register',
+      { skin: 0, hair: 0, hairStyle: 1, top: 'tee-sky' }
+    );
+    expect(second.json.profile.bib).toBe(2);
+  });
+
+  it('gives a bib to anyone who races, and shows it to other runners', async () => {
+    const date = '2026-11-12';
+    await call(h.as('quick'), 'POST', '/run', {
+      plan: planFor(date),
+      moves: [],
+      rivals: [],
+    });
+    const me = await call<InitResponse>(h.as('watcher'), 'GET', '/init');
+    const quick = me.json.runners.find((r) => r.username === 'quick');
+    expect(quick?.bib).toBe(1);
+  });
+
   it('rejects invalid plans', async () => {
     const { status } = await call(h, 'POST', '/run', {
       plan: { paces: ['push'], drinks: [] },

@@ -10,6 +10,9 @@ import {
 } from '../../shared/content';
 import {
   CHEER_REWARD,
+  HAIR_STYLES,
+  HAIR_TONES,
+  SKIN_TONES,
   CREW_FINISH_REWARD,
   ITEMS,
   PETS,
@@ -78,6 +81,8 @@ const parse = <T>(raw: string | undefined | null): T | null => {
 
 export const freshProfile = (username: string): Profile => ({
   username,
+  registered: false,
+  bib: null,
   badges: 0,
   streak: 0,
   bestStreak: 0,
@@ -141,6 +146,39 @@ export const grantEarnedUnlocks = (profile: Profile): string[] => {
     }
   }
   return granted;
+};
+
+/** Hands out the next bib number. Bibs are never reused. */
+const ensureBib = async (store: Store, profile: Profile): Promise<boolean> => {
+  if (profile.bib !== null) return false;
+  profile.bib = await store.incrBy(keys.bibs(), 1);
+  return true;
+};
+
+/** Creates (or updates) the player's runner and gives them a bib. */
+export const register = async (
+  deps: Deps,
+  input: { skin?: unknown; hair?: unknown; hairStyle?: unknown; top?: unknown }
+): Promise<Profile> => {
+  const username = await requireUser(deps);
+  const int = (v: unknown, max: number) =>
+    typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < max
+      ? v
+      : null;
+  const skin = int(input.skin, SKIN_TONES.length);
+  const hair = int(input.hair, HAIR_TONES.length);
+  const hairStyle = int(input.hairStyle, HAIR_STYLES.length);
+  if (skin === null || hair === null || hairStyle === null)
+    throw new GameError('Pick a skin tone, hair style and hair colour.');
+  const profile = await loadProfile(deps.store, username);
+  const top = typeof input.top === 'string' ? itemById(input.top) : undefined;
+  if (!top || top.slot !== 'top' || !profile.owned.includes(top.id))
+    throw new GameError('Pick one of your shirts.');
+  profile.look = { ...profile.look, skin, hair, hairStyle, top: top.id };
+  profile.registered = true;
+  await ensureBib(deps.store, profile);
+  await saveProfile(deps.store, profile);
+  return profile;
 };
 
 export const crewProgress = async (
@@ -252,7 +290,14 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     profile = await loadProfile(store, username);
     const paid = await claimCrewRewards(store, profile);
     const granted = grantEarnedUnlocks(profile);
-    if (paid > 0 || granted.length > 0) await saveProfile(store, profile);
+    // Runners from before registration existed keep their look and get a bib.
+    let migrated = false;
+    if (!profile.registered && profile.totalRuns > 0) {
+      profile.registered = true;
+      migrated = await ensureBib(store, profile);
+    }
+    if (paid > 0 || granted.length > 0 || migrated)
+      await saveProfile(store, profile);
   }
 
   const [
@@ -438,6 +483,9 @@ export const run = async (
       : []
   );
   const profile = await loadProfile(store, username);
+  // Anyone who races without the registration screen still gets a bib.
+  if (!profile.registered) profile.registered = true;
+  await ensureBib(store, profile);
 
   // A collision is real: the other runner's official time changes too.
   for (const e of race.events) {
@@ -458,6 +506,7 @@ export const run = async (
   const track: RunnerTrack = {
     username,
     look: profile.look,
+    bib: profile.bib,
     marks: race.marks,
     seconds: result.totalSeconds,
     moves: moves.slice(0, MAX_MOVES),

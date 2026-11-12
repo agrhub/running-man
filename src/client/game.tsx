@@ -20,8 +20,11 @@ import { LockerScreen } from './screens/LockerScreen';
 import { PlanScreen } from './screens/PlanScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { RunScreen, type RaceOutcome } from './screens/RunScreen';
+import { RegisterScreen } from './screens/RegisterScreen';
+import { CorralScreen } from './screens/CorralScreen';
 
-type Screen = 'plan' | 'run' | 'result' | 'locker' | 'closed';
+type Screen =
+  'register' | 'plan' | 'corral' | 'run' | 'result' | 'locker' | 'closed';
 
 const isPostId = (id: string | null): id is `t3_${string}` =>
   id !== null && id.startsWith('t3_');
@@ -48,7 +51,9 @@ export const App = () => {
               ? 'closed'
               : init.myRun
                 ? 'result'
-                : 'plan'
+                : !init.profile.registered && init.profile.username !== 'guest'
+                  ? 'register'
+                  : 'plan'
           );
         })
         .catch((e: unknown) => setError(message(e))),
@@ -87,7 +92,41 @@ export const App = () => {
       return;
     }
     setLivePlan(plan);
-    setScreen('run');
+    setScreen('corral');
+  };
+
+  const registerRunner = async (choice: {
+    skin: number;
+    hair: number;
+    hairStyle: number;
+    top: string;
+    pet: PetId;
+  }) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      const { pet, ...look } = choice;
+      const res = await request<ProfileResponse>('/register', {
+        ...look,
+        journeyId: data.journeyId,
+      });
+      let profile = res.profile;
+      if (pet !== profile.look.pet) {
+        const petRes = await request<ProfileResponse>('/pet/choose', {
+          petId: pet,
+          journeyId: data.journeyId,
+        });
+        profile = petRes.profile;
+      }
+      patch({ profile });
+      if (res.message) showToast(res.message);
+      setScreen('plan');
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   // The race was run on the client; the server replays it and records the official time.
@@ -227,6 +266,25 @@ export const App = () => {
             />
           </section>
         </div>
+      );
+    case 'register':
+      return (
+        <RegisterScreen
+          day={day}
+          profile={data.profile}
+          busy={busy}
+          onRegister={(c) => void registerRunner(c)}
+        />
+      );
+    case 'corral':
+      return (
+        <CorralScreen
+          day={day}
+          profile={data.profile}
+          runners={data.runners}
+          onGo={() => setScreen('run')}
+          onBack={() => setScreen('plan')}
+        />
       );
     case 'run':
       if (livePlan) {

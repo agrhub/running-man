@@ -62,7 +62,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   queues at the marshals and turns round, waving crowds, birds, balloons, a TV motorbike filming the leaders, confetti
   at the finish, and a landmark moment on every stage.
 - **Race bib result card:** rank, time, splits, streak and rewards on one screen, with share and cheer buttons.
-- **Locker:** 19 cosmetic items and 4 pets that run with you (corgi, tabby cat, shiba, penguin), earned by streaks,
+- **Locker:** 20 cosmetic items and 4 pets that run with you (corgi, tabby cat, shiba, penguin), earned by streaks,
   city finishes and weather, or bought with badges. Cosmetics never change race times.
 - **Reddit-native:** one post per day created by the scheduler with a pinned strategy thread, result sharing as a
   comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.
@@ -117,7 +117,7 @@ npx devvit upload                   # uploads a private app version (do not publ
 npx devvit playtest r/YourTestSub   # live reload on your test subreddit
 ```
 
-Step-by-step instructions for the hackathon upload are in [docs/DEPLOY.md](docs/DEPLOY.md).
+Step-by-step instructions for the hackathon upload are in [docs/DEPLOY.md](docs/DEPLOY.md). The full game design is in [docs/DESIGN.md](docs/DESIGN.md).
 
 Installing the app creates today's post. Moderators can also use the subreddit menu item
 **Post today's marathon stage**. After that the `daily-stage` scheduler task posts a new stage every day at 00:01 UTC.

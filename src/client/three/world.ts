@@ -229,12 +229,14 @@ export class RunWorld {
       const materials = new Set<THREE.Material>();
       if (runner.other) {
         chibi.group.traverse((o) => {
-          if (
-            o instanceof THREE.Mesh &&
-            !Array.isArray(o.material) &&
-            o.material.transparent
-          )
-            materials.add(o.material);
+          if (!(o instanceof THREE.Mesh) || Array.isArray(o.material)) return;
+          const m = o.material as THREE.MeshStandardMaterial;
+          // The bib is its own textured material: fade it with the rest of the runner.
+          if (m.map && !m.transparent) {
+            m.transparent = true;
+            m.needsUpdate = true;
+          }
+          if (m.transparent) materials.add(m);
         });
       }
       let pet: Animated | null = null;
@@ -393,8 +395,15 @@ export class RunWorld {
     if (meView && !this.opts.preview) {
       for (const v of this.views.values()) {
         if (!v.runner.other || v.materials.length === 0) continue;
-        const behind = v.z > meView.z + 0.6 && v.z < meView.z + 7.5;
-        const target = behind && Math.abs(v.x - meView.x * 0.7) < 2.8 ? 0.3 : 1;
+        // How far behind you, towards the camera (which follows about 6.4 back).
+        const gap = v.z - meView.z;
+        const inLine = Math.abs(v.x - meView.x * 0.7) < 2.8;
+        const nearLens = inLine && gap > 1.9 && gap < 7.5;
+        // Right at the lens a runner would fill the screen, so it almost disappears;
+        // just behind you it stays faintly visible.
+        const target =
+          !inLine || gap <= 0.6 || gap >= 7.5 ? 1 : nearLens ? 0.06 : 0.32;
+        if (v.label) v.label.visible = !nearLens;
         if (Math.abs(target - v.opacity) < 0.01) continue;
         v.opacity += (target - v.opacity) * Math.min(1, dt * 10);
         for (const m of v.materials) {
@@ -418,7 +427,8 @@ export class RunWorld {
         2.1 + Math.min(0.1, (b.until - t) * 0.06),
         v.z
       );
-      b.sprite.visible = v.holder.visible;
+      // Hidden with the tag when the runner is right at the camera lens.
+      b.sprite.visible = v.holder.visible && (v.label?.visible ?? true);
     }
 
     const me = this.views.get(focus);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { City, Stage } from '../../shared/content';
+import type { CourseItem } from '../../shared/course';
 import type { Look } from '../../shared/economy';
 import { itemById } from '../../shared/economy';
 import {
@@ -9,27 +10,38 @@ import {
   makePainter,
   type Animated,
 } from './chibi';
-import { ROAD_HALF, UNITS_PER_KM, buildCity, type CityBuild } from './city';
+import {
+  UNITS_PER_KM,
+  buildCity,
+  buildItem,
+  type CityBuild,
+  type ItemView,
+} from './city';
 
 export { UNITS_PER_KM };
+
+/** Distance between lane centres, in world units. */
+export const LANE_WIDTH = 2.3;
 
 export type Runner = {
   name: string;
   look: Look;
-  ghost: boolean;
-  /** Lane across the road: -1 (left) .. 1 (right). */
-  lane: number;
-  /** Shows a name tag above the runner. */
+  /** False for the player. */
+  other: boolean;
+  /** Small sideways offset so runners in one lane do not overlap exactly. */
+  offset?: number;
   labelled?: boolean;
 };
 
 type RunnerView = {
   runner: Runner;
+  holder: THREE.Group;
   chibi: Animated;
   pet: Animated | null;
   label: THREE.Sprite | null;
   z: number;
   x: number;
+  fellAt: number;
 };
 
 const makeLabel = (text: string, color: string): THREE.Sprite => {
@@ -64,11 +76,22 @@ export type WorldOptions = {
   city: City;
   stage: Stage;
   runners: Runner[];
+  items?: CourseItem[];
   /** A single runner on a plain backdrop, used for the locker preview. */
   preview?: boolean;
 };
 
-export type Positions = { name: string; km: number; speed: number }[];
+export type Position = {
+  name: string;
+  km: number;
+  speed: number;
+  /** Lane -1..1 (may be fractional while changing lanes). */
+  lane?: number;
+  /** Limping after a fall or a cone. */
+  limp?: boolean;
+};
+
+export type Positions = Position[];
 
 /** Facing -z (down the course): the chibi is modelled facing +x. */
 const FORWARD = Math.PI / 2;
@@ -77,13 +100,14 @@ const TOWARD_CAMERA = -Math.PI / 2;
 
 /**
  * The race scene: a third-person view from behind the runner, looking down a city avenue towards the finish. The
- * caller drives it with every runner's distance per frame.
+ * caller drives it with every runner's distance and lane per frame.
  */
 export class RunWorld {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(55, 1, 0.1, 500);
   private readonly views = new Map<string, RunnerView>();
+  private readonly items: ItemView[] = [];
   private readonly sun: THREE.DirectionalLight;
   private readonly city: CityBuild | null = null;
   private readonly trail: THREE.Points | null = null;
@@ -96,6 +120,7 @@ export class RunWorld {
   private readonly resizeObserver: ResizeObserver;
   private disposed = false;
   private camZ: number | null = null;
+  private camX = 0;
   private lastT = 0;
   private finishTurn = 0;
   private baseFov = 55;
@@ -138,15 +163,22 @@ export class RunWorld {
       this.scene.fog = new THREE.Fog(new THREE.Color(palette.skyLow), 60, 190);
       this.city = buildCity(opts.city, opts.stage, true);
       this.scene.add(this.city.group);
+      for (const item of opts.items ?? []) {
+        const view = buildItem(item, LANE_WIDTH);
+        this.scene.add(view.group);
+        this.items.push(view);
+      }
     }
 
     const paint = makePainter();
     for (const runner of opts.runners) {
-      const chibi = buildChibi(runner.look, makePainter(runner.ghost));
+      const holder = new THREE.Group();
+      const chibi = buildChibi(runner.look, makePainter());
       chibi.group.rotation.y = opts.preview ? 0 : FORWARD;
-      this.scene.add(chibi.group);
+      holder.add(chibi.group);
+      this.scene.add(holder);
       let pet: Animated | null = null;
-      if (!runner.ghost) {
+      if (!runner.other) {
         pet = buildPet(runner.look.pet, paint);
         pet.group.rotation.y = opts.preview ? 0 : FORWARD;
         this.scene.add(pet.group);
@@ -154,16 +186,24 @@ export class RunWorld {
       let label: THREE.Sprite | null = null;
       if (!opts.preview && runner.labelled !== false) {
         label = makeLabel(
-          runner.ghost ? runner.name : 'You',
-          runner.ghost ? 'rgba(42,35,64,0.6)' : palette.accent
+          runner.other ? runner.name : 'You',
+          runner.other ? '#2a2340' : palette.accent
         );
         this.scene.add(label);
       }
-      const x = runner.lane * (ROAD_HALF - 1);
-      this.views.set(runner.name, { runner, chibi, pet, label, z: 0, x });
+      this.views.set(runner.name, {
+        runner,
+        holder,
+        chibi,
+        pet,
+        label,
+        z: 0,
+        x: runner.offset ?? 0,
+        fellAt: -10,
+      });
     }
 
-    const me = opts.runners.find((r) => !r.ghost);
+    const me = opts.runners.find((r) => !r.other);
     const trailItem = me ? itemById(me.look.trail) : undefined;
     if (trailItem && trailItem.shape !== 'none' && !opts.preview) {
       const geo = new THREE.BufferGeometry();
@@ -200,14 +240,20 @@ export class RunWorld {
     this.camera.updateProjectionMatrix();
   }
 
-  /** Where the landmark stands (null in the locker preview). */
-  get landmark(): THREE.Vector3 | null {
-    return this.city?.landmark ?? null;
+  /** A runner trips and falls (collisions). */
+  fall(name: string) {
+    const v = this.views.get(name);
+    if (v) v.fellAt = this.lastT;
+  }
+
+  /** The runner met a course item: cones fly, puddles splash, fans jump. */
+  hitItem(index: number) {
+    this.items[index]?.hit(this.lastT);
   }
 
   /**
    * Renders one frame. `t` is animation time in seconds; `finished` turns the runner to the camera; `gaze` (0..1)
-   * turns the camera towards the landmark as the runner passes it.
+   * widens the view towards the landmark.
    */
   frame(
     t: number,
@@ -219,21 +265,47 @@ export class RunWorld {
     if (this.disposed) return;
     const dt = Math.max(0, Math.min(0.5, t - this.lastT));
     this.lastT = t;
+    const ease = 1 - Math.exp(-dt * 10);
 
     for (const p of positions) {
       const view = this.views.get(p.name);
       if (!view) continue;
       const z = -p.km * UNITS_PER_KM;
       view.z = z;
-      if (!this.opts.preview) view.chibi.group.position.set(view.x, 0, z);
-      view.chibi.update(t, p.speed);
+      const targetX = (p.lane ?? 0) * LANE_WIDTH + (view.runner.offset ?? 0);
+      view.x = this.opts.preview ? 0 : view.x + (targetX - view.x) * ease;
+
+      // Falling: tip forward, hit the ground, get back up.
+      const since = t - view.fellAt;
+      let tilt = 0;
+      let drop = 0;
+      if (since >= 0 && since < 1.2) {
+        const k =
+          since < 0.25
+            ? since / 0.25
+            : since < 0.7
+              ? 1
+              : 1 - (since - 0.7) / 0.5;
+        tilt = k * 1.25;
+        drop = k * 0.25;
+      }
+      if (!this.opts.preview) {
+        view.holder.position.set(view.x, -drop, z);
+        view.holder.rotation.x = -tilt;
+        if (p.limp && since >= 1.2)
+          view.holder.rotation.z = Math.sin(t * 9) * 0.12;
+        else view.holder.rotation.z = 0;
+      }
+      view.chibi.update(t, since < 1.2 ? 0 : p.speed);
       if (view.pet) {
         if (!this.opts.preview)
           view.pet.group.position.set(view.x + 0.75, 0, z + 0.6);
         view.pet.update(t, p.speed);
       }
-      if (view.label) view.label.position.set(view.x, 2.05, z);
+      if (view.label) view.label.position.set(view.x, 2.05 - drop, z);
     }
+
+    for (const it of this.items) it.update(t);
 
     const me = this.views.get(focus);
     if (this.opts.preview) {
@@ -245,25 +317,24 @@ export class RunWorld {
         this.camZ === null
           ? targetZ
           : this.camZ + (targetZ - this.camZ) * (1 - Math.exp(-dt * 8));
-      const meX = me?.x ?? 0;
+      this.camX += ((me?.x ?? 0) - this.camX) * (1 - Math.exp(-dt * 4));
       if (finished && me) {
         this.finishTurn = Math.min(1, this.finishTurn + dt * 1.6);
         me.chibi.group.rotation.y =
           FORWARD + (TOWARD_CAMERA - FORWARD) * this.finishTurn;
         if (me.pet) me.pet.group.rotation.y = me.chibi.group.rotation.y;
       }
-      // Third person: behind and above the runner, looking down the avenue. At the finish the camera swings round.
       const swing = this.finishTurn;
       const back = 6.4 - swing * 1.8;
-      const camX = meX * 0.6 + swing * 2.2;
+      const cx = this.camX * 0.7 + swing * 2.2;
       // Landmark moment: widen the view and pan a little to the right, keeping the runner in frame.
       this.camera.position.set(
-        camX - gaze * 0.6,
+        cx - gaze * 0.6,
         3.1 - swing * 0.6 + gaze * 0.9,
         this.camZ + back + gaze * 1.5
       );
       this.camera.lookAt(
-        meX * 0.4 + gaze * 4.5,
+        this.camX * 0.5 + gaze * 4.5,
         1.35 - swing * 0.3 + gaze * 2.6,
         this.camZ - 9 + swing * 9
       );
@@ -274,7 +345,7 @@ export class RunWorld {
       }
       this.sun.position.set(10, 22, this.camZ + 8);
       this.sun.target.position.set(0, 0, this.camZ - 6);
-      this.city?.update(t);
+      this.city?.update(t, dt, this.camZ, finished);
     }
 
     if (this.trail && me) {

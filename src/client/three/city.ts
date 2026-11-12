@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { City, CityId, Landmark, Stage } from '../../shared/content';
+import type { CourseItem } from '../../shared/course';
 import { hashString, mulberry32 } from '../../shared/rng';
 
 /*
@@ -346,7 +347,8 @@ export type CityBuild = {
   group: THREE.Group;
   /** Landmark position, for the camera and toasts. */
   landmark: THREE.Vector3;
-  update(t: number): void;
+  /** Animates traffic, crowds, birds and the finish party. `camZ` follows the player. */
+  update(t: number, dt: number, camZ: number, finished: boolean): void;
 };
 
 export const buildCity = (
@@ -555,61 +557,28 @@ export const buildCity = (
         )
       );
     }
-    // Cars wait at the closed crossing, behind a barrier.
+    // Marshals in orange vests hold the traffic at the closed avenue.
     for (const side of [-1, 1]) {
-      const bx = side * (FRONT_X + 1.2);
-      batch.push(metal, box(0.12, 1, CROSS_W - 0.6, bx, 0.5, cz, '#c9ccd2'));
+      const mx = side * (FRONT_X + 0.9);
+      const mz = cz + side * (CROSS_W / 2 - 0.6);
       batch.push(
         solid,
-        box(0.14, 0.3, CROSS_W - 0.6, bx, 0.8, cz, city.palette.accent)
+        colorize(
+          new THREE.CapsuleGeometry(0.22, 0.5, 3, 8).translate(mx, 0.72, mz),
+          '#ff7a1a'
+        )
       );
-      if (rand() < 0.8) {
-        const carX = side * (FRONT_X + 4.5 + rand() * 3);
-        const col = pick([
-          '#e63946',
-          '#f1faee',
-          '#457b9d',
-          '#ffb703',
-          '#2a9d8f',
-          '#8d99ae',
-          '#1d3557',
-        ]);
-        const lane = cz + (side > 0 ? -1.6 : 1.6);
-        batch.push(
-          solid,
-          colorize(
-            new THREE.BoxGeometry(3.6, 0.8, 1.7).translate(carX, 0.65, lane),
-            col
-          )
-        );
-        batch.push(
-          solid,
-          colorize(
-            new THREE.BoxGeometry(2, 0.65, 1.5).translate(
-              carX + side * 0.2,
-              1.35,
-              lane
-            ),
-            '#2f3a48'
-          )
-        );
-        for (const [wx, wz] of [
-          [-1.15, -0.8],
-          [1.15, -0.8],
-          [-1.15, 0.8],
-          [1.15, 0.8],
-        ] as const) {
-          batch.push(
-            solid,
-            colorize(
-              new THREE.CylinderGeometry(0.34, 0.34, 0.25, 12)
-                .rotateX(Math.PI / 2)
-                .translate(carX + wx, 0.34, lane + wz),
-              '#1b1b22'
-            )
-          );
-        }
-      }
+      batch.push(
+        solid,
+        colorize(
+          new THREE.SphereGeometry(0.22, 10, 8).translate(mx, 1.35, mz),
+          '#f6cfa8'
+        )
+      );
+      batch.push(
+        solid,
+        box(0.05, 0.05, 0.7, mx, 1.0, mz - side * 0.4, '#ffd23f')
+      );
     }
   }
   const inCross = (z0: number, z1: number) =>
@@ -1006,7 +975,8 @@ export const buildCity = (
     '#ff9f1c',
   ];
   const skins = ['#ffe0c7', '#f6cfa8', '#e0a97c', '#c58a5e', '#8d5b3e'];
-  const crowd: THREE.BufferGeometry[] = [];
+  const crowdParts: THREE.BufferGeometry[][] = [[], [], []];
+  let crowdN = 0;
   for (let z = zStart - 2; z > zEnd + 10; z -= 1.1) {
     for (const side of [-1, 1]) {
       if (inCross(z - 0.6, z + 0.6)) continue;
@@ -1020,6 +990,7 @@ export const buildCity = (
       const px = side * (ROAD_HALF + 0.75 + rand() * 1.4);
       const pz = z + range(-0.3, 0.3);
       const s = range(0.85, 1.1);
+      const crowd = crowdParts[crowdN++ % 3] ?? [];
       crowd.push(
         colorize(
           new THREE.CapsuleGeometry(0.2 * s, 0.45 * s, 3, 8).translate(
@@ -1054,15 +1025,16 @@ export const buildCity = (
     }
   }
   const crowdMat = vmat(0.7);
-  let crowdMesh: THREE.Mesh | null = null;
-  if (crowd.length > 0) {
-    const merged = mergeGeometries(crowd, false);
-    crowd.forEach((g) => g.dispose());
-    if (merged) {
-      crowdMesh = new THREE.Mesh(merged, crowdMat);
-      crowdMesh.castShadow = shadows;
-      group.add(crowdMesh);
-    }
+  const crowdMeshes: THREE.Mesh[] = [];
+  for (const part of crowdParts) {
+    if (part.length === 0) continue;
+    const merged = mergeGeometries(part, false);
+    part.forEach((g) => g.dispose());
+    if (!merged) continue;
+    const m = new THREE.Mesh(merged, crowdMat);
+    m.castShadow = shadows;
+    group.add(m);
+    crowdMeshes.push(m);
   }
 
   // Gantries: start, every km, finish
@@ -1160,15 +1132,23 @@ export const buildCity = (
 
   batch.flush(group, shadows);
 
+  const traffic = buildTraffic(group, crossZs, city.id, rand, shadows);
+  const sky = buildSkyLife(group, rand);
+  const party = buildParty(group, city.palette.accent, shadows);
+
   return {
     group,
     landmark: lmPos,
-    update: (t: number) => {
-      if (crowdMesh) crowdMesh.position.y = Math.abs(Math.sin(t * 6)) * 0.05;
+    update: (t: number, dt: number, camZ: number, finished: boolean) => {
+      crowdMeshes.forEach((m, i) => {
+        m.position.y = Math.abs(Math.sin(t * 6 + i * 2.1)) * 0.07;
+      });
+      traffic(t, dt, camZ);
+      sky(t, dt, camZ);
+      party(t, dt, camZ, finished);
     },
   };
 };
-
 const buildLandmark = (lm: Landmark, accent: string): THREE.Group => {
   const g = new THREE.Group();
   const std = (
@@ -1355,4 +1335,571 @@ const buildLandmark = (lm: Landmark, accent: string): THREE.Group => {
     }
   }
   return g;
+};
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * Living city: traffic on the cross streets, birds, the start and finish party, the TV motorbike.
+ * ------------------------------------------------------------------------------------------------------------- */
+
+type VehicleKind = 'car' | 'taxi' | 'bus' | 'scooter';
+
+const vehicleMesh = (
+  kind: VehicleKind,
+  color: string
+): { mesh: THREE.Mesh; length: number } => {
+  const parts: THREE.BufferGeometry[] = [];
+  const wheel = (x: number, z: number, r: number) =>
+    parts.push(
+      colorize(
+        new THREE.CylinderGeometry(r, r, 0.22, 12)
+          .rotateX(Math.PI / 2)
+          .translate(x, r, z),
+        '#1b1b22'
+      )
+    );
+  let length = 3.8;
+  if (kind === 'bus') {
+    length = 8.4;
+    parts.push(box(8.4, 2.4, 2.3, 0, 1.6, 0, color));
+    parts.push(box(7.6, 0.8, 2.34, -0.2, 2.1, 0, '#2c3e50'));
+    parts.push(box(0.1, 1.2, 2.0, 4.2, 1.9, 0, '#2c3e50'));
+    parts.push(box(8.42, 0.2, 2.32, 0, 0.55, 0, '#f4f1ea'));
+    for (const x of [-2.9, 2.9])
+      for (const z of [-1, 1]) wheel(x, z * 1.05, 0.45);
+  } else if (kind === 'scooter') {
+    length = 1.6;
+    parts.push(box(1.3, 0.35, 0.36, 0, 0.55, 0, color));
+    parts.push(box(0.2, 0.7, 0.2, 0.55, 0.85, 0, color));
+    parts.push(
+      colorize(
+        new THREE.CapsuleGeometry(0.2, 0.4, 3, 8).translate(-0.05, 1.15, 0),
+        '#3a6ea5'
+      )
+    );
+    parts.push(
+      colorize(
+        new THREE.SphereGeometry(0.2, 10, 8).translate(0, 1.65, 0),
+        '#e63946'
+      )
+    );
+    wheel(-0.5, 0, 0.24);
+    wheel(0.55, 0, 0.24);
+  } else {
+    parts.push(box(3.8, 0.75, 1.75, 0, 0.7, 0, color));
+    parts.push(box(2.1, 0.62, 1.55, -0.2, 1.38, 0, '#2f3a48'));
+    parts.push(box(1.9, 0.08, 1.6, -0.2, 1.72, 0, color));
+    if (kind === 'taxi')
+      parts.push(box(0.5, 0.25, 0.3, -0.2, 1.9, 0, '#ffe066'));
+    for (const x of [-1.2, 1.2])
+      for (const z of [-0.85, 0.85]) wheel(x, z, 0.34);
+  }
+  const geo = mergeGeometries(parts, false);
+  parts.forEach((g) => g.dispose());
+  const mesh = new THREE.Mesh(
+    geo ?? new THREE.BufferGeometry(),
+    new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.5,
+      metalness: 0.15,
+    })
+  );
+  return { mesh, length };
+};
+
+type Vehicle = {
+  mesh: THREE.Mesh;
+  length: number;
+  side: 1 | -1;
+  cz: number;
+  /** Distance from the avenue's edge (always positive). */
+  d: number;
+  speed: number;
+  state: 'toward' | 'wait' | 'turn' | 'away';
+  timer: number;
+};
+
+const VEHICLE_COLORS = [
+  '#e63946',
+  '#f1faee',
+  '#457b9d',
+  '#2a9d8f',
+  '#8d99ae',
+  '#1d3557',
+  '#ffffff',
+  '#3d405b',
+];
+
+/**
+ * The avenue is closed for the race: vehicles drive up to the marshals, wait, turn round and drive away again,
+ * so the cross streets stay busy without ever crossing the course.
+ */
+const buildTraffic = (
+  group: THREE.Group,
+  crossZs: number[],
+  cityId: CityId,
+  rand: Rand,
+  shadows: boolean
+) => {
+  const band = FRONT_X + 1.6;
+  const far = 92;
+  const vehicles: Vehicle[] = [];
+  const pick = <T>(arr: T[]): T =>
+    arr[Math.floor(rand() * arr.length)] ?? arr[0]!;
+  for (const cz of crossZs) {
+    for (const side of [-1, 1] as const) {
+      const n = cityId === 'hanoi' ? 5 : 3;
+      for (let i = 0; i < n; i++) {
+        const roll = rand();
+        const kind: VehicleKind =
+          cityId === 'hanoi'
+            ? roll < 0.65
+              ? 'scooter'
+              : roll < 0.85
+                ? 'car'
+                : 'bus'
+            : roll < 0.12
+              ? 'bus'
+              : roll < (cityId === 'tokyo' ? 0.45 : 0.3)
+                ? 'taxi'
+                : roll < 0.6
+                  ? 'scooter'
+                  : 'car';
+        const color =
+          kind === 'bus'
+            ? cityId === 'paris'
+              ? '#2f6fbd'
+              : '#ffc72c'
+            : kind === 'taxi'
+              ? cityId === 'tokyo'
+                ? '#2b2d42'
+                : '#ffd23f'
+              : pick(VEHICLE_COLORS);
+        const { mesh, length } = vehicleMesh(kind, color);
+        mesh.castShadow = shadows;
+        group.add(mesh);
+        vehicles.push({
+          mesh,
+          length,
+          side,
+          cz,
+          d: 4 + rand() * (far - 10),
+          speed:
+            kind === 'bus'
+              ? 5
+              : kind === 'scooter'
+                ? 8 + rand() * 2
+                : 7 + rand() * 3,
+          state: rand() < 0.5 ? 'toward' : 'away',
+          timer: 0,
+        });
+      }
+    }
+  }
+
+  return (_t: number, dt: number, camZ: number) => {
+    for (const v of vehicles) {
+      // Only animate traffic near the camera; the rest waits in the fog.
+      if (v.cz > camZ + 30 || v.cz < camZ - 200) {
+        v.mesh.visible = v.cz > camZ - 200 && v.cz < camZ + 30;
+        continue;
+      }
+      v.mesh.visible = true;
+      if (v.state === 'toward') {
+        // keep a gap behind whoever is queued ahead in the same lane
+        let stop = 0;
+        for (const o of vehicles) {
+          if (o === v || o.cz !== v.cz || o.side !== v.side) continue;
+          if (
+            (o.state === 'toward' ||
+              o.state === 'wait' ||
+              o.state === 'turn') &&
+            o.d < v.d
+          ) {
+            stop = Math.max(stop, o.d + o.length / 2 + v.length / 2 + 1.2);
+          }
+        }
+        v.d = Math.max(stop, v.d - v.speed * dt);
+        if (v.d <= 0.01 && stop === 0) {
+          v.state = 'wait';
+          v.timer = 2 + Math.random() * 4;
+        }
+      } else if (v.state === 'wait') {
+        v.timer -= dt;
+        if (v.timer <= 0) {
+          v.state = 'turn';
+          v.timer = 0;
+        }
+      } else if (v.state === 'turn') {
+        v.timer += dt / 1.4;
+        if (v.timer >= 1) v.state = 'away';
+      } else {
+        v.d += v.speed * dt;
+        if (v.d > far) {
+          v.d = far;
+          v.state = 'toward';
+        }
+      }
+      // Toward the avenue on one side of the street, away on the other; a U-turn blends the two.
+      const k = v.state === 'turn' ? v.timer : v.state === 'away' ? 1 : 0;
+      const laneZ = v.cz + v.side * (k * 1.7 - (1 - k) * 1.7);
+      const x =
+        v.side *
+        (band +
+          v.d +
+          v.length / 2 +
+          (v.state === 'turn' ? Math.sin(k * Math.PI) * 1.5 : 0));
+      const heading = v.side > 0 ? Math.PI + k * Math.PI : k * Math.PI;
+      v.mesh.position.set(x, 0, laneZ);
+      v.mesh.rotation.y = heading;
+    }
+  };
+};
+
+/** Flocks of birds crossing the sky ahead of the runner. */
+const buildSkyLife = (group: THREE.Group, rand: Rand) => {
+  const mat = new THREE.MeshBasicMaterial({
+    color: '#3b3557',
+    side: THREE.DoubleSide,
+  });
+  const wingGeo = new THREE.BufferGeometry();
+  wingGeo.setAttribute(
+    'position',
+    new THREE.Float32BufferAttribute(
+      [0, 0, 0, -0.5, 0, 0.35, -0.15, 0, 0, 0, 0, 0, 0.5, 0, 0.35, 0.15, 0, 0],
+      3
+    )
+  );
+  const flocks = Array.from({ length: 3 }, (_, f) => {
+    const flock = new THREE.Group();
+    const birds: THREE.Mesh[] = [];
+    for (let i = 0; i < 6; i++) {
+      const b = new THREE.Mesh(wingGeo, mat);
+      b.position.set(-i * 1.2, Math.abs(i - 2.5) * 0.3, (i % 2) * 1.4 - 0.7);
+      b.rotation.y = Math.PI / 2;
+      flock.add(b);
+      birds.push(b);
+    }
+    group.add(flock);
+    return {
+      flock,
+      birds,
+      x: -80 + f * 50 + rand() * 20,
+      y: 22 + rand() * 10,
+      dz: 40 + f * 30,
+      speed: 6 + rand() * 3,
+    };
+  });
+  return (t: number, dt: number, camZ: number) => {
+    for (const f of flocks) {
+      f.x += f.speed * dt;
+      if (f.x > 90) f.x = -90;
+      f.flock.position.set(
+        f.x,
+        f.y + Math.sin(t * 0.7 + f.dz) * 1.5,
+        camZ - f.dz
+      );
+      f.birds.forEach(
+        (b, i) => (b.scale.z = 0.4 + Math.abs(Math.sin(t * 9 + i)) * 0.8)
+      );
+    }
+  };
+};
+
+/** Balloons at the start and finish, a TV motorbike filming the runner, confetti at the line. */
+const buildParty = (group: THREE.Group, accent: string, shadows: boolean) => {
+  const colors = [
+    accent,
+    '#ffc23d',
+    '#4fc3f7',
+    '#ffffff',
+    '#06d6a0',
+    '#ff5d73',
+  ];
+  const balloons: { m: THREE.Mesh; base: number; phase: number }[] = [];
+  for (const z of [0, kmZ(COURSE_KM)]) {
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 7; i++) {
+        const m = new THREE.Mesh(
+          new THREE.SphereGeometry(0.42, 14, 12),
+          new THREE.MeshStandardMaterial({
+            color: colors[i % colors.length] ?? '#ffffff',
+            roughness: 0.25,
+          })
+        );
+        m.scale.y = 1.15;
+        const base = 6.4 + (i % 3) * 0.6;
+        m.position.set(
+          side * (ROAD_HALF + 0.2) + (i - 3) * 0.18 * side,
+          base,
+          z + (i % 2) * 0.4
+        );
+        group.add(m);
+        balloons.push({ m, base, phase: i * 0.9 + side });
+      }
+    }
+  }
+
+  // The TV motorbike rides a few metres ahead on the right, filming back.
+  const moto = new THREE.Group();
+  const { mesh: bike } = vehicleMesh('scooter', '#2a2340');
+  bike.rotation.y = Math.PI / 2;
+  moto.add(bike);
+  const cameraman = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.2, 0.4, 3, 8),
+    new THREE.MeshStandardMaterial({ color: '#ff7a1a' })
+  );
+  cameraman.position.set(0, 1.25, 0.45);
+  moto.add(cameraman);
+  const cam = new THREE.Mesh(
+    new THREE.BoxGeometry(0.35, 0.3, 0.5),
+    new THREE.MeshStandardMaterial({ color: '#1b1b22' })
+  );
+  cam.position.set(0, 1.55, 0.75);
+  moto.add(cam);
+  moto.traverse((o) => {
+    if (o instanceof THREE.Mesh) o.castShadow = shadows;
+  });
+  group.add(moto);
+
+  const confettiCount = 260;
+  const confettiGeo = new THREE.BufferGeometry();
+  const pos = new Float32Array(confettiCount * 3);
+  const col = new Float32Array(confettiCount * 3);
+  const vel: number[] = [];
+  const c = new THREE.Color();
+  for (let i = 0; i < confettiCount; i++) {
+    c.set(colors[i % colors.length] ?? '#ffffff');
+    col.set([c.r, c.g, c.b], i * 3);
+    pos.set([0, -50, 0], i * 3);
+    vel.push(0);
+  }
+  confettiGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  confettiGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const confetti = new THREE.Points(
+    confettiGeo,
+    new THREE.PointsMaterial({ size: 0.16, vertexColors: true })
+  );
+  confetti.frustumCulled = false;
+  group.add(confetti);
+  let launched = false;
+
+  return (t: number, dt: number, camZ: number, finished: boolean) => {
+    for (const b of balloons) {
+      b.m.position.y = b.base + Math.sin(t * 1.3 + b.phase) * 0.18;
+    }
+    const finishZ = kmZ(COURSE_KM);
+    const motoZ = Math.max(finishZ - 6, camZ - 15);
+    moto.position.set(3.1, Math.abs(Math.sin(t * 7)) * 0.03, motoZ);
+    moto.visible = !finished;
+    if (finished && !launched) {
+      launched = true;
+      for (let i = 0; i < confettiCount; i++) {
+        pos.set(
+          [
+            (Math.random() - 0.5) * 9,
+            5 + Math.random() * 4,
+            finishZ + (Math.random() - 0.5) * 6,
+          ],
+          i * 3
+        );
+        vel[i] = 0.6 + Math.random() * 1.2;
+      }
+    }
+    if (launched) {
+      for (let i = 0; i < confettiCount; i++) {
+        const y = pos[i * 3 + 1] ?? 0;
+        if (y < 0) continue;
+        pos[i * 3 + 1] = y - (vel[i] ?? 1) * dt;
+        pos[i * 3] = (pos[i * 3] ?? 0) + Math.sin(t * 3 + i) * dt * 0.6;
+      }
+      confettiGeo.getAttribute('position').needsUpdate = true;
+    }
+  };
+};
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * Course items on the road: cones, puddles, dropped cups and high-five fans.
+ * ------------------------------------------------------------------------------------------------------------- */
+
+export type ItemView = {
+  group: THREE.Group;
+  hit(t: number): void;
+  update(t: number): void;
+};
+
+let hiFiveTex: THREE.Texture | null = null;
+
+export const buildItem = (item: CourseItem, laneWidth: number): ItemView => {
+  const g = new THREE.Group();
+  const x = item.lane * laneWidth;
+  g.position.set(x, 0, kmZ(item.km));
+  let hitAt = -1;
+  const std = (
+    color: string,
+    extra: Partial<THREE.MeshStandardMaterialParameters> = {}
+  ) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, ...extra });
+
+  if (item.kind === 'cone') {
+    const cone = new THREE.Group();
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 0.06, 0.62),
+      std('#2a2340')
+    );
+    base.position.y = 0.03;
+    const body = new THREE.Mesh(
+      new THREE.ConeGeometry(0.26, 0.78, 16),
+      std('#ff6a13')
+    );
+    body.position.y = 0.42;
+    const band = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.19, 0.12, 16),
+      std('#ffffff')
+    );
+    band.position.y = 0.45;
+    cone.add(base, body, band);
+    cone.traverse((o) => {
+      if (o instanceof THREE.Mesh) o.castShadow = true;
+    });
+    g.add(cone);
+    return {
+      group: g,
+      hit: (t) => (hitAt = t),
+      update: (t) => {
+        if (hitAt < 0) return;
+        const k = Math.min(1, (t - hitAt) / 0.7);
+        cone.position.set(
+          Math.sin(k * 2) * 0.6,
+          Math.sin(k * Math.PI) * 0.9,
+          -k * 2.2
+        );
+        cone.rotation.set(-k * 2.4, 0, k * 1.2);
+      },
+    };
+  }
+
+  if (item.kind === 'puddle') {
+    const water = new THREE.Mesh(
+      new THREE.CircleGeometry(0.9, 24),
+      std('#6fb7d9', {
+        roughness: 0.05,
+        metalness: 0.2,
+        transparent: true,
+        opacity: 0.8,
+      })
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.scale.set(1.25, 0.8, 1);
+    water.position.y = 0.02;
+    g.add(water);
+    const drops: THREE.Mesh[] = [];
+    for (let i = 0; i < 10; i++) {
+      const d = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06, 6, 5),
+        std('#bfe6f5')
+      );
+      d.visible = false;
+      g.add(d);
+      drops.push(d);
+    }
+    return {
+      group: g,
+      hit: (t) => (hitAt = t),
+      update: (t) => {
+        if (hitAt < 0) return;
+        const k = (t - hitAt) / 0.6;
+        drops.forEach((d, i) => {
+          const a = (i / drops.length) * Math.PI * 2;
+          d.visible = k < 1;
+          d.position.set(
+            Math.cos(a) * k * 0.9,
+            Math.sin(k * Math.PI) * 0.7,
+            Math.sin(a) * k * 0.6
+          );
+        });
+      },
+    };
+  }
+
+  if (item.kind === 'cups') {
+    const cups: THREE.Mesh[] = [];
+    for (let i = 0; i < 7; i++) {
+      const cup = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.06, 0.18, 8),
+        std(i % 2 ? '#ffffff' : '#38b6e8')
+      );
+      cup.position.set(
+        (i % 4) * 0.28 - 0.42,
+        0.06,
+        Math.floor(i / 4) * 0.35 - 0.2
+      );
+      cup.rotation.z = i % 3 === 0 ? 0 : Math.PI / 2;
+      cup.rotation.y = i;
+      g.add(cup);
+      cups.push(cup);
+    }
+    return {
+      group: g,
+      hit: (t) => (hitAt = t),
+      update: (t) => {
+        if (hitAt < 0) return;
+        const k = Math.min(1, (t - hitAt) / 0.5);
+        cups.forEach((c, i) => {
+          c.position.z =
+            Math.floor(i / 4) * 0.35 - 0.2 - k * (0.8 + (i % 3) * 0.4);
+          c.rotation.x = k * 4 * (i % 2 ? 1 : -1);
+        });
+      },
+    };
+  }
+
+  // A fan leans out from the crowd with a hand up for a high five.
+  const fan = new THREE.Group();
+  const side = item.lane > 0 ? 1 : -1;
+  fan.position.x = side * 1.0;
+  const shirt = std(
+    ['#ff5d73', '#ffd166', '#06d6a0', '#8338ec'][
+      Math.floor(item.km * 10) % 4
+    ] ?? '#ff5d73'
+  );
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.22, 0.55, 4, 10),
+    shirt
+  );
+  body.position.y = 0.75;
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.25, 14, 10),
+    std('#f6cfa8')
+  );
+  head.position.y = 1.42;
+  const arm = new THREE.Group();
+  arm.position.set(-side * 0.18, 1.05, 0);
+  const armMesh = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.06, 0.5, 3, 8),
+    std('#f6cfa8')
+  );
+  armMesh.position.set(-side * 0.3, 0.12, 0);
+  armMesh.rotation.z = side * 1.2;
+  arm.add(armMesh);
+  if (!hiFiveTex)
+    hiFiveTex = textLabel('HIGH FIVE!', '#ffc23d', '#2a2340', 256, 64);
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.1, 0.28),
+    new THREE.MeshBasicMaterial({ map: hiFiveTex })
+  );
+  sign.position.set(0, 1.95, 0.05);
+  fan.add(body, head, arm, sign);
+  fan.traverse((o) => {
+    if (o instanceof THREE.Mesh) o.castShadow = true;
+  });
+  g.add(fan);
+  return {
+    group: g,
+    hit: (t) => (hitAt = t),
+    update: (t) => {
+      arm.rotation.z = Math.sin(t * 6) * 0.25;
+      if (hitAt < 0) return;
+      const k = (t - hitAt) / 0.8;
+      fan.position.y = k < 1 ? Math.sin(k * Math.PI) * 0.5 : 0;
+    },
+  };
 };

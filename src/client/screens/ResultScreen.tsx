@@ -28,6 +28,21 @@ type Props = {
   onCheer: (username: string) => void;
 };
 
+const KIND_WORD: Record<string, [string, string]> = {
+  cone: ['cone', 'cones'],
+  puddle: ['puddle', 'puddles'],
+  cups: ['cup spill', 'cup spills'],
+  fan: ['high five', 'high fives'],
+};
+
+const countKinds = (kinds: string[]) => {
+  const counts = new Map<string, number>();
+  for (const k of kinds) counts.set(k, (counts.get(k) ?? 0) + 1);
+  return [...counts]
+    .map(([k, n]) => `${n} ${(KIND_WORD[k] ?? [k, k])[n === 1 ? 0 : 1]}`)
+    .join(', ');
+};
+
 const unlockedName = (id: string) =>
   itemById(id)?.name ?? petById(id)?.name ?? id;
 
@@ -117,6 +132,44 @@ export const ResultScreen = (p: Props) => {
               New in your locker: {run.unlocked.map(unlockedName).join(', ')}
             </p>
           )}
+        </section>
+      )}
+
+      {((run.incidents ?? []).length > 0 || (run.met ?? []).length > 0) && (
+        <section
+          className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2"
+          aria-label="Race report"
+        >
+          <h2 className="font-display text-[17px] font-extrabold">
+            Race report
+          </h2>
+          <ul className="flex flex-col gap-0.5 text-[13px]">
+            {(run.met ?? []).length > 0 && (
+              <li className="flex justify-between gap-2">
+                <span>{countKinds(run.met ?? [])}</span>
+                <span className="font-extrabold tabular">
+                  {run.course > 0 ? '+' : ''}
+                  {run.course}s
+                </span>
+              </li>
+            )}
+            {(run.incidents ?? []).map((inc, i) => (
+              <li
+                key={`${inc.with}-${i}`}
+                className="flex justify-between gap-2"
+              >
+                <span>
+                  {inc.atFault
+                    ? `💥 You ran into u/${inc.with}`
+                    : `💥 u/${inc.with} ran into you`}{' '}
+                  at km {inc.km.toFixed(1)}
+                </span>
+                <span className="font-extrabold tabular text-push">
+                  +{inc.seconds}s
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

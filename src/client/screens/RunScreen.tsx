@@ -1,34 +1,64 @@
-import { useEffect, useRef, useState } from 'react';
-import type { GhostRun, Profile, RunRecord } from '../../shared/api';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import type { RunnerTrack, Profile } from '../../shared/api';
 import type { DayInfo } from '../../shared/content';
+import { ITEM_LABEL, courseItems, type Lane } from '../../shared/course';
+import {
+  RACE_DT,
+  finishRace,
+  laneAtTime,
+  rivalKm,
+  startLane,
+  startRace,
+  stepRace,
+  type Move,
+  type RaceEvent,
+  type RaceSetup,
+  type RaceState,
+  type Rival,
+} from '../../shared/race';
 import {
   checkpoints,
-  distanceAt,
   formatTime,
+  simulate,
   type Pace,
+  type Plan,
 } from '../../shared/sim';
 import { RunWorld, type Positions, type Runner } from '../three/world';
+
+export type RaceOutcome = { moves: Move[]; rivals: string[]; seconds: number };
 
 type Props = {
   day: DayInfo;
   profile: Profile;
-  run: RunRecord;
-  ghosts: GhostRun[];
-  onFinish: () => void;
+  plan: Plan;
+  /** Other runners on the road. */
+  rivals: RunnerTrack[];
+  /** Live: the player steers. Replay: the recorded lane changes drive the runner. */
+  mode: 'live' | 'replay';
+  replayMoves?: Move[];
+  firstRun: boolean;
+  saving?: boolean;
+  onFinish: (outcome: RaceOutcome) => void;
 };
 
+type Toast = { title: string; body: string; tone: 'good' | 'bad' | 'info' };
+
 type Hud = {
-  simT: number;
+  t: number;
   km: number;
   stamina: number;
   place: number;
   field: number;
-  toast: { title: string; body: string } | null;
+  toast: Toast | null;
+  countdown: number;
 };
 
-const REAL_SECONDS = 34;
-const GHOST_LANES = [-0.75, 0.75, -0.4, 0.4, -1, 1, -0.55, 0.55];
+const LIVE_SECONDS = 60;
+const REPLAY_SECONDS = 34;
 const PACE_SPEED: Record<Pace, number> = { easy: 0.35, steady: 0.65, push: 1 };
+const OFFSETS = [
+  -0.45, 0.45, -0.2, 0.2, 0, -0.35, 0.35, 0.1, -0.1, 0.3, -0.3, 0.05,
+];
 
 const ordinal = (n: number) => {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -36,124 +66,231 @@ const ordinal = (n: number) => {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 };
 
-export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
+const eventToast = (e: RaceEvent): Toast => {
+  if (e.kind === 'bump') {
+    const body = `You both fell and lose ${e.seconds}s each.`;
+    return e.atFault
+      ? { title: `💥 You ran into u/${e.rival}`, body, tone: 'bad' }
+      : { title: `💥 u/${e.rival} ran into you`, body, tone: 'bad' };
+  }
+  if (e.kind === 'fan')
+    return {
+      title: '🙌 High five!',
+      body: `A burst of speed: ${e.seconds}s`,
+      tone: 'good',
+    };
+  const icon = e.kind === 'cone' ? '🚧' : e.kind === 'puddle' ? '💦' : '🥤';
+  return {
+    title: `${icon} ${ITEM_LABEL[e.kind]}!`,
+    body: `You stumble. +${e.seconds}s`,
+    tone: 'bad',
+  };
+};
+
+export const RunScreen = ({
+  day,
+  profile,
+  plan,
+  rivals,
+  mode,
+  replayMoves,
+  firstRun,
+  saving,
+  onFinish,
+}: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const live = mode === 'live';
   const [hud, setHud] = useState<Hud>({
-    simT: 0,
+    t: 0,
     km: 0,
     stamina: 100,
     place: 1,
-    field: ghosts.length + 1,
+    field: rivals.length + 1,
     toast: null,
+    countdown: live ? 3 : 0,
   });
   const [fast, setFast] = useState(false);
+  const [showHelp, setShowHelp] = useState(live && firstRun);
   const fastRef = useRef(false);
+  const laneRef = useRef<Lane>(startLane(profile.username));
+  const skipRef = useRef(false);
   const finishRef = useRef(onFinish);
 
   useEffect(() => {
     finishRef.current = onFinish;
   }, [onFinish]);
-
   useEffect(() => {
     fastRef.current = fast;
   }, [fast]);
 
+  const steer = (dir: -1 | 1) => {
+    if (!live) return;
+    setShowHelp(false);
+    const next = laneRef.current + dir;
+    laneRef.current = next <= -1 ? -1 : next >= 1 ? 1 : 0;
+  };
+  const steerRef = useRef(steer);
+  useEffect(() => {
+    steerRef.current = steer;
+  });
+
+  // Keyboard: arrows or A / D
+  useEffect(() => {
+    if (!live) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')
+        steerRef.current(-1);
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')
+        steerRef.current(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [live]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const sim = simulate(day.stage, day.weather.id, plan);
+    const rivalList: Rival[] = rivals.map((g) => ({
+      username: g.username,
+      marks: g.marks,
+      ...(g.moves ? { moves: g.moves } : {}),
+    }));
+    const setup: RaceSetup = {
+      base: checkpoints(sim.splits),
+      items: courseItems(day.dateKey, day.stage, day.weather.id),
+      rivals: rivalList,
+      startLane: startLane(profile.username),
+    };
     const runners: Runner[] = [
-      ...ghosts.map((g, i) => ({
+      ...rivals.map((g, i) => ({
         name: g.username,
         look: g.look,
-        ghost: true,
-        lane: GHOST_LANES[i % GHOST_LANES.length] ?? 0.5,
-        labelled: i < 3,
+        other: true,
+        offset: OFFSETS[i % OFFSETS.length] ?? 0,
+        labelled: i < 5,
       })),
-      {
-        name: '__me',
-        look: profile.look,
-        ghost: false,
-        lane: 0,
-        labelled: true,
-      },
+      { name: '__me', look: profile.look, other: false, labelled: true },
     ];
     const world = new RunWorld({
       canvas,
       city: day.city,
       stage: day.stage,
       runners,
+      items: setup.items,
     });
-    const myMarks = checkpoints(run.splits);
-    const timeScale = run.seconds / REAL_SECONDS;
-    const toasts: { at: number; title: string; body: string }[] = [
-      {
-        at: day.stage.landmark.km - 0.55,
-        title: `📍 ${day.stage.landmark.name}`,
-        body: day.stage.landmark.blurb,
-      },
-      ...run.splits
-        .filter((s) => s.drank)
-        .map((s) => ({
-          at: s.km - 0.02,
-          title: '💧 Water!',
-          body: 'Stamina topped up.',
-        })),
-      ...run.splits
-        .filter((s) => s.walked > 0)
-        .slice(0, 1)
-        .map((s) => ({
-          at: s.km - 1 + (1 - s.walked),
-          title: '😮‍💨 Out of gas',
-          body: 'Walking until the legs come back.',
-        })),
-    ].sort((a, b) => a.at - b.at);
+    const state: RaceState = startRace(setup.startLane ?? 0);
+    const total = setup.base[setup.base.length - 1] ?? 1;
+    const timeScale = total / (live ? LIVE_SECONDS : REPLAY_SECONDS);
+    const lm = day.stage.landmark;
+    let lmShown = false;
+    const shownDrinks = new Set<number>();
 
-    let simT = 0;
     let animT = 0;
     let last = performance.now();
+    let budget = 0;
+    let countdown = live ? 2.4 : 0;
     let finishedAt: number | null = null;
+    let toast: Toast | null = null;
     let toastUntil = 0;
-    let toastIndex = 0;
     let lastHud = 0;
-    let currentToast: Hud['toast'] = null;
     let gaze = 0;
+    let replayIndex = 0;
     let raf = 0;
+    let reported = false;
+
+    const show = (t: Toast, seconds: number) => {
+      toast = t;
+      toastUntil = animT + seconds;
+    };
+
+    const handle = (events: RaceEvent[]) => {
+      for (const e of events) {
+        if (e.kind === 'bump') {
+          world.fall('__me');
+          world.fall(e.rival);
+        } else {
+          world.hitItem(e.item);
+        }
+        show(eventToast(e), 1.8);
+      }
+    };
 
     const loop = (now: number) => {
       const dt = Math.min(0.25, (now - last) / 1000);
       last = now;
       animT += dt;
-      // Slow motion while passing the landmark, so it can actually be seen.
-      const toLandmark = day.stage.landmark.km - distanceAt(myMarks, simT);
-      const nearLandmark = toLandmark < 0.6 && toLandmark > 0.05;
-      const speedUp = fastRef.current ? 3 : nearLandmark ? 0.3 : 1;
-      simT = Math.min(run.seconds + 4, simT + dt * timeScale * speedUp);
 
-      const myKm = distanceAt(myMarks, simT);
-      const kmIndex = Math.min(5, Math.floor(myKm));
-      const split = run.splits[kmIndex];
-      const done = simT >= run.seconds;
-      let mySpeed = 0;
-      if (!done && split) {
-        const intoKm = myKm - kmIndex;
-        mySpeed =
-          split.walked > 0 && intoKm > 1 - split.walked
-            ? 0.12
-            : PACE_SPEED[split.pace];
+      if (countdown > 0) {
+        countdown -= dt;
+      } else if (!state.done) {
+        if (skipRef.current) {
+          const before = state.events.length;
+          finishRace(state, setup);
+          handle(state.events.slice(before).slice(-1));
+        } else {
+          budget += dt * timeScale * (fastRef.current ? 3 : 1);
+          let guard = 0;
+          while (budget >= RACE_DT && !state.done && guard++ < 60) {
+            budget -= RACE_DT;
+            let lane: Lane | undefined;
+            if (live) lane = laneRef.current;
+            else if (replayMoves) {
+              while (
+                replayIndex < replayMoves.length &&
+                (replayMoves[replayIndex]?.step ?? Infinity) <= state.step
+              ) {
+                lane = replayMoves[replayIndex]?.lane;
+                replayIndex += 1;
+              }
+            }
+            handle(stepRace(state, setup, lane));
+          }
+        }
       }
-      const positions: Positions = [{ name: '__me', km: myKm, speed: mySpeed }];
+
+      const kmIndex = Math.min(5, Math.floor(state.km));
+      const split = sim.splits[kmIndex];
+      const limping = state.debt > 0;
+      const mySpeed = state.done
+        ? 0
+        : limping
+          ? 0.2
+          : split
+            ? PACE_SPEED[split.pace] * (state.debt < 0 ? 1.2 : 1)
+            : 0.6;
+      const positions: Positions = [
+        {
+          name: '__me',
+          km: state.km,
+          speed: countdown > 0 ? 0 : mySpeed,
+          lane: state.lane,
+          limp: limping,
+        },
+      ];
       let ahead = 0;
-      for (const g of ghosts) {
-        const km = distanceAt(g.marks, simT);
+      for (const r of rivalList) {
+        const km = rivalKm(state, r);
         const gi = Math.min(5, Math.floor(km));
-        const gs = (g.marks[gi + 1] ?? 0) - (g.marks[gi] ?? 0);
+        const gs = (r.marks[gi + 1] ?? 0) - (r.marks[gi] ?? 0);
+        const fallen = (state.rivalDebt[r.username] ?? 0) > 0;
         const speed =
-          km >= 6 ? 0 : Math.max(0.2, Math.min(1, (372 - gs) / 100 + 0.3));
-        positions.push({ name: g.username, km, speed });
-        if (km > myKm || (km >= 6 && g.seconds < run.seconds)) ahead++;
+          km >= 6 || countdown > 0
+            ? 0
+            : fallen
+              ? 0.2
+              : Math.max(0.2, Math.min(1, (372 - gs) / 100 + 0.3));
+        positions.push({
+          name: r.username,
+          km,
+          speed,
+          lane: laneAtTime(r.moves, state.t, startLane(r.username)),
+          limp: fallen,
+        });
+        if (km > state.km) ahead++;
       }
-      // Look towards the landmark on the approach: ease in from 0.75 km out, ease out as the runner reaches it.
-      const lmLeft = day.stage.landmark.km - myKm;
+
+      const lmLeft = lm.km - state.km;
       const raw =
         lmLeft > 0.75 || lmLeft < -0.05
           ? 0
@@ -163,36 +300,55 @@ export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
               ? 1
               : (lmLeft + 0.05) / 0.17;
       gaze += (Math.max(0, Math.min(1, raw)) - gaze) * Math.min(1, dt * 3);
-      world.frame(animT, positions, '__me', done, fastRef.current ? 0 : gaze);
+      world.frame(
+        animT,
+        positions,
+        '__me',
+        state.done,
+        fastRef.current ? 0 : gaze
+      );
 
-      const next = toasts[toastIndex];
-      if (next && myKm >= next.at) {
-        currentToast = { title: next.title, body: next.body };
-        toastUntil = animT + (next.title.startsWith('📍') ? 4.5 : 1.8);
-        toastIndex++;
+      if (!lmShown && state.km >= lm.km - 0.55) {
+        lmShown = true;
+        show({ title: `📍 ${lm.name}`, body: lm.blurb, tone: 'info' }, 4.5);
       }
-      if (currentToast && animT > toastUntil) currentToast = null;
+      for (const s of sim.splits) {
+        if (s.drank && state.km >= s.km && !shownDrinks.has(s.km)) {
+          shownDrinks.add(s.km);
+          if (!toast || toast.tone === 'info')
+            show(
+              { title: '💧 Water!', body: 'Stamina topped up.', tone: 'good' },
+              1.6
+            );
+        }
+      }
+      if (toast && animT > toastUntil) toast = null;
 
-      if (now - lastHud > 90 || done) {
+      if (now - lastHud > 90 || state.done) {
         lastHud = now;
         const prev =
-          kmIndex === 0 ? 100 : (run.splits[kmIndex - 1]?.stamina ?? 100);
+          kmIndex === 0 ? 100 : (sim.splits[kmIndex - 1]?.stamina ?? 100);
         const end = split?.stamina ?? 0;
-        const frac = myKm - kmIndex;
+        const frac = state.km - kmIndex;
         setHud({
-          simT: Math.min(simT, run.seconds),
-          km: Math.min(6, myKm),
-          stamina: done ? end : prev + (end - prev) * frac,
+          t: state.done ? state.finalSeconds : state.t,
+          km: Math.min(6, state.km),
+          stamina: state.done ? end : prev + (end - prev) * frac,
           place: ahead + 1,
-          field: ghosts.length + 1,
-          toast: currentToast,
+          field: rivalList.length + 1,
+          toast,
+          countdown: Math.ceil(Math.max(0, countdown) / 0.8),
         });
       }
 
-      if (done && finishedAt === null) finishedAt = animT;
-      if (finishedAt !== null && animT - finishedAt > 1.6) {
-        finishRef.current();
-        return;
+      if (state.done && finishedAt === null) finishedAt = animT;
+      if (finishedAt !== null && animT - finishedAt > 1.8 && !reported) {
+        reported = true;
+        finishRef.current({
+          moves: state.moves,
+          rivals: rivalList.map((r) => r.username),
+          seconds: state.finalSeconds,
+        });
       }
       raf = requestAnimationFrame(loop);
     };
@@ -201,21 +357,39 @@ export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
       cancelAnimationFrame(raf);
       world.dispose();
     };
-  }, [day, profile.look, run, ghosts]);
+  }, [day, profile.look, profile.username, plan, rivals, live, replayMoves]);
+
+  // Swipe to change lanes
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onPointerDown = (e: PointerEvent) => {
+    touch.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: PointerEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    if (Math.abs(dx) > 28 && Math.abs(dx) > Math.abs(e.clientY - start.y))
+      steer(dx < 0 ? -1 : 1);
+  };
 
   const finished = hud.km >= 6;
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      className="relative h-full w-full overflow-hidden touch-none"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"
-        aria-label="Race animation"
+        aria-label="Race"
       />
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
         <div className="bib px-3 py-1.5">
           <p className="font-display text-[26px] font-extrabold leading-none tabular">
-            {formatTime(hud.simT)}
+            {formatTime(hud.t)}
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft tabular">
             {hud.km.toFixed(2)} of 6 km
@@ -226,7 +400,7 @@ export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
             {ordinal(hud.place)}
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft">
-            of {hud.field} on screen
+            of {hud.field} on the road
           </p>
         </div>
       </div>
@@ -252,7 +426,7 @@ export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
       {hud.toast && (
         <div
           key={hud.toast.title}
-          className="pop-in pointer-events-none absolute left-3 right-3 top-[110px] mx-auto max-w-[360px] bib px-3 py-2"
+          className={`pop-in pointer-events-none absolute left-3 right-3 top-[110px] mx-auto max-w-[360px] bib px-3 py-2 ${hud.toast.tone === 'bad' ? 'bg-[#fff1ee]' : ''}`}
         >
           <p className="font-display text-[17px] font-extrabold leading-tight">
             {hud.toast.title}
@@ -260,27 +434,80 @@ export const RunScreen = ({ day, profile, run, ghosts, onFinish }: Props) => {
           <p className="text-[13px] leading-snug">{hud.toast.body}</p>
         </div>
       )}
-      {finished && (
-        <p className="stamp pointer-events-none absolute inset-x-0 top-[42%] text-center font-display text-[56px] font-extrabold text-[var(--accent)] [text-shadow:0_3px_0_#2a2340]">
-          Finished!
+      {hud.countdown > 0 && (
+        <p
+          key={hud.countdown}
+          className="stamp pointer-events-none absolute inset-x-0 top-[38%] text-center font-display text-[84px] font-extrabold text-[var(--accent)] [text-shadow:0_4px_0_#2a2340]"
+        >
+          {hud.countdown}
         </p>
       )}
-      <div className="absolute inset-x-0 bottom-0 flex justify-center gap-2 p-3">
-        <button
-          type="button"
-          onClick={() => setFast((f) => !f)}
-          className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
-          aria-pressed={fast}
-        >
-          {fast ? 'Normal speed' : 'Fast-forward'}
-        </button>
-        <button
-          type="button"
-          onClick={onFinish}
-          className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
-        >
-          Skip to results
-        </button>
+      {showHelp && !finished && (
+        <div className="pop-in pointer-events-none absolute inset-x-6 bottom-[104px] mx-auto max-w-[340px] rounded-xl bg-ink px-3 py-2 text-center text-[13px] font-bold text-white">
+          Swipe or tap ◀ ▶ to change lanes. Dodge cones, high-five fans, and
+          overtake other runners in a free lane: run into someone and you both
+          fall.
+        </div>
+      )}
+      {finished && (
+        <p className="stamp pointer-events-none absolute inset-x-0 top-[42%] text-center font-display text-[56px] font-extrabold text-[var(--accent)] [text-shadow:0_3px_0_#2a2340]">
+          {saving ? 'Saving…' : 'Finished!'}
+        </p>
+      )}
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
+        {live ? (
+          <>
+            <button
+              type="button"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                steer(-1);
+              }}
+              className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
+              aria-label="Move left"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => (skipRef.current = true)}
+              className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
+              disabled={finished}
+            >
+              Finish without steering
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                steer(1);
+              }}
+              className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
+              aria-label="Move right"
+            >
+              ▶
+            </button>
+          </>
+        ) : (
+          <div className="flex w-full justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setFast((f) => !f)}
+              className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
+              aria-pressed={fast}
+            >
+              {fast ? 'Normal speed' : 'Fast-forward'}
+            </button>
+            <button
+              type="button"
+              onClick={() => (skipRef.current = true)}
+              className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
+            >
+              Skip to results
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

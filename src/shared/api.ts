@@ -16,6 +16,10 @@ import type { KmSplit, Plan } from './sim';
 
 export type Profile = {
   username: string;
+  /** True once the player has created their runner. */
+  registered: boolean;
+  /** Race bib number, handed out in registration order. */
+  bib: number | null;
   badges: number;
   streak: number;
   bestStreak: number;
@@ -40,6 +44,7 @@ export type Profile = {
 export type RunnerTrack = {
   username: string;
   look: Look;
+  bib?: number | null;
   /** Cumulative seconds at km 0..6. */
   marks: number[];
   seconds: number;
@@ -130,6 +135,14 @@ export type RunResponse = {
   profile: Profile;
   leaderboard: LeaderRow[];
   crew: CrewProgress;
+};
+
+export type RegisterRequest = {
+  skin: number;
+  hair: number;
+  hairStyle: number;
+  top: string;
+  journeyId?: string | null;
 };
 
 export type ItemRequest = { itemId: string; journeyId?: string | null };

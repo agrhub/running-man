@@ -4,6 +4,7 @@ import type {
   ErrorResponse,
   ItemRequest,
   JourneyRequest,
+  RegisterRequest,
   PetRequest,
   ProfileResponse,
   RunRequest,
@@ -18,6 +19,7 @@ import {
   choosePet,
   equipItem,
   init,
+  register,
   run,
   share,
   splash,
@@ -89,6 +91,21 @@ export const createApi = (deps: Deps): Hono => {
           body.rivals ?? []
         )
       );
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/register', async (c) => {
+    try {
+      const body = await readJson<RegisterRequest>(c);
+      const profile = await register(deps, body);
+      await track(deps, body.journeyId, 'runner_registered');
+      return c.json<ProfileResponse>({
+        type: 'profile',
+        profile,
+        message: `Bib #${String(profile.bib ?? 0).padStart(4, '0')} is yours!`,
+      });
     } catch (e) {
       return fail(c, e);
     }

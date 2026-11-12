@@ -280,10 +280,14 @@ export type Look = {
   accessory: string;
   trail: string;
   pet: PetId;
-  /** Skin and hair tones are picked once from the username. */
+  /** Indexes into SKIN_TONES and HAIR_TONES, chosen at registration. */
   skin: number;
   hair: number;
+  /** Index into HAIR_STYLES. Older profiles have none: short hair. */
+  hairStyle?: number;
 };
+
+export const HAIR_STYLES = ['Short', 'Spiky', 'Bob', 'Bun'] as const;
 
 export const SKIN_TONES = [
   '#ffe0c7',
@@ -319,6 +323,7 @@ export const defaultLook = (seed: number): Look => {
     pet: 'corgi',
     skin: seed % SKIN_TONES.length,
     hair: Math.floor(seed / 7) % HAIR_TONES.length,
+    hairStyle: Math.floor(seed / 3) % HAIR_STYLES.length,
   };
 };
 

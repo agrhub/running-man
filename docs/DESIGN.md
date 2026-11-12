@@ -17,7 +17,7 @@ redditors who ran that day. Every finish adds to a shared goal the whole subredd
 | Judging criterion | How the game meets it                                                                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- |
 | Delightful UX     | Cute 3D chibis, a pet running beside you, a palette per city, a living city around the road                     |
-| Polish            | Small scope done well: 4 cities, 7 terrains, 4 pets, 20 outfit items, traffic, crowds, birds and a TV motorbike |
+| Polish            | Small scope done well: 4 cities, 7 terrains, 4 pets, 21 outfit items, traffic, crowds, birds and a TV motorbike |
 | Reddit-y          | The subreddit is one running club; real redditors share the road and crashes hurt both; quick chat; bibs; flair |
 | Daily content     | A new stage every day with its own terrain, landmark and weather; a new city every week                         |
 
@@ -79,7 +79,7 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 - **Crew bar** on the feed card and the plan screen: "Crew goal: 10 marathons in Tokyo, 306 / 422 km".
 - **A season is one city:** seven days, seven stages. If the crew finishes early, the remaining stages stay open.
 - **City finish:** everyone who ran that week gets 200 badges and the city's hat (Tokyo hachimaki, Paris beret,
-  Hanoi leaf hat). Runners get a "🏅 Tokyo Finisher" user flair.
+  Hanoi leaf hat, Dubai sun visor). Runners get a "🏅 Tokyo Finisher" user flair.
 - **Real runners on the road:** up to 12 of today's runners share the road with you.
 - **The comments are the strategy room:** each stage post pins a "Today's strategy?" comment, and sharing a result
   posts a compact result card as a comment.
@@ -104,6 +104,7 @@ One low-poly chibi model with swappable slots, plus four pets with their own ani
 | Tokyo Hachimaki     | Hat       | Crew finishes Tokyo        |
 | Paris Beret         | Hat       | Crew finishes Paris        |
 | Hanoi Leaf Hat      | Hat       | Crew finishes Hanoi        |
+| Dubai Sun Visor     | Hat       | Crew finishes Dubai        |
 | Finish-Line Top Hat | Hat       | 14-day streak              |
 | Daily Runners       | Shoes     | Free                       |
 | Kumo Glow Runners   | Shoes     | 600 badges                 |

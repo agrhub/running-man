@@ -62,7 +62,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   queues at the marshals and turns round, waving crowds, birds, balloons, a TV motorbike filming the leaders, confetti
   at the finish, and a landmark moment on every stage.
 - **Race bib result card:** rank, time, splits, streak and rewards on one screen, with share and cheer buttons.
-- **Locker:** 20 cosmetic items and 4 pets that run with you (corgi, tabby cat, shiba, penguin), earned by streaks,
+- **Locker:** 21 cosmetic items and 4 pets that run with you (corgi, tabby cat, shiba, penguin), earned by streaks,
   city finishes and weather, or bought with badges. Cosmetics never change race times.
 - **Reddit-native:** one post per day created by the scheduler with a pinned strategy thread, result sharing as a
   comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.

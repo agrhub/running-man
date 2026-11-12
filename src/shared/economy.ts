@@ -31,6 +31,7 @@ export type ItemShape =
   | 'hachimaki'
   | 'beret'
   | 'conical'
+  | 'visor'
   | 'tophat'
   | 'runners'
   | 'glowRunners'
@@ -146,6 +147,14 @@ export const ITEMS: Item[] = [
     shape: 'conical',
     color: '#f2d38c',
     unlock: { kind: 'cityFinish', city: 'hanoi' },
+  },
+  {
+    id: 'visor',
+    name: 'Dubai Sun Visor',
+    slot: 'hat',
+    shape: 'visor',
+    color: '#1fb5a8',
+    unlock: { kind: 'cityFinish', city: 'dubai' },
   },
   {
     id: 'tophat',

@@ -81,8 +81,8 @@ earned. One tap shares it to the comments, where the pinned strategy thread is a
 You can send one cheer a day to another runner.
 
 Every finished stage adds 6 km to the crew's goal of ten marathons in the city. When the crew finishes, everyone who
-ran that week gets badges and the city's hat (a hachimaki, a beret or a leaf hat). Badges, streaks and weather unlock
-20 outfit pieces and 4 pets that run beside you: a corgi, a tabby cat that keeps stopping, a shiba and a penguin.
+ran that week gets badges and the city's hat (a hachimaki, a beret, a leaf hat or a sun visor). Badges, streaks and weather unlock
+21 outfit pieces and 4 pets that run beside you: a corgi, a tabby cat that keeps stopping, a shiba and a penguin.
 Pets and outfits never change race times.
 
 **How we built it**

@@ -12,7 +12,7 @@ Everything needed to submit Chibi City Marathon to
 - [ ] A public demo subreddit (for example r/ChibiCityMarathon) with the app installed.
 - [ ] Today's stage post exists (install trigger, or the mod menu item **Post today's marathon stage**), and the
       scheduler has created posts for a few days in a row so judges see the daily loop.
-- [ ] Ask 8 to 15 friends to run the stage on several days, so the leaderboard, ghosts and crew bar are alive.
+- [ ] Ask 8 to 15 friends to run the stage on several days, so the leaderboard, the road and the crew bar are busy.
       Ask them to share their results in the comments too.
 - [ ] Pin the subreddit's welcome post with one line on how to play and a link to today's stage.
 - [ ] Open the demo post on a phone and in a desktop browser, logged in and logged out. Everything should fit in
@@ -28,8 +28,8 @@ Everything needed to submit Chibi City Marathon to
 
 **Elevator pitch (under 200 characters):**
 
-> Plan your pace, then race a 6 km stage through Tokyo, Paris or Hanoi with your chibi and pet. One new stage a day,
-> and the whole subreddit runs ten marathons together.
+> Plan your pace, then steer your chibi through a 6 km city stage past cones, fans and today's real runners. Crash and
+> you both fall. One new stage a day.
 
 **Links:**
 
@@ -58,8 +58,16 @@ city a week, seven stages each. Each stage has its own hills, water stations, a 
 heat, rain, headwind or tailwind), and everyone gets exactly the same conditions.
 
 You plan the race in about 30 seconds: tap each kilometre to choose Easy, Steady or Push and pick your water stops.
-A live stamina line shows where you would run out. Then you watch your runner race it in 3D, from behind, down a
-closed avenue with crowds, km gantries and the landmark, alongside the ghosts of the day's fastest redditors.
+A live stamina line shows where you would run out. Then you race it in 3D, from behind your runner, down a closed
+avenue with three lanes. Swipe or tap to change lanes: cones, puddles and dropped cups cost seconds, and fans at the
+barrier give you a high five and a burst of speed.
+
+The other runners on the road are today's real players, running exactly the lanes and pace they ran. You cannot run
+through them: run into one, or let one run into you, and you both fall and lose a beat (4 seconds). The crash is
+real on both sides: the other player's official time, splits and leaderboard place change too, and both result cards
+list it in a race report. The landmark of the stage comes into view on the way, and the city lives around you:
+traffic queues at the marshals and turns round, crowds wave, a TV motorbike films the leaders and confetti falls at
+the finish.
 
 The result is a race bib: your rank among today's runners, your time and splits, your streak and the badges you
 earned. One tap shares it to the comments, where the pinned strategy thread is already arguing about where to push.
@@ -77,14 +85,16 @@ Pets and outfits never change race times.
   a canvas-drawn facade module repeated by UV, tinted per building and merged per material, so a whole city costs a
   handful of draw calls on a phone. Each city has its own look: glass towers and vertical signs in Tokyo,
   Haussmann blocks with slate roofs in Paris, narrow colourful tube houses with balconies and cables in Hanoi.
-- The race is a deterministic stamina simulation shared by client and server. The client previews stamina while you
-  plan; the server re-runs the plan to record the official time, so nobody can post a fake result.
-- Hono API on Devvit's serverless runtime with Redis: daily leaderboards in sorted sets, ghost runs, crew progress,
-  profiles, streaks and cheers.
+- The race is shared code run by both sides: a stamina simulation for the pace plan, and a fixed-step race engine for
+  lanes, course items and collisions. The client steps it live while you steer and sends only your plan and lane
+  changes. The server replays the race step by step with the same course and the same runners and records the time
+  it gets, so nobody can post a fake result, and it writes each crash into the other runner's record.
+- Hono API on Devvit's serverless runtime with Redis: daily leaderboards in sorted sets, every runner's track (time at
+  each km and lane changes), crew progress, profiles, streaks and cheers.
 - The Devvit scheduler posts each day's stage with a pinned strategy comment. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 32 unit tests and a 19-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 51 unit tests and a 22-check Playwright run cover the full loop.
 
 **Challenges we ran into**
 
@@ -95,6 +105,9 @@ Pets and outfits never change race times.
 - A third-person camera in a narrow portrait post: landmarks sit beside the road, outside the view. The camera now
   widens and pans gently on the approach, and the race slows down while you pass.
 - Keeping a dense 3D city fast on phones: merged geometry, instanced lane marks and no texture downloads.
+- Making crashes feel real but fair in an asynchronous daily game: everyone lines up across the three lanes at the
+  start, there are no crashes in the first 500 m, nobody runs into someone who is still getting up, and both runners
+  lose the same beat.
 
 **Accomplishments that we're proud of**
 
@@ -113,18 +126,19 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-| Time | Show                                                   | Say                                                                                    |
-| ---- | ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| 0:00 | The feed card in the subreddit                         | "Every day, one new stage of a city marathon, right in your Reddit feed."              |
-| 0:08 | Tap Run, the plan screen                               | "Each stage has hills, water stops and the day's weather. Same for everyone."          |
-| 0:20 | Tap km buttons, gold line drops, "walking!" appears    | "Push is fast but drains stamina. Push too much and you walk."                         |
-| 0:35 | Start the race, third-person run with ghosts and crowd | "Your chibi and your pet race it in 3D, against the ghosts of today's runners."        |
-| 0:55 | The landmark moment and the km gantries                | "Each stage passes a landmark: today, the Forest Shrine in Tokyo."                     |
-| 1:10 | Finish, the race bib                                   | "Your result is a race bib: rank, time, splits, streak."                               |
-| 1:20 | Share to comments, the comment thread                  | "Share it, compare plans in the strategy thread, cheer another runner."                |
-| 1:35 | Crew bar                                               | "Every run adds 6 km to the subreddit's goal: ten marathons in each city, every week." |
-| 1:45 | Locker: outfits and pets                               | "Streaks and city finishes unlock outfits and pets. They never change your time."      |
-| 1:55 | Paris and Hanoi races                                  | "Next week, Paris. Then Hanoi. See you at the start line tomorrow."                    |
+| Time | Show                                                | Say                                                                                        |
+| ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 0:00 | The feed card in the subreddit                      | "Every day, one new stage of a city marathon, right in your Reddit feed."                  |
+| 0:08 | Tap Run, the plan screen                            | "Each stage has hills, water stops and the day's weather. Same for everyone."              |
+| 0:20 | Tap km buttons, gold line drops, "walking!" appears | "Push is fast but drains stamina. Push too much and you walk."                             |
+| 0:35 | Countdown, steering past cones, a high five         | "Then you run it. Swipe to change lanes, dodge cones, high-five the crowd."                |
+| 0:45 | Crash into another runner, both fall                | "These are today's real runners. Crash into one and you both fall, and both times change." |
+| 0:55 | The landmark moment and the km gantries             | "Each stage passes a landmark: today, the Forest Shrine in Tokyo."                         |
+| 1:10 | Finish, the race bib                                | "Your result is a race bib: rank, time, splits, streak."                                   |
+| 1:20 | Share to comments, the comment thread               | "Share it, compare plans in the strategy thread, cheer another runner."                    |
+| 1:35 | Crew bar                                            | "Every run adds 6 km to the subreddit's goal: ten marathons in each city, every week."     |
+| 1:45 | Locker: outfits and pets                            | "Streaks and city finishes unlock outfits and pets. They never change your time."          |
+| 1:55 | Paris and Hanoi races                               | "Next week, Paris. Then Hanoi. See you at the start line tomorrow."                        |
 
 ## 4. Screenshots for the gallery
 
@@ -132,10 +146,10 @@ In `docs/screenshots/` (portrait, 2x):
 
 1. `01-feed-card.png`: the inline post in the feed
 2. `02-race-plan.png`: planning the race
-3. `03-race-tokyo.png`: the third-person race with ghosts
+3. `03-race-tokyo.png`: the third-person race with today's runners and a crash
 4. `04-landmark-hanoi.png`: the landmark moment in Hanoi
-5. `05-race-paris.png`: Paris
-6. `06-result-bib.png`: the race bib result
+5. `05-race-hanoi-obstacles.png`: cones, a high-five fan and the TV motorbike in Hanoi
+6. `06-result-bib.png`: the race bib result with the race report
 7. `07-locker-pets.png`: pets in the locker
 
 Retake them on Reddit itself once the demo subreddit is live, so judges see the real post chrome.

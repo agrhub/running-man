@@ -19,6 +19,8 @@ import { CITIES, addDays, dayInfo, toDateKey } from '../shared/content';
 import { ITEMS, PETS } from '../shared/economy';
 import { mulberry32 } from '../shared/rng';
 import { PACES, type Plan } from '../shared/sim';
+import type { Lane } from '../shared/course';
+import type { Move } from '../shared/race';
 import { noTelemetry, type Deps, type NewPost } from '../server/core/deps';
 import { ensureDailyPost, loadProfile, run } from '../server/core/game';
 import { keys } from '../server/core/keys';
@@ -114,7 +116,7 @@ const asUser = <T>(
   fn: () => Promise<T>
 ) => als.run({ user, post, date }, fn);
 
-/** Fills the last few days with runs from fake players so the leaderboard and ghosts are alive. */
+/** Fills the last few days with runs from fake players so the leaderboard and the road are busy. */
 const seed = async (today: string, days: number, perDay: number) => {
   const rand = mulberry32(42);
   for (let d = days; d >= 0; d--) {
@@ -128,7 +130,7 @@ const seed = async (today: string, days: number, perDay: number) => {
       const user =
         FAKE_RUNNERS[(i + d * 3) % FAKE_RUNNERS.length] ?? `runner${i}`;
       if (await store.get(keys.run(date, user))) continue;
-      // Give fake players varied outfits so ghosts look different.
+      // Give fake players varied outfits so runners look different.
       const profile = await loadProfile(store, user);
       const tops = ITEMS.filter(
         (it) => it.slot === 'top' && it.unlock.kind === 'free'
@@ -150,7 +152,19 @@ const seed = async (today: string, days: number, perDay: number) => {
         ),
         drinks: info.stage.waterAfterKm.filter(() => rand() < 0.8),
       };
-      await asUser(user, date, postId, () => run(deps, plan, null));
+      // Fake runners pick a lane and change it now and then, like real players.
+      const moves: Move[] = [];
+      let step = Math.floor(rand() * 20);
+      let lane: Lane = 0;
+      while (step < 4000) {
+        const next: Lane = rand() < 0.34 ? -1 : rand() < 0.5 ? 0 : 1;
+        if (next !== lane) {
+          moves.push({ step, lane: next });
+          lane = next;
+        }
+        step += 40 + Math.floor(rand() * 160);
+      }
+      await asUser(user, date, postId, () => run(deps, plan, null, moves, []));
     }
   }
 };

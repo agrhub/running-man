@@ -27,6 +27,10 @@ def state():
 
 def new_page(browser, w=390, h=844):
     ctx = browser.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2)
+    # Count the sounds the game schedules, so the checks can tell sound is really playing.
+    ctx.add_init_script("""(() => { window.__sounds = 0; const A = window.AudioContext; if (!A) return;
+      for (const m of ['createOscillator', 'createBufferSource']) { const f = A.prototype[m];
+        A.prototype[m] = function (...a) { window.__sounds++; return f.apply(this, a); }; } })();""")
     page = ctx.new_page()
     page.on('console', lambda m: errors.append(f'console.{m.type}: {m.text} @ {m.location.get("url", "")}') if m.type == 'error' and 'favicon' not in str(m.location) else None)
     page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
@@ -97,6 +101,16 @@ with sync_playwright() as p:
     page.screenshot(path=f'{OUT}/04-run.png')
     hud = page.inner_text('body')
     check('run HUD shows distance and place', 'of 6 km' in hud and 'on the road' in hud)
+    played = page.evaluate('window.__sounds')
+    check('race plays sound (countdown, footsteps, terrain)', played > 5, f'{played} sounds')
+    mute = page.get_by_role('button', name='Turn sound off')
+    mute.dispatch_event('click')
+    page.wait_for_selector('button[aria-label="Turn sound on"]')
+    before = page.evaluate('window.__sounds')
+    time.sleep(1.5)
+    after = page.evaluate('window.__sounds')
+    check('mute stops sound and is remembered', after == before and page.evaluate("localStorage.getItem('ccm-sound')") == 'off', f'{before} -> {after}')
+    page.get_by_role('button', name='Turn sound on').dispatch_event('click')
     page.keyboard.press('ArrowLeft')
     time.sleep(1.5)
     page.get_by_role('button', name='Move right').dispatch_event('pointerdown')

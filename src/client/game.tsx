@@ -22,6 +22,7 @@ import { ResultScreen } from './screens/ResultScreen';
 import { RunScreen, type RaceOutcome } from './screens/RunScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { CorralScreen } from './screens/CorralScreen';
+import { sfx } from './lib/sound';
 
 type Screen =
   'register' | 'plan' | 'corral' | 'run' | 'result' | 'locker' | 'closed';
@@ -173,6 +174,9 @@ export const App = () => {
       });
       patch({ profile: res.profile });
       if (res.message) showToast(res.message);
+      if (path === '/shop/buy' || path === '/pet/choose') sfx.snack();
+      else if (path === '/pet/care' || path === '/cheer') sfx.highFive();
+      else sfx.chat();
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) showLoginPrompt();
       else showToast(message(e));

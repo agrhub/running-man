@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/types/dev",
+    "tsBuildInfoFile": "../dist/types/dev/tsconfig.tsbuildinfo",
+    "types": ["node"],
+    "exactOptionalPropertyTypes": false,
+    "rootDir": ".."
+  },
+  "include": [
+    "../src/dev/**/*",
+    "../src/server/**/*",
+    "../src/shared/**/*",
+    "../vite.harness.config.ts"
+  ],
+  "exclude": []
+}

@@ -51,6 +51,20 @@ describe('course items', () => {
     expect(dodge.finalSeconds).toBeCloseTo(total + ITEM_SECONDS.fan, 0);
   });
 
+  it('picks up snacks in your lane for a burst of speed', () => {
+    const snacks: CourseItem[] = [
+      { kind: 'soda', km: 0.6, lane: 0 },
+      { kind: 'candy', km: 1.2, lane: 1 },
+      { kind: 'cake', km: 2.4, lane: 0 },
+    ];
+    const r = replayRace({ base, items: snacks, rivals: [] }, []);
+    expect(r.events.map((e) => e.kind)).toEqual(['soda', 'cake']);
+    expect(r.finalSeconds).toBeCloseTo(
+      total + ITEM_SECONDS.soda + ITEM_SECONDS.cake,
+      0
+    );
+  });
+
   it('keeps the same items for everyone each day', () => {
     const items = courseItems(day.dateKey, day.stage, day.weather.id);
     expect(items.length).toBeGreaterThan(10);
@@ -91,6 +105,20 @@ describe('collisions', () => {
     // after each fall, the next one comes only once the runner is back up (6 steps of limping)
     for (let i = 1; i < steps.length; i++)
       expect((steps[i] ?? 0) - (steps[i - 1] ?? 0)).toBeGreaterThanOrEqual(6);
+  });
+
+  it('lets each pair of runners crash only once', () => {
+    const twin: Rival = {
+      username: 'twin',
+      marks: base.map((m) => m * 1.005),
+      moves: [{ step: 0, lane: 0 }],
+    };
+    const r = replayRace({ base, items: [], rivals: [twin] }, [
+      { step: 0, lane: 0 },
+    ]);
+    expect(
+      r.events.filter((e) => e.kind === 'bump').length
+    ).toBeLessThanOrEqual(1);
   });
 
   it('is avoided by overtaking in another lane', () => {

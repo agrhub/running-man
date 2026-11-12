@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dayInfo } from './content';
-import { courseItems } from './course';
+import { ITEM_SECONDS, PICKUPS, courseItems, isPickup } from './course';
 
 const day = dayInfo('2026-11-12');
 const items = courseItems(day.dateKey, day.stage, day.weather.id);
@@ -20,7 +20,7 @@ describe('courseItems', () => {
     for (const it of items) {
       expect(it.km).toBeGreaterThan(0.3);
       expect(it.km).toBeLessThan(6);
-      if (it.kind !== 'fan')
+      if (it.kind !== 'fan' && !isPickup(it.kind))
         byKm.set(it.km, (byKm.get(it.km) ?? new Set()).add(it.lane));
     }
     for (const lanes of byKm.values()) expect(lanes.size).toBeLessThan(3);
@@ -50,5 +50,13 @@ describe('courseItems', () => {
     }
     const wet = courseItems('x', day.stage, 'rain');
     expect(wet.some((i) => i.kind === 'puddle')).toBe(true);
+  });
+});
+
+describe('pickups', () => {
+  it('puts a few snacks on every stage, and they all speed you up', () => {
+    const snacks = items.filter((i) => isPickup(i.kind));
+    expect(snacks.length).toBeGreaterThanOrEqual(3);
+    for (const k of PICKUPS) expect(ITEM_SECONDS[k]).toBeLessThan(0);
   });
 });

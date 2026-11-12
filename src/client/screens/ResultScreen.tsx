@@ -33,6 +33,10 @@ const KIND_WORD: Record<string, [string, string]> = {
   puddle: ['puddle', 'puddles'],
   cups: ['cup spill', 'cup spills'],
   fan: ['high five', 'high fives'],
+  bottle: ['water bottle', 'water bottles'],
+  soda: ['soda', 'sodas'],
+  cake: ['cake', 'cakes'],
+  candy: ['candy', 'candies'],
 };
 
 const countKinds = (kinds: string[]) => {

@@ -6,7 +6,13 @@ export type Lane = -1 | 0 | 1;
 
 export const LANES: Lane[] = [-1, 0, 1];
 
-export type ItemKind = 'cone' | 'puddle' | 'cups' | 'fan';
+export type ItemKind =
+  'cone' | 'puddle' | 'cups' | 'fan' | 'bottle' | 'soda' | 'cake' | 'candy';
+
+/** Snacks on the road: run through one to pick it up and get a burst of speed. */
+export const PICKUPS: ItemKind[] = ['bottle', 'soda', 'cake', 'candy'];
+
+export const isPickup = (kind: ItemKind): boolean => PICKUPS.includes(kind);
 
 export type CourseItem = {
   kind: ItemKind;
@@ -21,6 +27,10 @@ export const ITEM_SECONDS: Record<ItemKind, number> = {
   puddle: 3,
   cups: 2,
   fan: -2,
+  bottle: -2,
+  soda: -3,
+  cake: -2,
+  candy: -1,
 };
 
 export const ITEM_LABEL: Record<ItemKind, string> = {
@@ -28,7 +38,21 @@ export const ITEM_LABEL: Record<ItemKind, string> = {
   puddle: 'Puddle',
   cups: 'Dropped cups',
   fan: 'High five',
+  bottle: 'Water bottle',
+  soda: 'Soda',
+  cake: 'Cake',
+  candy: 'Candy',
 };
+
+/** Which snack shows up, weighted: candy and water are common, soda is rare. */
+const PICKUP_BAG: ItemKind[] = [
+  'candy',
+  'candy',
+  'bottle',
+  'bottle',
+  'cake',
+  'soda',
+];
 
 const LANE_PICK: Lane[] = [-1, 0, 1];
 
@@ -54,21 +78,29 @@ export const courseItems = (
       const roll = rand();
       if (nearWater) {
         items.push({ kind: 'cups', km: round3(km), lane: pickLane() });
-      } else if (roll < 0.22) {
+      } else if (roll < 0.2) {
         items.push({
           kind: 'fan',
           km: round3(km),
           lane: rand() < 0.5 ? -1 : 1,
         });
+      } else if (roll < 0.42) {
+        const kind =
+          PICKUP_BAG[Math.floor(rand() * PICKUP_BAG.length)] ?? 'candy';
+        items.push({ kind, km: round3(km), lane: pickLane() });
       } else if (weather === 'rain' && roll < 0.55) {
         items.push({ kind: 'puddle', km: round3(km), lane: pickLane() });
       } else {
         const lane = pickLane();
         items.push({ kind: 'cone', km: round3(km), lane });
-        // sometimes a second cone closes a neighbouring lane, leaving one gap
+        // sometimes a second cone closes a neighbouring lane, leaving one gap;
+        // otherwise a snack may tempt you into the lane beside the cone
         if (rand() < 0.3) {
           const other: Lane = lane === 0 ? (rand() < 0.5 ? -1 : 1) : 0;
           items.push({ kind: 'cone', km: round3(km), lane: other });
+        } else if (rand() < 0.25) {
+          const other: Lane = lane === 0 ? 1 : 0;
+          items.push({ kind: 'candy', km: round3(km), lane: other });
         }
       }
     }

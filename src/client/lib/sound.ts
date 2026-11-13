@@ -225,6 +225,20 @@ export const sfx = {
             type: 'square',
           });
         break;
+      case 'monkey':
+        for (let i = 0; i < 3; i++)
+          tone({
+            freq: 700,
+            to: 1400,
+            start: i * 0.13,
+            dur: 0.1,
+            gain: 0.07,
+            type: 'triangle',
+          });
+        break;
+      case 'capybara':
+        tone({ freq: 420, to: 520, dur: 0.12, gain: 0.08, type: 'sine' });
+        break;
       case 'pig':
         burst({ filter: 'lowpass', freq: 380, q: 6, dur: 0.22, gain: 0.3 });
         burst({
@@ -406,6 +420,13 @@ export const ambience = (terrain: Terrain): (() => void) => {
     zoo: { type: 'bandpass', freq: 800, gain: 0.025, rate: 0.15, depth: 0.01 },
     hills: { type: 'lowpass', freq: 600, gain: 0.03, rate: 0.1, depth: 0.015 },
     beach: { type: 'lowpass', freq: 700, gain: 0.05, rate: 0.11, depth: 0.04 },
+    jungle: {
+      type: 'bandpass',
+      freq: 2600,
+      gain: 0.02,
+      rate: 0.6,
+      depth: 0.012,
+    },
     desert: {
       type: 'bandpass',
       freq: 450,
@@ -434,7 +455,8 @@ export const ambience = (terrain: Terrain): (() => void) => {
     terrain === 'park' ||
     terrain === 'forest' ||
     terrain === 'hills' ||
-    terrain === 'zoo'
+    terrain === 'zoo' ||
+    terrain === 'jungle'
   ) {
     chirps = window.setInterval(() => {
       if (Math.random() < 0.55) return;

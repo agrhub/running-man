@@ -126,3 +126,19 @@ describe('triathlon course', () => {
     }
   });
 });
+
+describe('the Amazon', () => {
+  it('puts capybaras and monkeys on the rainforest trails', () => {
+    const kinds = new Set<string>();
+    for (let i = 0; i < 7; i++) {
+      const d = dayInfo(addDays('2026-12-07', i));
+      expect(d.city.id).toBe('amazon');
+      for (const it of courseItems(d.dateKey, d.stage, d.weather.id, {
+        city: d.city.id,
+        time: d.time,
+      }))
+        kinds.add(it.kind);
+    }
+    expect(kinds.has('capybara') || kinds.has('monkey')).toBe(true);
+  });
+});

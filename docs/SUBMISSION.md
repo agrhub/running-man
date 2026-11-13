@@ -29,7 +29,7 @@ Everything needed to submit Running Man to
 
 **Elevator pitch (under 200 characters):**
 
-> A daily 6 km chibi marathon through Tokyo, Paris, Hanoi and Dubai. Plan your pace, grab snacks, dodge cones and
+> A daily 6 km chibi marathon through Tokyo, Paris, Hanoi, Dubai and the Amazon. Plan your pace, grab snacks, dodge cones and
 > today's real runners. Crash into one and you both fall.
 
 **Links:**
@@ -54,9 +54,9 @@ finish line is something the whole subreddit reaches together.
 
 **What it does**
 
-Every day at 00:00 UTC a new post opens one 6 km stage of a city marathon. Tokyo, Paris, Hanoi and Dubai take turns,
-one city a week, seven stages each. Stages run through different terrain: city avenues, parks, a forest, a zoo,
-hills, a beach and the desert. Each has its own hills, water stations, a landmark and the day's weather (cool, heat,
+Every day at 00:00 UTC a new post opens one 6 km stage of a city marathon. Tokyo, Paris, Hanoi, Dubai and the
+Amazon take turns, one a week, seven stages each. Stages run through different terrain: city avenues, parks, a
+forest, a zoo, hills, a beach, the desert and the rainforest. Each has its own hills, water stations, a landmark and the day's weather (cool, heat,
 rain, a thunderstorm, headwind or tailwind) and its start time (morning, noon, afternoon or evening), and everyone
 gets exactly the same conditions. The seventh stage of every city is a Triathlon Finale: swim, bike, then run.
 
@@ -129,7 +129,7 @@ Moderators can switch quick chat, road life, pinning, recaps and app posts off i
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 100 unit tests and a 45-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 101 unit tests and a 45-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
   lower resolution, then no shadows, when a phone's frame rate falls.
 
@@ -217,6 +217,8 @@ In `docs/screenshots/` (portrait, 2x):
 22. `22-road-life-hanoi.png`: an ambulance and traffic on an evening in Hanoi
 23. `23-profile.png`: the profile with the run calendar and achievements
 24. `24-first-race-coach.png`: the first-race coach
+25. `25-amazon-stilt-village.png`: stilt houses on an Amazon rainforest stage
+26. `26-amazon-canopy.png`: the canopy walkway in the rainforest
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

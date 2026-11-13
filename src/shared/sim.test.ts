@@ -120,7 +120,8 @@ describe('daily schedule', () => {
     expect(next.city.id).toBe('paris');
     expect(next.season).toBe(1);
     expect(dayInfo(addDays('2026-11-09', 21)).city.id).toBe('dubai');
-    expect(dayInfo(addDays('2026-11-09', 28)).city.id).toBe('tokyo');
+    expect(dayInfo(addDays('2026-11-09', 28)).city.id).toBe('amazon');
+    expect(dayInfo(addDays('2026-11-09', 35)).city.id).toBe('tokyo');
   });
 
   it('gives everyone the same weather on the same day', () => {
@@ -185,7 +186,7 @@ describe('economy', () => {
 });
 
 describe('terrains', () => {
-  it('gives every stage a terrain, with all seven kinds somewhere in the rotation', () => {
+  it('gives every stage a terrain, with all eight kinds somewhere in the rotation', () => {
     const kinds = new Set(
       CITIES.flatMap((c) => c.stages.map((st) => st.terrain))
     );
@@ -195,6 +196,7 @@ describe('terrains', () => {
       'desert',
       'forest',
       'hills',
+      'jungle',
       'park',
       'zoo',
     ]);

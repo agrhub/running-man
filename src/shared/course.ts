@@ -33,6 +33,8 @@ export type ItemKind =
   | 'cat'
   | 'chicken'
   | 'pig'
+  | 'capybara'
+  | 'monkey'
   // Boosters: grab one and ride it for a big burst of speed.
   | 'skates'
   | 'skateboard'
@@ -57,6 +59,8 @@ export const ROAD_LIFE: ItemKind[] = [
   'cat',
   'chicken',
   'pig',
+  'capybara',
+  'monkey',
 ];
 
 export const isRoadLife = (kind: ItemKind): boolean => ROAD_LIFE.includes(kind);
@@ -101,6 +105,8 @@ export const ITEM_SECONDS: Record<ItemKind, number> = {
   cat: 2,
   chicken: 2,
   pig: 4,
+  capybara: 3,
+  monkey: 2,
   skates: -4,
   skateboard: -5,
   bike: -7,
@@ -127,6 +133,8 @@ export const ITEM_LABEL: Record<ItemKind, string> = {
   cat: 'Cat',
   chicken: 'Chicken',
   pig: 'Pig',
+  capybara: 'Capybara',
+  monkey: 'Monkey',
   skates: 'Roller skates',
   skateboard: 'Skateboard',
   bike: 'Bicycle',
@@ -147,6 +155,7 @@ const roadLifeBag = (
     if (city === 'paris') bag.push('cyclist', 'cat');
     if (city === 'tokyo') bag.push('cyclist', 'taxi');
     if (city === 'dubai') bag.push('taxi', 'taxi');
+    if (city === 'amazon') bag.push('scooter', 'chicken', 'dog');
     if (time === 'afternoon') bag.push('taxi', 'scooter');
     if (time === 'evening') bag.push('walker', 'walker');
     bag.push('ambulance', 'firetruck');
@@ -157,6 +166,8 @@ const roadLifeBag = (
     bag.push('chicken', 'pig', 'pig', 'dog', 'cyclist');
   } else if (terrain === 'forest') {
     bag.push('walker', 'dog', 'cyclist');
+  } else if (terrain === 'jungle') {
+    bag.push('capybara', 'capybara', 'monkey', 'monkey', 'walker', 'chicken');
   } else if (terrain === 'beach') {
     bag.push('walker', 'walker', 'dog', 'cyclist');
   } else {

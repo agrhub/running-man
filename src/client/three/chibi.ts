@@ -280,6 +280,34 @@ export const buildChibi = (
       );
       break;
     }
+    case 'explorer': {
+      // A safari-style bush hat with a dark band.
+      const felt = paint(hat.color);
+      head.add(
+        mesh(
+          new THREE.CylinderGeometry(0.42, 0.42, 0.04, 22),
+          felt,
+          -0.02,
+          0.3,
+          0
+        ),
+        mesh(
+          new THREE.CylinderGeometry(0.23, 0.27, 0.22, 18),
+          felt,
+          -0.02,
+          0.42,
+          0
+        ),
+        mesh(
+          new THREE.CylinderGeometry(0.275, 0.275, 0.06, 18),
+          paint('#3b2a1a'),
+          -0.02,
+          0.35,
+          0
+        )
+      );
+      break;
+    }
     case 'santa': {
       const red = paint(hat.color);
       const white = paint('#fbfbfb');

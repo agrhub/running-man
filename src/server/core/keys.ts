@@ -9,5 +9,9 @@ export const keys = {
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
   votes: (season: number) => `votes:${season}`,
+  /** Stages run and total seconds this week, per runner. */
+  week: (season: number) => `week:${season}`,
+  /** This week's standings: more stages first, then less total time. */
+  weekBoard: (season: number) => `weeklb:${season}`,
   voters: (season: number) => `voters:${season}`,
 };

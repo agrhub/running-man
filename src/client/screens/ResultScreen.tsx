@@ -3,6 +3,7 @@ import type {
   LeaderRow,
   Profile,
   RunRecord,
+  WeeklyBoard,
 } from '../../shared/api';
 import type { DayInfo } from '../../shared/content';
 import { itemById, petById } from '../../shared/economy';
@@ -10,7 +11,8 @@ import { PACE_LABEL, formatTime } from '../../shared/sim';
 import { CrewBar } from '../components/CrewBar';
 import { VoteCard } from '../components/VoteCard';
 import type { CityVote, NextCityId } from '../../shared/vote';
-import { Leaderboard } from '../components/Leaderboard';
+import { Leaderboard, WeeklyStandings } from '../components/Leaderboard';
+import { useState } from 'react';
 import { PACE_COLOR } from '../lib/theme';
 
 type Props = {
@@ -28,6 +30,7 @@ type Props = {
   onLocker: () => void;
   onReplay: () => void;
   onCheer: (username: string) => void;
+  weekly: WeeklyBoard;
   vote: CityVote;
   voting: boolean;
   onVote: (cityId: NextCityId) => void;
@@ -58,6 +61,7 @@ const unlockedName = (id: string) =>
 export const ResultScreen = (p: Props) => {
   const { day, profile, run } = p;
   const canCheer = profile.cheeredOn !== p.today;
+  const [board, setBoard] = useState<'today' | 'week'>('today');
   const rank = p.myRank ?? run.rank;
   const rewards: [string, number][] = [
     ['Finished the stage', run.reward.finish],
@@ -213,30 +217,59 @@ export const ResultScreen = (p: Props) => {
       </div>
 
       <section className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2">
-        <div className="flex items-baseline justify-between px-2">
+        <div className="flex items-center justify-between gap-2 px-2">
           <h2 className="font-display text-[19px] font-extrabold">
-            Today’s top 10
+            {board === 'today'
+              ? 'Today’s top 10'
+              : `This week in ${day.city.name}`}
           </h2>
-          {p.cheersReceived > 0 && (
-            <span className="text-[12px] font-extrabold">
-              👏 {p.cheersReceived} cheers for you
-            </span>
-          )}
+          <div
+            className="flex shrink-0 rounded-full border-2 border-ink p-0.5 text-[12px] font-extrabold"
+            role="group"
+            aria-label="Leaderboard"
+          >
+            {(['today', 'week'] as const).map((b) => (
+              <button
+                key={b}
+                type="button"
+                onClick={() => setBoard(b)}
+                aria-pressed={board === b}
+                className={`rounded-full px-2.5 py-0.5 ${board === b ? 'bg-ink text-white' : ''}`}
+              >
+                {b === 'today' ? 'Today' : 'This week'}
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="px-2 text-[12px] text-ink-soft">
-          {canCheer
-            ? 'Send one cheer a day to another runner for +5 badges.'
-            : 'Cheer sent today. Thanks for being a good sport!'}
-        </p>
-        <div className="mt-1">
-          <Leaderboard
-            rows={p.leaderboard}
-            me={profile.username}
-            myRank={p.myRank}
-            canCheer={canCheer}
-            onCheer={p.onCheer}
-          />
-        </div>
+        {board === 'today' ? (
+          <>
+            <p className="px-2 text-[12px] text-ink-soft">
+              {canCheer
+                ? 'Send one cheer a day to another runner for +5 badges.'
+                : 'Cheer sent today. Thanks for being a good sport!'}
+              {p.cheersReceived > 0 &&
+                ` 👏 ${p.cheersReceived} ${p.cheersReceived === 1 ? 'cheer' : 'cheers'} for you.`}
+            </p>
+            <div className="mt-1">
+              <Leaderboard
+                rows={p.leaderboard}
+                me={profile.username}
+                myRank={p.myRank}
+                canCheer={canCheer}
+                onCheer={p.onCheer}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="px-2 text-[12px] text-ink-soft">
+              Most stages this week first, then the lowest total time.
+            </p>
+            <div className="mt-1">
+              <WeeklyStandings board={p.weekly} me={profile.username} />
+            </div>
+          </>
+        )}
       </section>
 
       <VoteCard vote={p.vote} busy={p.voting} onVote={p.onVote} />

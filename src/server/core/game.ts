@@ -56,6 +56,8 @@ import type {
   Incident,
   InitResponse,
   LeaderRow,
+  WeeklyBoard,
+  WeeklyRow,
   Profile,
   RunRecord,
   RunResponse,
@@ -317,6 +319,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     cheers,
     todayPostId,
     vote,
+    weekly,
     journeyId,
   ] = await Promise.all([
     username
@@ -332,6 +335,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
       ? null
       : store.get(keys.dayPost(today)).then((p) => p ?? null),
     cityVote(store, dayInfo(today).season, username),
+    weeklyBoard(store, day.season, username),
     deps.telemetry.start().catch(() => null),
   ]);
 
@@ -349,6 +353,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     crew,
     cheersReceived: Number(cheers ?? '0'),
     vote,
+    weekly,
     journeyId,
   };
 };
@@ -385,6 +390,67 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
  * Records a collision on a runner who already finished: their time, replay, splits and leaderboard place change,
  * and their result card lists the incident.
  */
+type WeekEntry = { stages: number; seconds: number };
+
+/** Lower is better: more stages first, then less total time. */
+const weekScore = (e: WeekEntry) => (10 - e.stages) * 1_000_000 + e.seconds;
+
+const addToWeek = async (
+  store: Store,
+  season: number,
+  username: string,
+  stages: number,
+  seconds: number
+) => {
+  const prev = parse<WeekEntry>(
+    await store.hGet(keys.week(season), username)
+  ) ?? { stages: 0, seconds: 0 };
+  const next = {
+    stages: prev.stages + stages,
+    seconds: round1(prev.seconds + seconds),
+  };
+  await Promise.all([
+    store.hSet(keys.week(season), { [username]: JSON.stringify(next) }),
+    store.zAdd(keys.weekBoard(season), {
+      member: username,
+      score: weekScore(next),
+    }),
+  ]);
+};
+
+export const weeklyBoard = async (
+  store: Store,
+  season: number,
+  username: string | null
+): Promise<WeeklyBoard> => {
+  const top = await store.zRange(keys.weekBoard(season), 0, 9, {
+    by: 'rank',
+  });
+  const names = top.map((t) => t.member);
+  const myIndex =
+    username && !names.includes(username)
+      ? await store.zRank(keys.weekBoard(season), username)
+      : undefined;
+  const fields =
+    myIndex !== undefined && username ? [...names, username] : names;
+  const raw =
+    fields.length > 0 ? await store.hMGet(keys.week(season), fields) : [];
+  const row = (name: string, rank: number, i: number): WeeklyRow => {
+    const e = parse<WeekEntry>(raw[i] ?? undefined) ?? {
+      stages: 0,
+      seconds: 0,
+    };
+    return { rank, username: name, stages: e.stages, seconds: e.seconds };
+  };
+  const rows = names.map((n, i) => row(n, i + 1, i));
+  const mine =
+    rows.find((r) => r.username === username) ??
+    (myIndex !== undefined && username
+      ? row(username, myIndex + 1, names.length)
+      : null);
+  return { season, rows, mine };
+};
+
 const applyIncident = async (
   store: Store,
   dateKey: string,
@@ -415,6 +481,7 @@ const applyIncident = async (
       member: username,
       score: track.seconds,
     }),
+    addToWeek(store, dayInfo(dateKey).season, username, 0, add),
   ]);
 };
 
@@ -517,6 +584,7 @@ export const run = async (
     member: username,
     score: result.totalSeconds,
   });
+  await addToWeek(store, day.season, username, 1, result.totalSeconds);
   const track: RunnerTrack = {
     username,
     look: profile.look,
@@ -619,7 +687,15 @@ export const run = async (
     leaderboard(store, dateKey),
     crewProgress(store, day),
   ]);
-  return { type: 'run', run: record, profile, leaderboard: board, crew };
+  const weekly = await weeklyBoard(store, day.season, username);
+  return {
+    type: 'run',
+    run: record,
+    profile,
+    leaderboard: board,
+    weekly,
+    crew,
+  };
 };
 
 const findItem = (id: string): Item => {

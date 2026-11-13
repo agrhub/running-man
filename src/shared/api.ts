@@ -62,6 +62,22 @@ export type LeaderRow = {
   seconds: number;
 };
 
+export type WeeklyRow = {
+  rank: number;
+  username: string;
+  /** Stages run this week (one city). */
+  stages: number;
+  /** Total official time over those stages. */
+  seconds: number;
+};
+
+export type WeeklyBoard = {
+  season: number;
+  rows: WeeklyRow[];
+  /** Your row, when you ran this week. */
+  mine: WeeklyRow | null;
+};
+
 export type CrewProgress = {
   season: number;
   cityId: CityId;
@@ -114,6 +130,8 @@ export type InitResponse = {
   cheersReceived: number;
   /** This week's vote on the next city to build. */
   vote: CityVote;
+  /** This week's standings across every stage of the city. */
+  weekly: WeeklyBoard;
   journeyId: string | null;
 };
 
@@ -142,6 +160,7 @@ export type RunResponse = {
   run: RunRecord;
   profile: Profile;
   leaderboard: LeaderRow[];
+  weekly: WeeklyBoard;
   crew: CrewProgress;
 };
 

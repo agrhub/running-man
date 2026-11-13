@@ -183,7 +183,10 @@ export const distanceAt = (marks: number[], t: number): number => {
 
 export const formatTime = (seconds: number): string => {
   const s = Math.max(0, Math.round(seconds));
-  const m = Math.floor(s / 60);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
   const r = s % 60;
-  return `${m}:${r.toString().padStart(2, '0')}`;
+  const ss = r.toString().padStart(2, '0');
+  // Weekly totals run past an hour: 1:33:56 rather than 93:56.
+  return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${ss}` : `${m}:${ss}`;
 };

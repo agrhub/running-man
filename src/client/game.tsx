@@ -148,6 +148,7 @@ export const App = () => {
         myRun: res.run,
         profile: res.profile,
         leaderboard: res.leaderboard,
+        weekly: res.weekly,
         crew: res.crew,
         myRank: res.run.rank,
         totalRunners: res.run.totalRunners,
@@ -357,6 +358,7 @@ export const App = () => {
           onLocker={openLocker}
           onReplay={() => setScreen('run')}
           onCheer={(username) => void profileCall('/cheer', { username })}
+          weekly={data.weekly}
           vote={data.vote}
           voting={busy}
           onVote={(cityId) => void vote(cityId)}

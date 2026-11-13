@@ -1415,6 +1415,21 @@ describe('daily posts', () => {
     expect(h.edits).toHaveLength(0);
   });
 
+  it('sets up the stage and the guide link on upgrade', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/triggers/on-app-install', { method: 'POST' });
+    h.at('2026-11-13');
+    const res = await internal.request('/triggers/on-app-upgrade', {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(h.posts).toHaveLength(2);
+    expect(h.texts).toHaveLength(1);
+    expect(h.edits).toHaveLength(1);
+    expect(h.edits[0]?.text).toMatch(/\(https:\/\/reddit\.com\/post2\)/);
+  });
+
   it('points the guide at each new day’s stage, once per post', async () => {
     const h = makeHarness();
     const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);

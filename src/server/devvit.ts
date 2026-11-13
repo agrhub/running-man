@@ -74,5 +74,12 @@ export const devvitDeps: Deps = {
       textColor: 'dark',
     });
   },
+  avatarUrl: async (username) => {
+    try {
+      return (await reddit.getSnoovatarUrl(username)) ?? null;
+    } catch {
+      return null;
+    }
+  },
   telemetry,
 };

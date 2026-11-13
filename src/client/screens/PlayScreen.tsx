@@ -1,4 +1,5 @@
 import type { DashBoard, Profile } from '../../shared/api';
+import { Avatar } from '../components/Avatar';
 import {
   DASH_MAX_REWARD,
   DASH_MAX_ROUNDS,
@@ -137,6 +138,7 @@ export const PlayScreen = ({
                         ? '🥉'
                         : r.rank}
                 </span>
+                <Avatar name={r.username} size={24} />
                 <span className="flex-1 truncate">u/{r.username}</span>
                 <span className="font-display font-semibold tabular">
                   {r.score}

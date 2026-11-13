@@ -71,6 +71,16 @@ const deps: Deps = {
   setFlair: async (username, text) => {
     flairs[username] = text;
   },
+  // Stand-in avatars for local play: a simple face in a colour from the name.
+  avatarUrl: async (username) => {
+    if (username.startsWith('noavatar')) return null;
+    const hue = [...username].reduce(
+      (h, ch) => (h * 31 + ch.charCodeAt(0)) % 360,
+      7
+    );
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="hsl(${hue},70%,82%)"/><circle cx="32" cy="36" r="18" fill="#ffe0c7" stroke="#2a2340" stroke-width="3"/><path d="M14 32 Q32 8 50 32 Q40 22 32 24 Q22 22 14 32Z" fill="hsl(${hue},45%,35%)"/><circle cx="26" cy="37" r="2.6" fill="#2a2340"/><circle cx="38" cy="37" r="2.6" fill="#2a2340"/><path d="M26 44 Q32 49 38 44" stroke="#2a2340" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  },
   telemetry: {
     ...noTelemetry,
     start: async () => {

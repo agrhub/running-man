@@ -248,6 +248,12 @@ export type ClubResponse = {
   message?: string;
 };
 
+/** Avatar image URL per username; null when the player has none. */
+export type AvatarsResponse = {
+  type: 'avatars';
+  avatars: Record<string, string | null>;
+};
+
 export type DashRow = { rank: number; username: string; score: number };
 
 export type DashBoard = { rows: DashRow[]; mine: DashRow | null };

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Avatar } from './Avatar';
 import type { ClubRow, ClubView, Profile } from '../../shared/api';
 import { CLUB_ADJECTIVES, CLUB_NOUNS, clubName } from '../../shared/club';
 import { KM_PER_STAGE } from '../../shared/content';
@@ -63,6 +64,7 @@ export const ClubSection = (p: Props) => {
                 key={m.username}
                 className={`flex items-center gap-2 rounded-xl px-2 py-1 text-[13px] ${m.username === p.profile.username ? 'bg-[var(--sky)] font-extrabold' : ''}`}
               >
+                <Avatar name={m.username} size={22} />
                 <span className="flex-1 truncate">
                   u/{m.username}
                   {m.username === p.club?.owner ? ' 👑' : ''}

@@ -1,3 +1,4 @@
+import { Avatar } from '../components/Avatar';
 import type {
   CrewProgress,
   LeaderRow,
@@ -94,7 +95,8 @@ export const ResultScreen = (p: Props) => {
         <p className="font-display text-[92px] font-extrabold leading-[0.9] tabular text-[var(--accent)] [text-shadow:0_4px_0_#2a2340]">
           #{rank}
         </p>
-        <p className="font-display text-[18px] font-extrabold">
+        <p className="flex flex-wrap items-center justify-center gap-x-2 font-display text-[18px] font-extrabold">
+          <Avatar name={profile.username} size={32} ring />
           u/{profile.username}
           {profile.bib ? (
             <span className="text-ink-soft">
@@ -159,7 +161,8 @@ export const ResultScreen = (p: Props) => {
           </ul>
           {run.unlocked.length > 0 && (
             <p className="mt-1 text-[13px] font-bold">
-              New in your locker: {run.unlocked.map(unlockedName).join(', ')}
+              New in the shop for you:{' '}
+              {run.unlocked.map(unlockedName).join(', ')}
             </p>
           )}
         </section>

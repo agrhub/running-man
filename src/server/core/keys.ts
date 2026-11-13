@@ -9,6 +9,8 @@ export const keys = {
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
   votes: (season: number) => `votes:${season}`,
+  /** Cached Reddit avatar URLs: username -> {url, day}. */
+  avatars: () => 'avatars',
   /** A running club, by its join code. */
   club: (code: string) => `club:${code}`,
   /** Clubs ranked by stages run this week (stored negative). */

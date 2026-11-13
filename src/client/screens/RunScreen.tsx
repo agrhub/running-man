@@ -32,6 +32,13 @@ import {
 } from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
 import { ambience, onSoundChange, setSound, sfx, soundOn } from '../lib/sound';
+import {
+  coachSteered,
+  startCoach,
+  tickCoach,
+  type CoachState,
+  type CoachView,
+} from '../lib/coach';
 
 export type RaceOutcome = {
   moves: Move[];
@@ -68,6 +75,7 @@ type Hud = {
   field: number;
   toast: Toast | null;
   countdown: number;
+  coach: CoachView | null;
 };
 
 const LIVE_SECONDS = 60;
@@ -145,9 +153,14 @@ export const RunScreen = ({
     field: rivals.length + 1,
     toast: null,
     countdown: live ? 3 : 0,
+    coach: null,
   });
   const [fast, setFast] = useState(false);
-  const [showHelp, setShowHelp] = useState(live && firstRun);
+  // Your very first race comes with a coach; it never shows again.
+  const coachRef = useRef<CoachState | null>(
+    live && firstRun ? startCoach() : null
+  );
+  const chatOpenedRef = useRef(false);
   const fastRef = useRef(false);
   const laneRef = useRef<Lane>(startLane(profile.username));
   const skipRef = useRef(false);
@@ -176,16 +189,9 @@ export const RunScreen = ({
   useEffect(() => {
     fastRef.current = fast;
   }, [fast]);
-  // The steering hint goes away on the first swipe, or after a few seconds.
-  useEffect(() => {
-    if (!showHelp) return;
-    const id = window.setTimeout(() => setShowHelp(false), 9000);
-    return () => window.clearTimeout(id);
-  }, [showHelp]);
-
   const steer = (dir: -1 | 1) => {
     if (!live) return;
-    setShowHelp(false);
+    if (coachRef.current) coachRef.current = coachSteered(coachRef.current);
     const next = laneRef.current + dir;
     laneRef.current = next <= -1 ? -1 : next >= 1 ? 1 : 0;
   };
@@ -279,6 +285,10 @@ export const RunScreen = ({
     let lastGate = 0;
     let stepPhase = 0;
     let stepLeft = false;
+    let raceT = 0;
+    let grabbed = false;
+    let crashed = false;
+    let coachView: CoachView | null = null;
     worldRef.current = world;
     // A quiet bed of sound for the terrain; starts again if sound is switched on mid-race.
     let stopAmbience = soundOn()
@@ -301,6 +311,7 @@ export const RunScreen = ({
     const handle = (events: RaceEvent[]) => {
       for (const e of events) {
         if (e.kind === 'bump') {
+          crashed = true;
           world.say(e.rival, pick(REACTIONS.bumped, e.step));
           world.fall('__me');
           world.fall(e.rival);
@@ -310,7 +321,10 @@ export const RunScreen = ({
           if (e.kind === 'fan') sfx.highFive();
           else if (e.kind === 'puddle') sfx.splash();
           else if (e.kind === 'cone' || e.kind === 'cups') sfx.stumble();
-          else sfx.snack();
+          else {
+            sfx.snack();
+            grabbed = true;
+          }
         }
         show(eventToast(e), 1.8);
       }
@@ -451,6 +465,25 @@ export const RunScreen = ({
       }
       if (toast && animT > toastUntil) toast = null;
 
+      // First-race coach, on the real clock so every lesson gets a few seconds.
+      if (coachRef.current && countdown <= 0 && !state.done) {
+        raceT += dt;
+        const [next, view] = tickCoach(coachRef.current, {
+          t: raceT,
+          km: state.km,
+          lane: state.lane,
+          items: setup.items,
+          rivals: positions.slice(1),
+          grabbedSnack: grabbed,
+          crashed,
+          chatOpened: chatOpenedRef.current,
+        });
+        coachRef.current = next.step === 'done' ? null : next;
+        coachView = view.text ? view : null;
+      } else coachView = null;
+      grabbed = false;
+      crashed = false;
+
       // Lines other runners said at this point of their race, and your own lines in a replay
       stepRef.current = state.step;
       for (const r of rivals) {
@@ -484,6 +517,7 @@ export const RunScreen = ({
           field: rivalList.length + 1,
           toast,
           countdown: Math.ceil(Math.max(0, countdown) / 0.8),
+          coach: coachView,
         });
       }
 
@@ -639,11 +673,16 @@ export const RunScreen = ({
           ))}
         </div>
       )}
-      {showHelp && !finished && (
-        <div className="pop-in pointer-events-none absolute inset-x-6 bottom-[104px] mx-auto max-w-[340px] rounded-xl bg-ink px-3 py-2 text-center text-[13px] font-bold text-white">
-          Swipe or tap ◀ ▶ to change lanes. Dodge cones, high-five fans, and
-          overtake other runners in a free lane: run into someone and you both
-          fall.
+      {hud.coach && !finished && (
+        <div
+          key={hud.coach.step}
+          role="status"
+          className="pop-in pointer-events-none absolute inset-x-6 bottom-[150px] mx-auto max-w-[340px] rounded-2xl border-2 border-white bg-ink px-3 py-2 text-center text-[14px] font-bold text-white shadow-[0_4px_0_#2a2340]"
+        >
+          <span className="mb-0.5 block text-[12px] font-extrabold text-gold">
+            First race tip
+          </span>
+          {hud.coach.text}
         </div>
       )}
       {finished && (
@@ -660,7 +699,7 @@ export const RunScreen = ({
                 e.stopPropagation();
                 steer(-1);
               }}
-              className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
+              className={`chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold ${hud.coach?.point === 'steer' ? 'coach-pulse' : ''}`}
               aria-label="Move left"
             >
               ◀
@@ -670,10 +709,10 @@ export const RunScreen = ({
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => {
-                  setShowHelp(false);
+                  chatOpenedRef.current = true;
                   setChatOpen((o) => !o);
                 }}
-                className="chunky h-12 w-12 rounded-full bg-gold text-[22px]"
+                className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
                 aria-label="Quick chat"
                 aria-expanded={chatOpen}
                 disabled={finished || hud.countdown > 0}
@@ -696,7 +735,7 @@ export const RunScreen = ({
                 e.stopPropagation();
                 steer(1);
               }}
-              className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
+              className={`chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold ${hud.coach?.point === 'steer' ? 'coach-pulse' : ''}`}
               aria-label="Move right"
             >
               ▶

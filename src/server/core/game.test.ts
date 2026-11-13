@@ -14,6 +14,7 @@ import type {
   RunResponse,
   ShareResponse,
   VoteResponse,
+  QuestsResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -557,6 +558,77 @@ describe('game API', () => {
     ).toBe(409);
     const bob = await call<InitResponse>(h.as('bob'), 'GET', '/init');
     expect(bob.json.cheersReceived).toBe(1);
+  });
+
+  it('tracks quests on the server and pays each one once', async () => {
+    const date = '2026-11-12';
+    const before = await call<InitResponse>(
+      h.as('alice').at(date),
+      'GET',
+      '/init'
+    );
+    const daily = before.json.quests.filter((q) => q.scope === 'daily');
+    expect(daily).toHaveLength(3);
+    expect(daily[0]).toMatchObject({ id: 'run', progress: 0, claimed: false });
+    expect(
+      before.json.quests.filter((q) => q.scope === 'weekly').map((q) => q.id)
+    ).toEqual(['week3', 'week5', 'vote']);
+    // Everyone gets the same daily quests.
+    const bob = await call<InitResponse>(h.as('bob').at(date), 'GET', '/init');
+    expect(bob.json.quests.map((q) => q.id)).toEqual(
+      before.json.quests.map((q) => q.id)
+    );
+
+    expect(
+      (await call(h.as('alice'), 'POST', '/quest/claim', { questId: 'run' }))
+        .status
+    ).toBe(409);
+    expect(
+      (await call(h.as('alice'), 'POST', '/quest/claim', { questId: 'nope' }))
+        .status
+    ).toBe(404);
+    await call(h.as('alice'), 'POST', '/run', { plan: planFor(date) });
+    const coins = (await call<InitResponse>(h.as('alice'), 'GET', '/init')).json
+      .profile.badges;
+    const claimed = await call<QuestsResponse>(
+      h.as('alice'),
+      'POST',
+      '/quest/claim',
+      { questId: 'run', journeyId: 'journey-1' }
+    );
+    expect(claimed.status).toBe(200);
+    expect(claimed.json.profile.badges).toBe(coins + 40);
+    expect(claimed.json.quests.find((q) => q.id === 'run')).toMatchObject({
+      progress: 1,
+      claimed: true,
+    });
+    expect(h.events).toContain('quest_claimed');
+    expect(
+      (await call(h.as('alice'), 'POST', '/quest/claim', { questId: 'run' }))
+        .status
+    ).toBe(409);
+    const week = await call<QuestsResponse>(h.as('alice'), 'GET', '/quests');
+    expect(week.json.quests.find((q) => q.id === 'week3')?.progress).toBe(1);
+    await call(h.as('alice'), 'POST', '/vote', { cityId: 'rio' });
+    const voted = await call<QuestsResponse>(
+      h.as('alice'),
+      'POST',
+      '/quest/claim',
+      { questId: 'vote' }
+    );
+    expect(voted.json.quests.find((q) => q.id === 'vote')?.claimed).toBe(true);
+    // Tomorrow the daily quests reset, the weekly vote stays claimed.
+    const next = await call<QuestsResponse>(
+      h.as('alice').at(addDays(date, 1)),
+      'GET',
+      '/quests'
+    );
+    expect(next.json.quests.find((q) => q.id === 'run')).toMatchObject({
+      progress: 0,
+      claimed: false,
+    });
+    expect(next.json.quests.find((q) => q.id === 'vote')?.claimed).toBe(true);
+    expect((await call(h.as(undefined), 'GET', '/quests')).status).toBe(401);
   });
 
   it('checks in once a day and climbs a 7-day calendar', async () => {

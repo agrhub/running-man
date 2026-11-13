@@ -160,6 +160,14 @@ with sync_playwright() as p:
     check('weekly standings list stages and totals', 'Most stages this week first' in weekly and '1 stage' in weekly)
     page.get_by_role('button', name='Today').click()
     page.wait_for_selector('text=Today’s top 10')
+    page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Quests')).click()
+    page.wait_for_selector('text=Today’s quests')
+    page.get_by_role('button', name=re.compile('Claim 40 coins for Run today')).click()
+    page.wait_for_selector('li:has-text("Run today’s stage") >> text=Claimed ✓')
+    page.screenshot(path=f'{OUT}/06d-quests.png', full_page=True)
+    check('quest for running today is claimed once', page.get_by_role('button', name=re.compile('Claim 40 coins for Run today')).count() == 0)
+    page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Race')).click()
+    page.wait_for_selector('text=Today’s top 10')
 
     # 5. Shop
     page.get_by_role('button', name=re.compile(r'^Shop 🪙')).click()

@@ -14,6 +14,7 @@ export type Incident = {
 };
 import type { Look, PetId, RewardBreakdown } from './economy';
 import type { CityVote } from './vote';
+import type { QuestState } from './quests';
 import type { KmSplit, Plan } from './sim';
 
 export type Profile = {
@@ -44,6 +45,8 @@ export type Profile = {
   /** Last daily check-in (UTC date) and its place in the 7-day calendar (1..7). */
   checkInDate: string | null;
   checkInDay: number;
+  /** Claimed quests per period (a date for daily, `w<season>` for weekly). */
+  questClaims: Record<string, string[]>;
 };
 
 export type RunnerTrack = {
@@ -135,6 +138,7 @@ export type InitResponse = {
   vote: CityVote;
   /** This week's standings across every stage of the city. */
   weekly: WeeklyBoard;
+  quests: QuestState[];
   journeyId: string | null;
 };
 
@@ -179,6 +183,14 @@ export type ItemRequest = { itemId: string; journeyId?: string | null };
 export type PetRequest = { petId: PetId; journeyId?: string | null };
 export type CheerRequest = { username: string; journeyId?: string | null };
 export type VoteRequest = { cityId: string; journeyId?: string | null };
+export type QuestClaimRequest = { questId: string; journeyId?: string | null };
+
+export type QuestsResponse = {
+  type: 'quests';
+  quests: QuestState[];
+  profile: Profile;
+  message?: string;
+};
 
 export type VoteResponse = { type: 'vote'; vote: CityVote; message: string };
 export type JourneyRequest = { journeyId?: string | null };

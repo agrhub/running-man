@@ -10,6 +10,7 @@ import type {
   RunResponse,
   ShareResponse,
   VoteResponse,
+  QuestsResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -26,7 +27,7 @@ import { RegisterScreen } from './screens/RegisterScreen';
 import { CorralScreen } from './screens/CorralScreen';
 import { sfx } from './lib/sound';
 import { TabBar, type Tab } from './components/TabBar';
-import { QuestsScreen } from './screens/QuestsScreen';
+import { QuestList, QuestsScreen } from './screens/QuestsScreen';
 
 type Screen =
   | 'register'
@@ -170,6 +171,10 @@ export const App = () => {
       });
       setJustFinished(true);
       setLivePlan(null);
+      // Running finishes quests: pick up the new progress for the tab dot.
+      request<QuestsResponse>('/quests')
+        .then((r) => patch({ quests: r.quests }))
+        .catch(() => undefined);
       setScreen('result');
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) showLoginPrompt();
@@ -218,6 +223,31 @@ export const App = () => {
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) showLoginPrompt();
       else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const refreshQuests = () => {
+    if (!data || data.profile.username === 'guest') return;
+    request<QuestsResponse>('/quests')
+      .then((r) => patch({ quests: r.quests, profile: r.profile }))
+      .catch(() => undefined);
+  };
+
+  const claimQuest = async (questId: string) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      const res = await request<QuestsResponse>('/quest/claim', {
+        questId,
+        journeyId: data.journeyId,
+      });
+      patch({ quests: res.quests, profile: res.profile });
+      if (res.message) showToast(res.message);
+      sfx.snack();
+    } catch (e) {
+      showToast(message(e));
     } finally {
       setBusy(false);
     }
@@ -279,7 +309,10 @@ export const App = () => {
   const goTab = (tab: Tab) => {
     if (tab === 'race') setScreen(data.myRun ? 'result' : 'plan');
     else if (tab === 'shop') openLocker();
-    else if (tab === 'quests') setScreen('quests');
+    else if (tab === 'quests') {
+      refreshQuests();
+      setScreen('quests');
+    }
   };
 
   const view = (() => {
@@ -409,7 +442,13 @@ export const App = () => {
             profile={data.profile}
             busy={busy}
             onCheckIn={() => void profileCall('/checkin', {})}
-          />
+          >
+            <QuestList
+              quests={data.quests}
+              busy={busy}
+              onClaim={(id) => void claimQuest(id)}
+            />
+          </QuestsScreen>
         );
       case 'plan':
         return (
@@ -434,7 +473,12 @@ export const App = () => {
       <TabBar
         active={tabOf(screen)}
         tabs={SHIPPED_TABS}
-        dots={{ quests: !guest && data.profile.checkInDate !== data.today }}
+        dots={{
+          quests:
+            !guest &&
+            (data.profile.checkInDate !== data.today ||
+              data.quests.some((q) => !q.claimed && q.progress >= q.goal)),
+        }}
         onTab={goTab}
       />
     </div>

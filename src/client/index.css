@@ -142,6 +142,13 @@ body {
   outline-offset: 2px;
 }
 
+/* Calm motion, chosen in the profile's options. */
+[data-calm] .pop-in,
+[data-calm] .stamp,
+[data-calm] .coach-pulse {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pop-in,
   .stamp,

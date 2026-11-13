@@ -134,6 +134,8 @@ export type WorldOptions = {
   onThunder?: () => void;
   /** Triathlon finale: swim the first km, bike to km 4, then run. */
   triathlon?: boolean;
+  /** Calm motion: no lightning flashes, fewer particles, no camera swing. */
+  calm?: boolean;
 };
 
 export type Position = {
@@ -238,13 +240,17 @@ export class RunWorld {
       );
       this.scene.add(this.city.group);
       if (opts.festive) {
-        this.festive = buildFestive(opts.festive === 'christmas');
+        this.festive = buildFestive(
+          opts.festive === 'christmas',
+          opts.calm ?? false
+        );
         this.scene.add(this.festive.group);
       }
       const air = buildAtmosphere({
         time: opts.time ?? 'morning',
         weather: opts.weather ?? 'cool',
         festive: Boolean(opts.festive),
+        calm: opts.calm ?? false,
       });
       this.atmosphere = air;
       this.scene.add(air.group);
@@ -430,9 +436,10 @@ export class RunWorld {
     positions: Positions,
     focus: string,
     finished = false,
-    gaze = 0
+    gazeIn = 0
   ) {
     if (this.disposed) return;
+    const gaze = this.opts.calm ? 0 : gazeIn;
     const dt = Math.max(0, Math.min(0.5, t - this.lastT));
     this.lastT = t;
     // Skip the first seconds: shaders compile and the city uploads then.
@@ -599,7 +606,8 @@ export class RunWorld {
       this.festive?.update(t, dt, this.camZ);
       if (this.atmosphere) {
         const air = this.atmosphere.update(t, dt, this.camZ);
-        this.hemi.intensity = this.atmosphere.hemi + air.flash * 2.4;
+        this.hemi.intensity =
+          this.atmosphere.hemi + (this.opts.calm ? 0 : air.flash * 2.4);
         if (air.thunder) this.thunderAt = t + 0.6 + Math.random() * 0.8;
         if (this.thunderAt > 0 && t >= this.thunderAt) {
           this.thunderAt = -1;

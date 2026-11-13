@@ -1,10 +1,10 @@
 import { mulberry32, hashString } from './rng';
 
-export type CityId = 'tokyo' | 'paris' | 'hanoi' | 'dubai';
+export type CityId = 'tokyo' | 'paris' | 'hanoi' | 'dubai' | 'amazon';
 
 /** What the course runs through. Each terrain has its own scenery. */
 export type Terrain =
-  'city' | 'park' | 'forest' | 'zoo' | 'hills' | 'beach' | 'desert';
+  'city' | 'park' | 'forest' | 'zoo' | 'hills' | 'beach' | 'desert' | 'jungle';
 
 export const TERRAIN: Record<Terrain, { label: string; icon: string }> = {
   city: { label: 'City streets', icon: '🏙️' },
@@ -14,6 +14,7 @@ export const TERRAIN: Record<Terrain, { label: string; icon: string }> = {
   hills: { label: 'Hills', icon: '⛰️' },
   beach: { label: 'Beach', icon: '🏖️' },
   desert: { label: 'Desert', icon: '🏜️' },
+  jungle: { label: 'Rainforest', icon: '🌿' },
 };
 
 export type LandmarkKind =
@@ -27,7 +28,14 @@ export type LandmarkKind =
   | 'basilica'
   | 'sail'
   | 'wheel'
-  | 'fort';
+  | 'fort'
+  | 'opera'
+  | 'kapok'
+  | 'canopy'
+  | 'stilt'
+  | 'meeting'
+  | 'river'
+  | 'lilies';
 
 export type Landmark = {
   name: string;
@@ -489,6 +497,114 @@ export const CITIES: City[] = [
           kind: 'tower',
           km: 4,
           blurb: 'This tower turns a full 90 degrees from its base to its top.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon',
+    country: 'Brazil',
+    flag: '🇧🇷',
+    palette: {
+      sky: '#c9f0d8',
+      skyLow: '#f1fff4',
+      ground: '#7bb661',
+      road: '#5b5048',
+      roadLine: '#fff1d6',
+      accent: '#1f9e5c',
+      buildings: ['#ffd36e', '#f6a6c1', '#8fd3e8', '#b6e3a1', '#ffb38a'],
+    },
+    stages: [
+      {
+        name: 'Manaus Riverfront',
+        terrain: 'city',
+        grades: [0, 1, 0, -1, 0, 0],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Amazon Theatre',
+          kind: 'opera',
+          km: 2.6,
+          blurb:
+            'An opera house in the rainforest, crowned with 36,000 coloured tiles.',
+        },
+      },
+      {
+        name: 'Rainforest Trail',
+        terrain: 'jungle',
+        grades: [0, 1, 1, 0, -1, -1],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Giant Kapok',
+          kind: 'kapok',
+          km: 3,
+          blurb:
+            'Kapok trees grow up to 60 m tall, with buttress roots wider than a car.',
+        },
+      },
+      {
+        name: 'Canopy Climb',
+        terrain: 'jungle',
+        grades: [1, 3, 2, -1, -2, -2],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Canopy Walkway',
+          kind: 'canopy',
+          km: 2.4,
+          blurb:
+            'Rope bridges 40 m up let you walk where the monkeys and macaws live.',
+        },
+      },
+      {
+        name: 'Stilt Village',
+        terrain: 'jungle',
+        grades: [0, 0, -1, 0, 1, 0],
+        waterAfterKm: [3],
+        landmark: {
+          name: 'Stilt Houses',
+          kind: 'stilt',
+          km: 3.2,
+          blurb:
+            'The river rises up to 10 m in the wet season, so houses stand on stilts.',
+        },
+      },
+      {
+        name: 'Ponta Negra Beach',
+        terrain: 'beach',
+        grades: [0, 0, 1, 0, -1, 0],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Black River',
+          kind: 'river',
+          km: 2.8,
+          blurb:
+            'The Rio Negro is dark as tea from the leaves, with white sand beaches.',
+        },
+      },
+      {
+        name: 'Lily Lagoon',
+        terrain: 'jungle',
+        grades: [0, -1, 0, 1, 0, 0],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Giant Water Lilies',
+          kind: 'lilies',
+          km: 2.2,
+          blurb:
+            'Their floating leaves grow up to 3 m across, strong enough to hold a child.',
+        },
+      },
+      {
+        name: 'Amazon Finale',
+        terrain: 'jungle',
+        grades: [0, 0, 1, 0, 0, -1],
+        waterAfterKm: [2, 4],
+        landmark: {
+          name: 'Meeting of the Waters',
+          kind: 'meeting',
+          km: 4.6,
+          blurb:
+            'The dark Rio Negro and the sandy Solimões run side by side for 6 km without mixing.',
         },
       },
     ],

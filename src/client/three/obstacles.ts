@@ -377,6 +377,89 @@ export const buildObstacle = (
       };
       break;
     }
+    case 'capybara': {
+      // A capybara: a big brown barrel on short legs, calm as anything.
+      const fur = '#9a6b3f';
+      const c = new THREE.Group();
+      part(
+        c,
+        new THREE.CapsuleGeometry(0.3, 0.6, 4, 10),
+        fur,
+        0,
+        0.42,
+        0
+      ).rotation.x = Math.PI / 2;
+      part(c, box(0.34, 0.3, 0.42), fur, 0, 0.55, -0.55);
+      part(c, box(0.2, 0.06, 0.08), '#3b2a1a', 0, 0.5, -0.78);
+      for (const sx of [-1, 1]) {
+        part(c, ball(0.05), '#3b2a1a', sx * 0.1, 0.7, -0.4);
+        for (const sz of [-1, 1])
+          part(
+            c,
+            new THREE.CylinderGeometry(0.06, 0.06, 0.24, 6),
+            fur,
+            sx * 0.17,
+            0.12,
+            sz * 0.3
+          );
+      }
+      c.rotation.y = seed * Math.PI;
+      body.add(c);
+      idle = (t) => {
+        c.rotation.y += Math.sin(t * 0.3) * 0.002;
+        body.position.x = Math.sin(t * 0.4 + seed * 5) * 0.25;
+      };
+      react = (k) => {
+        body.position.x = k * 0.9;
+      };
+      break;
+    }
+    case 'monkey': {
+      // A little monkey with a curly tail that hops about.
+      const fur = '#7a5230';
+      const m = new THREE.Group();
+      part(m, new THREE.CapsuleGeometry(0.16, 0.25, 4, 8), fur, 0, 0.42, 0);
+      part(m, ball(0.17), fur, 0, 0.78, 0);
+      part(m, ball(0.11), '#e8c49a', 0, 0.74, -0.12);
+      for (const sx of [-1, 1]) {
+        part(m, ball(0.07), '#e8c49a', sx * 0.17, 0.82, 0);
+        part(
+          m,
+          new THREE.CapsuleGeometry(0.04, 0.3, 3, 6),
+          fur,
+          sx * 0.18,
+          0.4,
+          0
+        ).rotation.z = sx * 0.6;
+        part(
+          m,
+          new THREE.CapsuleGeometry(0.05, 0.22, 3, 6),
+          fur,
+          sx * 0.08,
+          0.12,
+          0
+        );
+      }
+      const tail = part(
+        m,
+        new THREE.TorusGeometry(0.16, 0.03, 6, 16, Math.PI * 1.5),
+        fur,
+        0,
+        0.45,
+        0.25
+      );
+      tail.rotation.y = Math.PI / 2;
+      body.add(m);
+      idle = (t) => {
+        body.position.y = Math.abs(Math.sin(t * 4 + seed * 9)) * 0.35;
+        tail.rotation.x = Math.sin(t * 3) * 0.4;
+      };
+      react = (k) => {
+        body.position.y = Math.sin(k * Math.PI) * 1.4;
+        body.position.x = -k * 1.4;
+      };
+      break;
+    }
     case 'chicken': {
       const c = new THREE.Group();
       part(c, ball(0.17), '#fffaf0', 0, 0.3, 0);

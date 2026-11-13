@@ -94,6 +94,22 @@ const FACADES: Record<CityId, FacadeStyle[]> = {
       shutters: '#b8875a',
     },
   ],
+  amazon: [
+    {
+      wall: '#ffffff',
+      glass: ['#7f97a6', '#2a343d'],
+      win: [0.3, 0.2, 0.7, 0.85],
+      frame: '#ffffff',
+      shutters: '#2f8f5b',
+    },
+    {
+      wall: '#ffffff',
+      glass: ['#8aa0ad', '#26313a'],
+      win: [0.26, 0.24, 0.74, 0.84],
+      frame: '#f4ead8',
+      balcony: true,
+    },
+  ],
   hanoi: [
     {
       wall: '#ffffff',
@@ -113,6 +129,8 @@ const FACADES: Record<CityId, FacadeStyle[]> = {
 };
 
 const TINTS: Record<CityId, string[]> = {
+  // Manaus: colonial facades in bright paint.
+  amazon: ['#ffd36e', '#f6a6c1', '#9ad7ea', '#b6e3a1', '#ffb38a', '#f3e6c4'],
   tokyo: [
     '#dfe5ea',
     '#c9d3db',
@@ -760,6 +778,10 @@ export const buildCity = (
         return row === 0
           ? 4 + Math.floor(rand() * 8)
           : 12 + Math.floor(rand() * 24);
+      case 'amazon':
+        return row === 0
+          ? 2 + Math.floor(rand() * 3)
+          : 3 + Math.floor(rand() * 6);
     }
   };
 
@@ -1299,6 +1321,258 @@ const buildLandmark = (lm: Landmark, accent: string): THREE.Group => {
       );
       ring.rotation.y = Math.PI / 2;
       add(new THREE.BoxGeometry(5.6, 0.6, 16.4), dark, 0, 19.2, 0);
+      break;
+    }
+    case 'opera': {
+      // The Amazon Theatre: a pink colonnaded front and a dome of coloured tiles.
+      const pink = std('#f4a6b8');
+      add(new THREE.BoxGeometry(9, 1, 14), white, 0, 0.5, 0);
+      add(new THREE.BoxGeometry(7, 6, 12), pink, 0, 4, 0);
+      for (let i = -2; i <= 2; i++)
+        add(
+          new THREE.CylinderGeometry(0.3, 0.3, 5, 10),
+          white,
+          -3.7,
+          3.5,
+          i * 2.4
+        );
+      add(new THREE.BoxGeometry(1.4, 1.2, 12.4), white, -3.6, 7.2, 0);
+      add(new THREE.CylinderGeometry(2.6, 2.8, 1.6, 20), pink, 0.6, 7.8, 0);
+      const tiles = ['#2e7d32', '#ffd166', '#1d6fd1'];
+      for (let k = 0; k < 3; k++) {
+        const band = add(
+          new THREE.SphereGeometry(
+            3 - k * 0.15,
+            24,
+            6,
+            0,
+            Math.PI * 2,
+            (k * Math.PI) / 7,
+            Math.PI / 7
+          ),
+          std(tiles[k] ?? '#ffd166', { roughness: 0.4 }),
+          0.6,
+          8.4,
+          0
+        );
+        band.rotation.x = 0;
+      }
+      add(new THREE.ConeGeometry(0.4, 1.6, 10), std('#ffd166'), 0.6, 11.9, 0);
+      break;
+    }
+    case 'kapok': {
+      // A giant kapok: buttress roots, a tall pale trunk and a flat crown above the forest.
+      const bark = std('#b8a88a');
+      add(new THREE.CylinderGeometry(1.1, 1.6, 22, 12), bark, 0, 11, 0);
+      for (let k = 0; k < 6; k++) {
+        const a = (k / 6) * Math.PI * 2;
+        const fin = add(
+          new THREE.BoxGeometry(0.5, 4, 3.4),
+          bark,
+          Math.cos(a) * 1.6,
+          2,
+          Math.sin(a) * 1.6
+        );
+        fin.rotation.y = -a;
+      }
+      for (const [r, y] of [
+        [9, 22],
+        [7, 24],
+        [5, 25.5],
+      ] as const)
+        add(
+          new THREE.SphereGeometry(r, 16, 8).scale(1, 0.32, 1),
+          std('#2f7d3a'),
+          0,
+          y,
+          0
+        );
+      break;
+    }
+    case 'canopy': {
+      // Two towers in the trees joined by a rope bridge high above the trail.
+      const wood = std('#8b5e3c');
+      for (const z of [-9, 9]) {
+        add(
+          new THREE.CylinderGeometry(0.9, 1.2, 16, 10),
+          std('#a89b80'),
+          0,
+          8,
+          z
+        );
+        add(new THREE.CylinderGeometry(3, 3, 0.5, 12), wood, 0, 12, z);
+        add(
+          new THREE.SphereGeometry(5, 14, 8).scale(1, 0.5, 1),
+          std('#2a7d3b'),
+          0,
+          17,
+          z
+        );
+      }
+      for (let i = 0; i <= 12; i++) {
+        const z = -7.5 + i * 1.25;
+        const sag = Math.sin((i / 12) * Math.PI) * 1.4;
+        add(new THREE.BoxGeometry(1.4, 0.12, 0.9), wood, 0, 12 - sag, z);
+      }
+      for (const x of [-0.7, 0.7]) {
+        const rope = add(
+          new THREE.TorusGeometry(9, 0.05, 4, 30, Math.PI),
+          std('#e9d8a6'),
+          x,
+          13.4 + 7.9,
+          0
+        );
+        rope.rotation.y = Math.PI / 2;
+        rope.rotation.z = Math.PI;
+        rope.scale.set(1, 0.18, 1);
+      }
+      break;
+    }
+    case 'stilt': {
+      // Wooden houses on stilts over the river, with a canoe tied below.
+      const water = add(
+        new THREE.PlaneGeometry(16, 26),
+        std('#7a5a34', { roughness: 0.25 }),
+        0,
+        0.1,
+        0
+      );
+      water.rotation.x = -Math.PI / 2;
+      const walls = ['#ffd166', '#4fc3f7', '#f4a6b8'];
+      for (let k = 0; k < 3; k++) {
+        const z = -8 + k * 8;
+        for (const dx of [-1.6, 1.6])
+          for (const dz of [-1.6, 1.6])
+            add(
+              new THREE.CylinderGeometry(0.15, 0.15, 3, 6),
+              std('#6b4f36'),
+              dx,
+              1.5,
+              z + dz
+            );
+        add(new THREE.BoxGeometry(4, 0.3, 4), std('#8b5e3c'), 0, 3.1, z);
+        add(
+          new THREE.BoxGeometry(3.4, 2.4, 3.4),
+          std(walls[k] ?? '#ffd166'),
+          0,
+          4.4,
+          z
+        );
+        const roof = add(
+          new THREE.ConeGeometry(3, 1.6, 4),
+          std('#c96f3b'),
+          0,
+          6.4,
+          z
+        );
+        roof.rotation.y = Math.PI / 4;
+      }
+      const canoe = add(
+        new THREE.CapsuleGeometry(0.4, 3, 4, 10).rotateX(Math.PI / 2),
+        std('#8b5a2b'),
+        3.5,
+        0.3,
+        2
+      );
+      canoe.scale.y = 0.45;
+      break;
+    }
+    case 'meeting': {
+      // The Meeting of the Waters: dark and sandy rivers side by side, with a boat.
+      const dark = add(
+        new THREE.PlaneGeometry(10, 40),
+        std('#2b1d12', { roughness: 0.2 }),
+        -5,
+        0.12,
+        0
+      );
+      dark.rotation.x = -Math.PI / 2;
+      const sandy = add(
+        new THREE.PlaneGeometry(10, 40),
+        std('#c9a26b', { roughness: 0.3 }),
+        5,
+        0.12,
+        0
+      );
+      sandy.rotation.x = -Math.PI / 2;
+      add(new THREE.BoxGeometry(2.2, 1, 6), white, 0, 0.6, 2);
+      add(new THREE.BoxGeometry(1.8, 1.2, 3), std('#1d6fd1'), 0, 1.7, 2.6);
+      break;
+    }
+    case 'river': {
+      // The black Rio Negro behind a white sand beach.
+      const sand = add(
+        new THREE.PlaneGeometry(10, 34),
+        std('#fff4dc'),
+        0,
+        0.1,
+        0
+      );
+      sand.rotation.x = -Math.PI / 2;
+      const water = add(
+        new THREE.PlaneGeometry(14, 34),
+        std('#2b1d12', { roughness: 0.15 }),
+        10,
+        0.11,
+        0
+      );
+      water.rotation.x = -Math.PI / 2;
+      for (let k = 0; k < 3; k++) {
+        add(
+          new THREE.CylinderGeometry(0.06, 0.06, 2.4, 6),
+          white,
+          -1 + k * 2,
+          1.2,
+          -6 + k * 6
+        );
+        add(
+          new THREE.ConeGeometry(1.6, 0.7, 10),
+          std(k % 2 ? '#ffd166' : '#ff5d73'),
+          -1 + k * 2,
+          2.5,
+          -6 + k * 6
+        );
+      }
+      break;
+    }
+    case 'lilies': {
+      // A lagoon of giant water lilies, leaves with upturned rims and a few flowers.
+      const water = add(
+        new THREE.CircleGeometry(12, 40),
+        std('#3f6f4a', { roughness: 0.15 }),
+        0,
+        0.12,
+        0
+      );
+      water.rotation.x = -Math.PI / 2;
+      for (let k = 0; k < 9; k++) {
+        const a = k * 2.1;
+        const r = 2 + (k % 3) * 3;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        add(
+          new THREE.CylinderGeometry(1.5, 1.5, 0.12, 20),
+          std('#3fa34d'),
+          x,
+          0.25,
+          z
+        );
+        add(
+          new THREE.TorusGeometry(1.5, 0.1, 6, 20).rotateX(Math.PI / 2),
+          std('#8a2f3f'),
+          x,
+          0.33,
+          z
+        );
+        if (k % 3 === 0)
+          add(
+            new THREE.SphereGeometry(0.35, 10, 8),
+            std('#ffd6e5'),
+            x + 0.6,
+            0.6,
+            z
+          );
+      }
       break;
     }
     case 'lake': {

@@ -60,6 +60,8 @@ const KIND_WORD: Record<string, [string, string]> = {
   cat: ['cat', 'cats'],
   chicken: ['chicken', 'chickens'],
   pig: ['pig', 'pigs'],
+  capybara: ['capybara', 'capybaras'],
+  monkey: ['monkey', 'monkeys'],
   skates: ['pair of skates', 'pairs of skates'],
   skateboard: ['skateboard', 'skateboards'],
   bike: ['bike ride', 'bike rides'],

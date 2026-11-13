@@ -43,8 +43,12 @@ const flakeTexture = (): THREE.Texture => {
   return tex;
 };
 
-export const buildFestive = (christmas: boolean, calm = false): Festive => {
-  const flakes = calm ? Math.round(FLAKES / 4) : FLAKES;
+export const buildFestive = (
+  christmas: boolean,
+  calm = false,
+  snowy = true
+): Festive => {
+  const flakes = !snowy ? 0 : calm ? Math.round(FLAKES / 4) : FLAKES;
   const group = new THREE.Group();
 
   // Snow: points in a box that rides with the camera, wrapping at the edges.

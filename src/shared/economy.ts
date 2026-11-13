@@ -49,6 +49,7 @@ export type ItemShape =
   | 'sparkle'
   | 'crown'
   | 'ears'
+  | 'explorer'
   | 'santa'
   | 'antlers'
   | 'snow'
@@ -173,6 +174,14 @@ export const ITEMS: Item[] = [
     shape: 'visor',
     color: '#1fb5a8',
     unlock: { kind: 'cityFinish', city: 'dubai' },
+  },
+  {
+    id: 'explorer-hat',
+    name: 'Amazon Explorer Hat',
+    slot: 'hat',
+    shape: 'explorer',
+    color: '#c9a66b',
+    unlock: { kind: 'cityFinish', city: 'amazon' },
   },
   {
     id: 'tophat',

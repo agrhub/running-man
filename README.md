@@ -48,12 +48,15 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 
 ## Features
 
-- **Daily stages:** 4 cities (Tokyo, Paris, Hanoi, Dubai) x 7 stages, rotating weekly, across 7 terrains (city,
-  park, forest, zoo, hills, beach, desert), with 6 weather types (sunny, heat, rain, thunderstorm, headwind,
+- **Daily stages:** 5 places (Tokyo, Paris, Hanoi, Dubai and the Amazon) x 7 stages, rotating weekly, across 8
+  terrains (city, park, forest, zoo, hills, beach, desert, rainforest), with 6 weather types (sunny, heat, rain, thunderstorm, headwind,
   tailwind) and 4 start times (morning, noon, afternoon, evening) picked by a date-seeded random so everyone gets the
   same conditions. You see them on the road: sun and sky follow the clock, rain falls, storms flash, leaves blow.
 - **Triathlon Finale:** stage 7 of every city is swim, bike, run: a pool with lane ropes and buoys for the first km,
   bikes from T1 to T2, then the run, each leg with its own pace model.
+- **The Amazon:** Manaus and the rainforest: an opera house with a tiled dome, a giant kapok tree, a canopy walkway,
+  stilt houses, the black Rio Negro, giant water lilies and the Meeting of the Waters, with a river, canoes and
+  macaws beside the trail, capybaras and monkeys in the lanes, and an Amazon Explorer Hat for the finishers.
 - **Life on the road:** people crossing, cyclists, motorbikes, cyclos, taxis, ambulances and fire engines, dogs,
   cats, chickens and pigs, depending on the city, terrain and hour; and boosters to ride (roller skates, a
   skateboard, a bicycle).
@@ -144,7 +147,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 100 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 101 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

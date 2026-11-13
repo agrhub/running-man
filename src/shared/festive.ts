@@ -18,12 +18,12 @@ export const holidayShort = (dateKey: string): string | null =>
   isChristmasRun(dateKey)
     ? '🎄 Christmas Run: double coins'
     : isHolidaySeason(dateKey)
-      ? '❄️ Snow on the road all December'
+      ? '❄️ Holiday lights all December'
       : null;
 
 export const holidayBanner = (dateKey: string): string | null =>
   isChristmasRun(dateKey)
     ? '🎄 Christmas Run: double coins today, and snow on the road.'
     : isHolidaySeason(dateKey)
-      ? '❄️ Holiday season: snow on every stage, and Santa hats for anyone who runs in December.'
+      ? '❄️ Holiday season: lights on every stage, snow where it gets cold, and Santa hats for anyone who runs in December.'
       : null;

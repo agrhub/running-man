@@ -129,6 +129,8 @@ const LIFE_ICON: Partial<Record<ItemKind, string>> = {
   cat: '🐈',
   chicken: '🐔',
   pig: '🐖',
+  capybara: '🦫',
+  monkey: '🐒',
 };
 
 const eventToast = (e: RaceEvent): Toast => {

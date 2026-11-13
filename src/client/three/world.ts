@@ -152,6 +152,9 @@ export type Position = {
 
 export type Positions = Position[];
 
+/** No snow in December in the desert or the rainforest: just the lights and trees. */
+const TROPICAL = ['dubai', 'amazon'];
+
 /** Facing -z (down the course): the chibi is modelled facing +x. */
 const FORWARD = Math.PI / 2;
 /** Facing the camera, for the finish celebration. */
@@ -244,14 +247,15 @@ export class RunWorld {
       if (opts.festive) {
         this.festive = buildFestive(
           opts.festive === 'christmas',
-          opts.calm ?? false
+          opts.calm ?? false,
+          !TROPICAL.includes(opts.city.id)
         );
         this.scene.add(this.festive.group);
       }
       const air = buildAtmosphere({
         time: opts.time ?? 'morning',
         weather: opts.weather ?? 'cool',
-        festive: Boolean(opts.festive),
+        festive: Boolean(opts.festive) && !TROPICAL.includes(opts.city.id),
         calm: opts.calm ?? false,
       });
       this.atmosphere = air;

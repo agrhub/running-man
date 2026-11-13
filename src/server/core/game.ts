@@ -1947,7 +1947,7 @@ export const WELCOME_TITLE = 'How to play Running Man 🏃';
 
 export const welcomeText = (): string =>
   [
-    'Every day at 00:00 UTC a new **6 km stage** of a city marathon opens in the post pinned at the top. Tokyo, Paris, Hanoi and Dubai take turns, one city a week.',
+    'Every day at 00:00 UTC a new **6 km stage** of a city marathon opens in the post pinned at the top. Tokyo, Paris, Hanoi, Dubai and the Amazon take turns, one a week.',
     '',
     '1. **Make your runner.** Your Reddit account is your login: pick a look and a running buddy, and get your own race bib.',
     '2. **Plan your pace.** Tap each kilometre for Easy, Steady or Push, and choose where to drink. Push too hard and you walk.',

@@ -272,29 +272,31 @@ outside Reddit, no ads, no real logos.
 
 ## Content: cities, terrains, weather
 
-Four cities with seven stages each, one city a week; the seventh is the Triathlon Finale. Weather and the start
+Five places with seven stages each, one a week; the seventh is the Triathlon Finale. Weather and the start
 time change by day, so the same stage plays differently.
 
-| City  | Palette                  | Stylised landmarks                                        | Character                     |
-| ----- | ------------------------ | --------------------------------------------------------- | ----------------------------- |
-| Tokyo | Cherry pink, night grey  | Thunder Gate, Sky Tower, the Scramble, Five-Storey Pagoda | Glass towers, vertical signs  |
-| Paris | Cream, navy              | Iron Lady, Triumph Arch, White Basilica, Glass Pyramid    | Haussmann blocks, slate roofs |
-| Hanoi | Sunny yellow, moss green | Turtle Tower, Iron River Bridge, Temple of Scholars       | Narrow tube houses, cables    |
-| Dubai | Sand gold, turquoise     | Needle Tower, Sail Hotel, Giant Wheel, Desert Fort        | Sand towers, beach and desert |
+| City   | Palette                  | Stylised landmarks                                                               | Character                          |
+| ------ | ------------------------ | -------------------------------------------------------------------------------- | ---------------------------------- |
+| Tokyo  | Cherry pink, night grey  | Thunder Gate, Sky Tower, the Scramble, Five-Storey Pagoda                        | Glass towers, vertical signs       |
+| Paris  | Cream, navy              | Iron Lady, Triumph Arch, White Basilica, Glass Pyramid                           | Haussmann blocks, slate roofs      |
+| Hanoi  | Sunny yellow, moss green | Turtle Tower, Iron River Bridge, Temple of Scholars                              | Narrow tube houses, cables         |
+| Dubai  | Sand gold, turquoise     | Needle Tower, Sail Hotel, Giant Wheel, Desert Fort                               | Sand towers, beach and desert      |
+| Amazon | Leaf green, river brown  | Amazon Theatre, Giant Kapok, Canopy Walkway, Stilt Houses, Meeting of the Waters | Colonial Manaus, rainforest, river |
 
 Next: whichever of London, New York, Seoul and Rio the crew votes for; then mountain trail and snow stages.
 
 ### Terrains
 
-| Terrain   | Scenery                                                  | Example stages                                      |
-| --------- | -------------------------------------------------------- | --------------------------------------------------- |
-| 🏙️ City   | Floor-scale buildings, shops, cross streets, traffic     | Shibuya Scramble, Champs Sprint, Old Quarter Alleys |
-| 🌳 Park   | Lawns, ponds, benches, people strolling                  | Imperial Gardens, Sword Lake Loop                   |
-| 🌲 Forest | Dense pines, no street lamps                             | Meiji Forest, Vincennes Woods                       |
-| 🦒 Zoo    | Fenced enclosures, giraffes, zebras, elephants that move | Ueno Zoo Loop, Safari Park                          |
-| ⛰️ Hills  | Rolling green hills, climbs                              | Montmartre Climb                                    |
-| 🏖️ Beach  | Sea, surf, boats, umbrellas, beach hotels                | Jumeirah Beach, Bluewaters Boardwalk                |
-| 🏜️ Desert | Dunes, tents, a camel caravan, date palms                | Desert Dunes                                        |
+| Terrain       | Scenery                                                                        | Example stages                                      |
+| ------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- |
+| 🌿 Rainforest | Tall rainforest trees, palms, banana plants, a brown river with canoes, macaws | Rainforest Trail, Canopy Climb, Stilt Village       |
+| 🏙️ City       | Floor-scale buildings, shops, cross streets, traffic                           | Shibuya Scramble, Champs Sprint, Old Quarter Alleys |
+| 🌳 Park       | Lawns, ponds, benches, people strolling                                        | Imperial Gardens, Sword Lake Loop                   |
+| 🌲 Forest     | Dense pines, no street lamps                                                   | Meiji Forest, Vincennes Woods                       |
+| 🦒 Zoo        | Fenced enclosures, giraffes, zebras, elephants that move                       | Ueno Zoo Loop, Safari Park                          |
+| ⛰️ Hills      | Rolling green hills, climbs                                                    | Montmartre Climb                                    |
+| 🏖️ Beach      | Sea, surf, boats, umbrellas, beach hotels                                      | Jumeirah Beach, Bluewaters Boardwalk                |
+| 🏜️ Desert     | Dunes, tents, a camel caravan, date palms                                      | Desert Dunes                                        |
 
 The desert uses date palms, shrubs, tents and camels rather than cacti: cacti belong to American deserts, not Dubai.
 

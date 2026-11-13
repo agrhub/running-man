@@ -52,6 +52,7 @@ export const TERRAIN_GROUND: Record<
   hills: { ground: '#93c46f', path: '#d6c9ad' },
   beach: { ground: '#f1dcaa', path: '#c9a378' },
   desert: { ground: '#e9cf98', path: '#dcc192' },
+  jungle: { ground: '#4f8f3c', path: '#b9875a' },
 };
 
 export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
@@ -491,6 +492,167 @@ export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
           if (rand() < 0.2) fence(side * (frontX + 1.3), z, z - 5, '#ffffff');
         }
       }
+      break;
+    }
+    case 'jungle': {
+      // A wide brown river on the left with canoes, rainforest on both banks.
+      const riverX = frontX + 9;
+      const river = new THREE.Mesh(
+        new THREE.PlaneGeometry(400, zStart - zEnd + 200),
+        new THREE.MeshStandardMaterial({
+          color: '#7a5a34',
+          roughness: 0.25,
+          metalness: 0.05,
+        })
+      );
+      river.rotation.x = -Math.PI / 2;
+      river.position.set(-(riverX + 200), 0.04, (zStart + zEnd) / 2);
+      group.add(river);
+      const canoes: THREE.Group[] = [];
+      for (let k = 0; k < 5; k++) {
+        const canoe = new THREE.Group();
+        const hull = new THREE.Mesh(
+          new THREE.CapsuleGeometry(0.45, 3.4, 4, 10).rotateX(Math.PI / 2),
+          new THREE.MeshStandardMaterial({ color: '#8b5a2b' })
+        );
+        hull.scale.y = 0.45;
+        hull.position.y = 0.15;
+        const rower = new THREE.Mesh(
+          new THREE.CapsuleGeometry(0.22, 0.4, 3, 8),
+          new THREE.MeshStandardMaterial({
+            color: pick(['#ff5d73', '#ffd166', '#4fc3f7']),
+          })
+        );
+        rower.position.y = 0.65;
+        canoe.add(hull, rower);
+        canoe.position.set(-(riverX + range(6, 40)), 0, range(zEnd, zStart));
+        group.add(canoe);
+        canoes.push(canoe);
+      }
+      movers.push((t, dt) => {
+        canoes.forEach((c, i) => {
+          c.position.z -= dt * (1.2 + i * 0.3);
+          c.position.y = Math.sin(t * 1.5 + i) * 0.05;
+          if (c.position.z < zEnd) c.position.z = zStart;
+        });
+      });
+
+      // A rainforest tree: tall pale trunk, wide layered crowns, the odd vine.
+      const rainTree = (x: number, z: number, s: number) => {
+        batch.push(
+          mats.greens,
+          g(
+            new THREE.CylinderGeometry(0.22 * s, 0.32 * s, 6 * s, 7).translate(
+              x,
+              3 * s,
+              z
+            ),
+            '#a89b80'
+          )
+        );
+        const crowns = ['#1f6b34', '#2a7d3b', '#3a8f45', '#16582b'];
+        for (let k = 0; k < 3; k++)
+          batch.push(
+            mats.greens,
+            g(
+              new THREE.IcosahedronGeometry((1.9 - k * 0.35) * s, 1)
+                .scale(1.3, 0.55, 1.3)
+                .translate(
+                  x + range(-0.8, 0.8) * s,
+                  (5.6 + k * 1.1) * s,
+                  z + range(-0.8, 0.8) * s
+                ),
+              pick(crowns)
+            )
+          );
+        if (rand() < 0.5)
+          batch.push(
+            mats.greens,
+            g(
+              new THREE.CylinderGeometry(0.035, 0.035, 3.5 * s, 4).translate(
+                x + 0.9 * s,
+                3.6 * s,
+                z
+              ),
+              '#3d6b2a'
+            )
+          );
+      };
+      // Big leaves close to the path: banana plants and ferns.
+      const banana = (x: number, z: number, s: number) => {
+        for (let k = 0; k < 5; k++) {
+          const a = (k / 5) * Math.PI * 2 + rand();
+          const leaf = new THREE.BoxGeometry(1.6 * s, 0.05, 0.55 * s)
+            .translate(0.75 * s, 0, 0)
+            .rotateZ(0.5 + rand() * 0.3)
+            .rotateY(a)
+            .translate(x, 1.2 * s, z);
+          batch.push(mats.greens, g(leaf, k % 2 ? '#4caf50' : '#3b9a44'));
+        }
+        batch.push(
+          mats.greens,
+          g(
+            new THREE.CylinderGeometry(0.1 * s, 0.14 * s, 1.3 * s, 6).translate(
+              x,
+              0.65 * s,
+              z
+            ),
+            '#6f8f3a'
+          )
+        );
+      };
+      const heliconia = (x: number, z: number) =>
+        batch.push(
+          mats.greens,
+          g(
+            new THREE.ConeGeometry(0.12, 0.5, 4).translate(x, 0.9, z),
+            pick(['#ff3b3b', '#ffb703', '#ff7b00'])
+          )
+        );
+      for (let z = zStart; z > zEnd; z -= 2.4) {
+        for (const side of sides) {
+          if (!clear(side, z)) continue;
+          // the river side keeps a muddy bank and fewer trees
+          const rows = side < 0 ? 2 : 5;
+          for (let row = 0; row < rows; row++) {
+            if (rand() < 0.2) continue;
+            const x = side * (frontX + 2 + row * range(3, 5) + rand() * 1.5);
+            if (rand() < 0.22) palm(x, z + range(-1, 1), range(0.9, 1.3));
+            else rainTree(x, z + range(-1, 1), range(1, 1.6) + row * 0.1);
+          }
+          if (rand() < 0.55)
+            banana(
+              side * (frontX + range(0.9, 1.6)),
+              z + range(-1, 1),
+              range(0.8, 1.2)
+            );
+          if (rand() < 0.35) heliconia(side * (frontX + 1.1), z);
+          if (rand() < 0.3)
+            bush(side * (frontX + 1.3), z + 1, range(0.7, 1.1), '#2f7d3a');
+        }
+      }
+
+      // Macaws in pairs, flying over the canopy.
+      const macaws: THREE.Mesh[] = [];
+      for (let k = 0; k < 8; k++) {
+        const bird = new THREE.Mesh(
+          new THREE.ConeGeometry(0.18, 0.9, 5).rotateX(-Math.PI / 2),
+          new THREE.MeshStandardMaterial({
+            color: k % 2 ? '#e63946' : '#1d6fd1',
+          })
+        );
+        bird.position.set(range(-14, 14), range(8, 12), range(zEnd, zStart));
+        group.add(bird);
+        macaws.push(bird);
+      }
+      movers.push((t, dt, camZ) => {
+        macaws.forEach((b, i) => {
+          b.position.z -= dt * (4 + (i % 3));
+          b.position.y = 9 + Math.sin(t * 2 + i) * 0.8;
+          b.rotation.z = Math.sin(t * 12 + i) * 0.4;
+          if (b.position.z < camZ - 90) b.position.z = camZ + 20;
+        });
+      });
       break;
     }
     case 'beach': {

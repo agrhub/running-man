@@ -57,6 +57,12 @@ import {
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
 import {
+  achievementById,
+  achievementStates,
+  newlyEarned,
+  type RunnerSummary,
+} from '../../shared/achievements';
+import {
   holidayMultiplier,
   isHolidaySeason,
   isChristmasRun,
@@ -82,6 +88,8 @@ import {
 import type {
   CrewProgress,
   DayRecap,
+  HistoryRow,
+  MeResponse,
   RunnerTrack,
   Incident,
   InitResponse,
@@ -150,6 +158,15 @@ export const freshProfile = (username: string): Profile => ({
   dash: { date: null, plays: 0, best: 0 },
   friends: [],
   club: null,
+  stats: {
+    fives: 0,
+    snacks: 0,
+    crashes: 0,
+    chats: 0,
+    bestRank: null,
+    dashBest: 0,
+  },
+  achievements: [],
 });
 
 export const loadProfile = async (
@@ -163,6 +180,7 @@ export const loadProfile = async (
     ...fresh,
     ...saved,
     look: { ...fresh.look, ...saved?.look },
+    stats: { ...fresh.stats, ...saved?.stats },
     username,
   };
 };
@@ -556,6 +574,82 @@ const applyIncident = async (
     }),
     addToWeek(store, dayInfo(dateKey).season, username, 0, add),
   ]);
+  const past = parse<Omit<HistoryRow, 'dateKey'>>(
+    await store.hGet(keys.history(username), dateKey)
+  );
+  if (past)
+    await store.hSet(keys.history(username), {
+      [dateKey]: JSON.stringify({ ...past, seconds: track.seconds }),
+    });
+  const victim = await loadProfile(store, username);
+  victim.stats.crashes += 1;
+  await saveProfile(store, victim);
+};
+
+const readHistory = async (
+  store: Store,
+  username: string
+): Promise<HistoryRow[]> => {
+  const raw = await store.hGetAll(keys.history(username));
+  return Object.entries(raw)
+    .map(([dateKey, v]) => {
+      const row = parse<Omit<HistoryRow, 'dateKey'>>(v);
+      return row ? { dateKey, ...row } : null;
+    })
+    .filter((r): r is HistoryRow => r !== null)
+    .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+};
+
+export const summaryOf = (
+  profile: Profile,
+  history: HistoryRow[]
+): RunnerSummary => ({
+  runs: history.length,
+  km: history.length * KM_PER_STAGE,
+  bestStreak: profile.bestStreak,
+  cities: [...new Set(history.map((h) => dayInfo(h.dateKey).city.id))],
+  fives: profile.stats.fives,
+  snacks: profile.stats.snacks,
+  crashes: profile.stats.crashes,
+  chats: profile.stats.chats,
+  bestRank: profile.stats.bestRank,
+  finisher: profile.finisher,
+  inClub: profile.club !== null,
+  friends: profile.friends.length,
+  holidayRun: profile.holidayRun,
+  dashBest: profile.stats.dashBest,
+});
+
+/** Pays every newly completed achievement once. Returns the new ids. */
+const grantAchievements = (
+  profile: Profile,
+  history: HistoryRow[]
+): string[] => {
+  const fresh = newlyEarned(summaryOf(profile, history), profile.achievements);
+  for (const id of fresh) {
+    profile.achievements.push(id);
+    profile.badges += achievementById(id)?.reward ?? 0;
+  }
+  return fresh;
+};
+
+/** The profile page: history, achievements, and any achievement earned since last time. */
+export const me = async (deps: Deps): Promise<MeResponse> => {
+  const username = await requireUser(deps);
+  const profile = await loadProfile(deps.store, username);
+  const history = await readHistory(deps.store, username);
+  const earned = grantAchievements(profile, history);
+  if (earned.length) await saveProfile(deps.store, profile);
+  return {
+    type: 'me',
+    profile,
+    history,
+    achievements: achievementStates(
+      summaryOf(profile, history),
+      profile.achievements
+    ),
+    earned,
+  };
 };
 
 /** Counts what happened on the road today, for the recap posted after the stage closes. */
@@ -809,6 +903,23 @@ export const run = async (
   if (!profile.weathersRun.includes(day.weather.id))
     profile.weathersRun.push(day.weather.id);
   if (percentile < 0.1) profile.top10 = true;
+  for (const e of race.events) {
+    if (e.kind === 'bump') profile.stats.crashes += 1;
+    else if (e.kind === 'fan') profile.stats.fives += 1;
+    else if (isPickup(e.kind)) profile.stats.snacks += 1;
+  }
+  profile.stats.chats += chat.length;
+  profile.stats.bestRank =
+    profile.stats.bestRank === null
+      ? rank
+      : Math.min(profile.stats.bestRank, rank);
+  await store.hSet(keys.history(username), {
+    [dateKey]: JSON.stringify({
+      seconds: result.totalSeconds,
+      rank,
+      runners: total,
+    }),
+  });
   if (isHolidaySeason(today)) profile.holidayRun = true;
 
   const seasonKey = String(day.season);
@@ -846,6 +957,10 @@ export const run = async (
   profile.badges += reward.total - crewPaid;
 
   const unlocked = grantEarnedUnlocks(profile);
+  const achieved = grantAchievements(
+    profile,
+    await readHistory(store, username)
+  );
 
   const record: RunRecord = {
     dateKey,
@@ -866,6 +981,7 @@ export const run = async (
     crewFinishedNow,
     finisherNow,
     shared: false,
+    ...(achieved.length ? { achieved } : {}),
   };
 
   await Promise.all([
@@ -1196,6 +1312,7 @@ export const playDash = async (deps: Deps, round: unknown, moves: unknown) => {
   const reward = dashReward(result.score, profile.dash.plays);
   profile.dash.plays += 1;
   profile.dash.best = Math.max(profile.dash.best, result.score);
+  profile.stats.dashBest = Math.max(profile.stats.dashBest, result.score);
   profile.badges += reward;
   await saveProfile(deps.store, profile);
   const prev = await deps.store.zScore(keys.dashBoard(today), username);

@@ -1,4 +1,4 @@
-export type Tab = 'race' | 'quests' | 'play' | 'friends' | 'shop';
+export type Tab = 'race' | 'quests' | 'play' | 'friends' | 'shop' | 'me';
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'race', icon: '🏃', label: 'Race' },
@@ -6,6 +6,7 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'play', icon: '🎮', label: 'Play' },
   { id: 'friends', icon: '👥', label: 'Friends' },
   { id: 'shop', icon: '🛍️', label: 'Shop' },
+  { id: 'me', icon: '🏅', label: 'Me' },
 ];
 
 type Props = {

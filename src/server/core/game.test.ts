@@ -19,6 +19,7 @@ import type {
   FriendsResponse,
   ClubResponse,
   AvatarsResponse,
+  MeResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -170,7 +171,9 @@ describe('game API', () => {
       'slowpoke',
     ]);
     expect(fast.json.run.reward.finish).toBe(50);
-    expect(fast.json.profile.badges).toBe(fast.json.run.reward.total);
+    // Coins: the run's reward, plus the achievements a first win completes.
+    expect(fast.json.run.achieved).toEqual(['first-steps', 'podium']);
+    expect(fast.json.profile.badges).toBe(fast.json.run.reward.total + 100);
     expect(h.events).toContain('end:j:true');
 
     const again = await call(h.as('alice'), 'POST', '/run', {
@@ -435,6 +438,47 @@ describe('game API', () => {
   it('titles the Christmas Day post as the Christmas Run', () => {
     expect(postTitle(dayInfo('2026-12-25'))).toMatch(/^🎄 Christmas Run · Day/);
     expect(postTitle(dayInfo('2026-12-24'))).toMatch(/^Day/);
+  });
+
+  it('keeps a history and pays achievements once', async () => {
+    const first = await call<RunResponse>(
+      h.at('2026-11-12').as('ana'),
+      'POST',
+      '/run',
+      {
+        plan: planFor('2026-11-12'),
+        chat: [{ step: 2, line: 1 }],
+      }
+    );
+    expect(first.json.run.achieved).toEqual(
+      expect.arrayContaining(['first-steps', 'podium'])
+    );
+    const coins = first.json.profile.badges;
+    await call(h.at('2026-11-13'), 'POST', '/run', {
+      plan: planFor('2026-11-13'),
+    });
+    const page = await call<MeResponse>(h, 'GET', '/me');
+    expect(page.status).toBe(200);
+    expect(page.json.history.map((r) => r.dateKey)).toEqual([
+      '2026-11-12',
+      '2026-11-13',
+    ]);
+    expect(page.json.history[0]).toMatchObject({ rank: 1, runners: 1 });
+    expect(page.json.profile.stats.chats).toBe(1);
+    expect(page.json.earned).toEqual([]);
+    const marathon = page.json.achievements.find((x) => x.id === 'marathoner');
+    expect(marathon).toMatchObject({ value: 12, target: 42, done: false });
+    expect(page.json.profile.badges).toBeGreaterThan(coins);
+
+    // Friends count once the profile page looks again.
+    for (const f of ['bo', 'cy', 'di'])
+      await call(h.as(f), 'POST', '/run', { plan: planFor('2026-11-13') });
+    for (const f of ['bo', 'cy', 'di'])
+      await call(h.as('ana'), 'POST', '/friends/add', { username: f });
+    const again = await call<MeResponse>(h.as('ana'), 'GET', '/me');
+    expect(again.json.earned).toEqual(['social-runner']);
+    const third = await call<MeResponse>(h.as('ana'), 'GET', '/me');
+    expect(third.json.earned).toEqual([]);
   });
 
   it('rejects invalid plans', async () => {

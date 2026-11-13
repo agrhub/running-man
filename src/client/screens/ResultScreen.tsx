@@ -1,3 +1,4 @@
+import { achievementById } from '../../shared/achievements';
 import { Avatar } from '../components/Avatar';
 import type {
   CrewProgress,
@@ -81,6 +82,10 @@ export const ResultScreen = (p: Props) => {
     [`${run.streak}-day streak`, run.reward.streak],
     ['Crew finished the city', run.reward.crew],
     ['🎄 Christmas Run bonus', run.reward.holiday ?? 0],
+    ...(run.achieved ?? []).map((id): [string, number] => {
+      const a = achievementById(id);
+      return [`🏆 ${a?.name ?? id}`, a?.reward ?? 0];
+    }),
   ];
 
   return (

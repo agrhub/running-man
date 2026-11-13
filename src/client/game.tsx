@@ -25,6 +25,7 @@ import type {
   FriendsResponse,
   ClubResponse,
   ClubRow,
+  MeResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -46,6 +47,8 @@ import { QuestList, QuestsScreen } from './screens/QuestsScreen';
 import { PlayScreen, type DashResult } from './screens/PlayScreen';
 import { DashGame } from './screens/DashGame';
 import { FriendsScreen } from './screens/FriendsScreen';
+import { MeScreen } from './screens/MeScreen';
+import { achievementById } from '../shared/achievements';
 import { ClubSection } from './components/ClubSection';
 import type { DashMove } from '../shared/dash';
 
@@ -60,9 +63,9 @@ type Screen =
   | 'play'
   | 'dash'
   | 'friends'
+  | 'me'
   | 'closed';
 
-/** Screens shown with the tab bar; the race itself and registration stay full screen. */
 // The race screen carries three.js: it loads on demand, and is fetched early in idle time.
 const loadRunScreen = () =>
   import('./screens/RunScreen').then((m) => ({ default: m.RunScreen }));
@@ -80,8 +83,17 @@ const Warming = () => (
   </div>
 );
 
-const HUB: Screen[] = ['plan', 'result', 'locker', 'quests', 'play', 'friends'];
-const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop'];
+/** Screens shown with the tab bar; the race itself and registration stay full screen. */
+const HUB: Screen[] = [
+  'plan',
+  'result',
+  'locker',
+  'quests',
+  'play',
+  'friends',
+  'me',
+];
+const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop', 'me'];
 const tabOf = (s: Screen): Tab =>
   s === 'locker'
     ? 'shop'
@@ -91,7 +103,9 @@ const tabOf = (s: Screen): Tab =>
         ? 'play'
         : s === 'friends'
           ? 'friends'
-          : 'race';
+          : s === 'me'
+            ? 'me'
+            : 'race';
 
 const isPostId = (id: string | null): id is `t3_${string}` =>
   id !== null && id.startsWith('t3_');
@@ -110,6 +124,7 @@ export const App = () => {
   const [dashLast, setDashLast] = useState<DashResult | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [topClubs, setTopClubs] = useState<ClubRow[]>([]);
+  const [meData, setMeData] = useState<MeResponse | null>(null);
 
   const load = useCallback(
     () =>
@@ -448,6 +463,29 @@ export const App = () => {
     setScreen('locker');
   };
 
+  const loadMe = () => {
+    if (data.profile.username === 'guest') {
+      setMeData({
+        type: 'me',
+        profile: data.profile,
+        history: [],
+        achievements: [],
+        earned: [],
+      });
+      return;
+    }
+    request<MeResponse>('/me')
+      .then((r) => {
+        setMeData(r);
+        setData((d) => (d ? { ...d, profile: r.profile } : d));
+        for (const id of r.earned) {
+          const a = achievementById(id);
+          if (a) showToast(`🏆 ${a.name}! +${a.reward} coins`);
+        }
+      })
+      .catch((e: unknown) => showToast(message(e)));
+  };
+
   const goTab = (tab: Tab) => {
     if (tab === 'race') setScreen(data.myRun ? 'result' : 'plan');
     else if (tab === 'shop') openLocker();
@@ -464,6 +502,9 @@ export const App = () => {
     } else if (tab === 'quests') {
       refreshQuests();
       setScreen('quests');
+    } else if (tab === 'me') {
+      loadMe();
+      setScreen('me');
     }
   };
 
@@ -589,6 +630,8 @@ export const App = () => {
             onCare={() => void profileCall('/pet/care', {})}
           />
         );
+      case 'me':
+        return <MeScreen me={meData} today={data.today} />;
       case 'friends':
         return (
           <FriendsScreen

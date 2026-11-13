@@ -48,6 +48,7 @@ import {
   choosePet,
   equipItem,
   init,
+  me,
   register,
   run,
   share,
@@ -103,6 +104,14 @@ export const createApi = (deps: Deps): Hono => {
   api.get('/init', async (c) => {
     try {
       return c.json(await init(deps));
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/me', async (c) => {
+    try {
+      return c.json(await me(deps));
     } catch (e) {
       return fail(c, e);
     }

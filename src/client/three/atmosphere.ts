@@ -71,8 +71,11 @@ export const buildAtmosphere = (opts: {
   weather: WeatherId;
   /** December: snow falls instead of rain, under a winter sky. */
   festive: boolean;
+  /** Calm motion: a quarter of the rain and leaves. */
+  calm?: boolean;
 }): Atmosphere => {
   const { time, weather, festive } = opts;
+  const share = opts.calm ? 0.25 : 1;
   const wet = weather === 'rain' || weather === 'storm';
   let sky: Sky = SKY[time];
   if (festive) sky = [mix(sky[0], '#b8c7da', 0.7), mix(sky[1], '#e3eaf2', 0.7)];
@@ -93,7 +96,7 @@ export const buildAtmosphere = (opts: {
 
   // Rain: short streaks falling fast, slanted by the storm's wind.
   if (wet && !festive) {
-    const n = weather === 'storm' ? 1300 : 800;
+    const n = Math.round((weather === 'storm' ? 1300 : 800) * share);
     const slant = weather === 'storm' ? 0.35 : 0.08;
     const pos = new Float32Array(n * 6);
     const seed = () => [
@@ -136,7 +139,7 @@ export const buildAtmosphere = (opts: {
 
   // Wind: leaves and dust blowing along the road, at you or with you.
   if (weather === 'headwind' || weather === 'tailwind' || weather === 'storm') {
-    const n = 160;
+    const n = Math.round(160 * share);
     const dir = weather === 'tailwind' ? -1 : 1;
     const pos = new Float32Array(n * 3);
     const phase = new Float32Array(n);

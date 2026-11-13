@@ -54,6 +54,7 @@ import {
   weatherAmbience,
 } from '../lib/sound';
 import { isChristmasRun, isHolidaySeason } from '../../shared/festive';
+import { prefs as readPrefs, usePrefs } from '../lib/prefs';
 import {
   coachSteered,
   startCoach,
@@ -216,6 +217,7 @@ export const RunScreen = ({
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const live = mode === 'live';
+  const comfort = usePrefs();
   const tri = isTriathlon(day);
   const [hud, setHud] = useState<Hud>({
     t: 0,
@@ -347,6 +349,7 @@ export const RunScreen = ({
       weather: day.weather.id,
       time: day.time,
       triathlon: tri,
+      calm: readPrefs().calm,
       onThunder: () => {
         if (!skipRef.current) sfx.thunder();
       },
@@ -805,57 +808,78 @@ export const RunScreen = ({
       )}
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
         {live ? (
-          <>
-            <button
-              type="button"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                steer(-1);
-              }}
-              className={`chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold ${hud.coach?.point === 'steer' ? 'coach-pulse' : ''}`}
-              aria-label="Move left"
-            >
-              ◀
-            </button>
-            <div className="flex flex-col items-center gap-2">
-              {quickChat && (
+          (() => {
+            const pulse = hud.coach?.point === 'steer' ? 'coach-pulse' : '';
+            const size = comfort.bigControls
+              ? 'h-20 w-24 text-[38px]'
+              : 'h-16 w-20 text-[30px]';
+            const arrow = (dir: -1 | 1) => (
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  steer(dir);
+                }}
+                className={`chunky ${size} rounded-2xl bg-white font-display font-extrabold ${pulse}`}
+                aria-label={dir < 0 ? 'Move left' : 'Move right'}
+              >
+                {dir < 0 ? '◀' : '▶'}
+              </button>
+            );
+            const middle = (
+              <div className="flex flex-col items-center gap-2">
+                {quickChat && (
+                  <button
+                    type="button"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => {
+                      chatOpenedRef.current = true;
+                      setChatOpen((o) => !o);
+                    }}
+                    className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
+                    aria-label="Quick chat"
+                    aria-expanded={chatOpen}
+                    disabled={finished || hud.countdown > 0}
+                  >
+                    💬
+                  </button>
+                )}
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => {
-                    chatOpenedRef.current = true;
-                    setChatOpen((o) => !o);
-                  }}
-                  className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
-                  aria-label="Quick chat"
-                  aria-expanded={chatOpen}
-                  disabled={finished || hud.countdown > 0}
+                  onClick={() => (skipRef.current = true)}
+                  className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
+                  disabled={finished}
                 >
-                  💬
+                  Finish without steering
                 </button>
-              )}
-              <button
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => (skipRef.current = true)}
-                className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
-                disabled={finished}
-              >
-                Finish without steering
-              </button>
-            </div>
-            <button
-              type="button"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                steer(1);
-              }}
-              className={`chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold ${hud.coach?.point === 'steer' ? 'coach-pulse' : ''}`}
-              aria-label="Move right"
-            >
-              ▶
-            </button>
-          </>
+              </div>
+            );
+            // One-thumb play: both arrows together on the chosen side.
+            const pair = (
+              <div className="flex gap-2">
+                {arrow(-1)}
+                {arrow(1)}
+              </div>
+            );
+            return comfort.hand === 'left' ? (
+              <>
+                {pair}
+                {middle}
+              </>
+            ) : comfort.hand === 'right' ? (
+              <>
+                {middle}
+                {pair}
+              </>
+            ) : (
+              <>
+                {arrow(-1)}
+                {middle}
+                {arrow(1)}
+              </>
+            );
+          })()
         ) : (
           <div className="flex w-full justify-center gap-2">
             <button

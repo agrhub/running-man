@@ -43,13 +43,14 @@ const flakeTexture = (): THREE.Texture => {
   return tex;
 };
 
-export const buildFestive = (christmas: boolean): Festive => {
+export const buildFestive = (christmas: boolean, calm = false): Festive => {
+  const flakes = calm ? Math.round(FLAKES / 4) : FLAKES;
   const group = new THREE.Group();
 
   // Snow: points in a box that rides with the camera, wrapping at the edges.
-  const pos = new Float32Array(FLAKES * 3);
-  const drift = new Float32Array(FLAKES);
-  for (let i = 0; i < FLAKES; i++) {
+  const pos = new Float32Array(flakes * 3);
+  const drift = new Float32Array(flakes);
+  for (let i = 0; i < flakes; i++) {
     pos[i * 3] = (Math.random() - 0.5) * BOX.x * 2;
     pos[i * 3 + 1] = Math.random() * BOX.y;
     pos[i * 3 + 2] = -Math.random() * (BOX.ahead + BOX.back) + BOX.back;
@@ -170,7 +171,7 @@ export const buildFestive = (christmas: boolean): Festive => {
       const arr = a.array as Float32Array;
       const top = camZ + BOX.back;
       const bottom = camZ - BOX.ahead;
-      for (let i = 0; i < FLAKES; i++) {
+      for (let i = 0; i < flakes; i++) {
         const k = i * 3;
         arr[k + 1] = (arr[k + 1] ?? 0) - fall * dt;
         arr[k] =

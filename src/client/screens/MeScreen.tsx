@@ -4,6 +4,7 @@ import { CITIES, KM_PER_STAGE, addDays, dayInfo } from '../../shared/content';
 import { COIN } from '../../shared/economy';
 import { formatTime } from '../../shared/sim';
 import { Avatar } from '../components/Avatar';
+import { ComfortOptions } from '../components/ComfortOptions';
 
 type Props = {
   me: MeResponse | null;
@@ -27,9 +28,12 @@ export const MeScreen = ({ me, today }: Props) => {
   const { profile, history } = me;
   if (profile.username === 'guest')
     return (
-      <p className="px-4 pt-10 text-center text-[15px] font-bold text-ink-soft">
-        Log in to Reddit to keep a profile.
-      </p>
+      <div className="flex flex-col gap-3 px-4 pt-6 pb-6 max-w-[440px] mx-auto">
+        <p className="text-center text-[15px] font-bold text-ink-soft">
+          Log in to Reddit to keep a profile.
+        </p>
+        <ComfortOptions />
+      </div>
     );
   const ran = new Set(history.map((h) => h.dateKey));
   // Four weeks, oldest first, ending today.
@@ -196,6 +200,7 @@ export const MeScreen = ({ me, today }: Props) => {
           })}
         </ul>
       </section>
+      <ComfortOptions />
     </div>
   );
 };

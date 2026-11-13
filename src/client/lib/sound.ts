@@ -1,4 +1,5 @@
 import type { Terrain, WeatherId } from '../../shared/content';
+import { prefs } from './prefs';
 
 /**
  * Every sound in the game is synthesised with Web Audio: nothing to download, and
@@ -111,7 +112,7 @@ const burst = (o: NoiseOpts) => {
 const buzz = (ms: number | number[]) => {
   if (!enabled) return;
   try {
-    navigator.vibrate?.(ms);
+    if (prefs().vibration) navigator.vibrate?.(ms);
   } catch {
     // Not every webview lets a page vibrate.
   }

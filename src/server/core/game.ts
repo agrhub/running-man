@@ -1945,32 +1945,61 @@ export const ensureDailyPost = async (
 
 export const WELCOME_TITLE = 'How to play Running Man 🏃';
 
-export const welcomeText = (): string =>
+/** Today's stage as the guide links to it. */
+export type StageLink = { postId: string; title: string; url: string };
+
+export const welcomeText = (today?: StageLink): string =>
   [
+    ...(today
+      ? [
+          `## ▶️ [Play today’s stage](${today.url})`,
+          '',
+          `**${today.title}**`,
+          '',
+        ]
+      : []),
     'Every day at 00:00 UTC a new **6 km stage** of a city marathon opens in the post pinned at the top. Tokyo, Paris, Hanoi, Dubai and the Amazon take turns, one a week.',
     '',
     '1. **Make your runner.** Your Reddit account is your login: pick a look and a running buddy, and get your own race bib.',
     '2. **Plan your pace.** Tap each kilometre for Easy, Steady or Push, and choose where to drink. Push too hard and you walk.',
-    '3. **Run it.** Swipe or use ◀ ▶ to change lanes. Dodge cones and puddles, grab snacks, high-five the crowd. The other runners are today’s real players: run into one and you both fall.',
+    '3. **Run it.** Swipe or use ◀ ▶ to change lanes. Dodge cones and puddles, grab snacks and boosters, high-five the crowd. The other runners are today’s real players: run into one and you both fall.',
     '4. **Share your bib** in the comments, cheer someone on, and keep your streak.',
     '',
     'One counted run per person per day. Every finish adds 6 km to the crew’s goal of ten marathons per city.',
     '',
-    'Between races: daily check-in and quests, the **Snack Dash** mini game, friends and running clubs, and a shop with outfits, pets and pet gear. Everything pays in coins, and nothing you buy changes race times.',
+    'Between races: daily check-in and quests, four mini games (Snack Dash, Hurdle Hop, Rhythm Steps and Pet Fetch), friends, running clubs and their daily relay, and a shop with outfits, pets and pet gear. Everything pays in coins, and nothing you buy changes race times.',
     '',
     'Talk strategy under each day’s post. See you at the start line!',
   ].join('\n');
 
 /** Posts and pins the how-to-play guide once; later calls return the same post. */
-export const ensureWelcomePost = async (deps: Deps): Promise<string | null> => {
+export const ensureWelcomePost = async (
+  deps: Deps,
+  today?: StageLink
+): Promise<string | null> => {
   const existing = await deps.store.get(keys.welcomePost());
   if (existing) return existing;
   if (!deps.createTextPost) return null;
   if (!(await gameSettings(deps)).appPosts) return null;
-  const postId = await deps.createTextPost(WELCOME_TITLE, welcomeText());
+  const postId = await deps.createTextPost(WELCOME_TITLE, welcomeText(today));
   await deps.store.set(keys.welcomePost(), postId);
+  if (today) await deps.store.set(keys.welcomeStage(), today.postId);
   await deps.pin?.(postId, 2).catch((error: unknown) => {
     console.error('Could not pin the how-to-play post', error);
   });
   return postId;
+};
+
+/** Points the guide's play link at today's stage. Edits at most once per stage post. */
+export const refreshWelcomePost = async (
+  deps: Deps,
+  today: StageLink
+): Promise<boolean> => {
+  const welcome = await deps.store.get(keys.welcomePost());
+  if (!welcome || !deps.editTextPost) return false;
+  if ((await deps.store.get(keys.welcomeStage())) === today.postId)
+    return false;
+  await deps.editTextPost(welcome, welcomeText(today));
+  await deps.store.set(keys.welcomeStage(), today.postId);
+  return true;
 };

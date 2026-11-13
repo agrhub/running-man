@@ -64,6 +64,10 @@ export const devvitDeps: Deps = {
     });
     return post.id;
   },
+  editTextPost: async (postId, text) => {
+    const post = await reddit.getPostById(asT3(postId));
+    await post.edit({ text });
+  },
   pin: async (postId, slot) => {
     const post = await reddit.getPostById(asT3(postId));
     await post.sticky(slot);

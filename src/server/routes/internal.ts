@@ -1,8 +1,15 @@
 import { Hono } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import type { Deps } from '../core/deps';
-import { toDateKey, addDays } from '../../shared/content';
-import { ensureDailyPost, ensureWelcomePost, postRecap } from '../core/game';
+import { toDateKey, addDays, dayInfo } from '../../shared/content';
+import {
+  ensureDailyPost,
+  ensureWelcomePost,
+  postRecap,
+  postTitle,
+  refreshWelcomePost,
+  type StageLink,
+} from '../core/game';
 
 export const createInternal = (
   deps: Deps,
@@ -10,9 +17,20 @@ export const createInternal = (
 ): Hono => {
   const internal = new Hono();
 
+  const stageLink = (postId: string): StageLink => ({
+    postId,
+    title: postTitle(dayInfo(toDateKey(deps.now()))),
+    url: postUrl(postId.replace(/^t3_/, '')),
+  });
+  const pointGuide = (postId: string) =>
+    refreshWelcomePost(deps, stageLink(postId)).catch((error: unknown) => {
+      console.error('Could not update the how-to-play link', error);
+    });
+
   internal.post('/menu/post-today', async (c) => {
     try {
       const postId = await ensureDailyPost(deps);
+      await pointGuide(postId);
       return c.json<UiResponse>({ navigateTo: postUrl(postId) }, 200);
     } catch (error) {
       console.error('Failed to create today’s post', error);
@@ -27,6 +45,7 @@ export const createInternal = (
     try {
       const postId = await ensureDailyPost(deps);
       console.log(`Daily stage post ready: ${postId}`);
+      await pointGuide(postId);
       const yesterday = addDays(toDateKey(deps.now()), -1);
       await postRecap(deps, yesterday).catch((error: unknown) => {
         console.error('Could not post the recap', error);
@@ -41,9 +60,12 @@ export const createInternal = (
   internal.post('/triggers/on-app-install', async (c) => {
     try {
       const postId = await ensureDailyPost(deps);
-      await ensureWelcomePost(deps).catch((error: unknown) => {
-        console.error('Could not post the how-to-play guide', error);
-      });
+      await ensureWelcomePost(deps, stageLink(postId)).catch(
+        (error: unknown) => {
+          console.error('Could not post the how-to-play guide', error);
+        }
+      );
+      await pointGuide(postId);
       return c.json<TriggerResponse>(
         { status: 'success', message: `Today's stage post: ${postId}` },
         200

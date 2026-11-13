@@ -45,6 +45,7 @@ type Harness = {
   on(postId: string | undefined): Harness;
   posts: NewPost[];
   texts: { title: string; text: string }[];
+  edits: { postId: string; text: string }[];
   pins: { postId: string; slot: number }[];
   appComments: { postId: string; text: string }[];
   comments: { postId: string; text: string }[];
@@ -60,6 +61,7 @@ const makeHarness = (): Harness => {
   const h: Harness = {
     posts: [],
     texts: [],
+    edits: [],
     pins: [],
     appComments: [],
     comments: [],
@@ -77,6 +79,9 @@ const makeHarness = (): Harness => {
       createTextPost: async (title, text) => {
         h.texts.push({ title, text });
         return `t3_text${h.texts.length}`;
+      },
+      editTextPost: async (postId, text) => {
+        h.edits.push({ postId, text });
       },
       pin: async (postId, slot) => {
         h.pins.push({ postId, slot });
@@ -1404,6 +1409,24 @@ describe('daily posts', () => {
     expect(h.texts[0]?.text).toMatch(/6 km stage/);
     expect(h.pins).toContainEqual({ postId: 't3_text1', slot: 2 });
     expect(await h.deps.store.get(keys.welcomePost())).toBe('t3_text1');
+    expect(h.texts[0]?.text).toMatch(
+      /^## ▶️ \[Play today’s stage\]\(https:\/\/reddit\.com\/post1\)/
+    );
+    expect(h.edits).toHaveLength(0);
+  });
+
+  it('points the guide at each new day’s stage, once per post', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/triggers/on-app-install', { method: 'POST' });
+    h.at('2026-11-13');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    await internal.request('/menu/post-today', { method: 'POST' });
+    expect(h.edits).toHaveLength(1);
+    expect(h.edits[0]?.postId).toBe('t3_text1');
+    expect(h.edits[0]?.text).toMatch(/\(https:\/\/reddit\.com\/post2\)/);
+    expect(h.edits[0]?.text).toMatch(/Day \d+ · /);
+    expect(h.edits[0]?.text).toMatch(/Pet Fetch/);
   });
 
   it('still creates the stage when pinning fails', async () => {

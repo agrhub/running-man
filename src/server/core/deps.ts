@@ -34,6 +34,8 @@ export type Deps = {
   createPost(post: NewPost): Promise<string>;
   /** Posts a plain text post as the app (the subreddit's how-to-play guide). */
   createTextPost?(title: string, text: string): Promise<string>;
+  /** Replaces the body of a text post the app made (the guide's link to today's stage). */
+  editTextPost?(postId: string, text: string): Promise<void>;
   /** Pins a post to a sticky slot; slot 1 is the top of the subreddit. Best-effort. */
   pin?(postId: string, slot: 1 | 2): Promise<void>;
   /** Posts a comment, preferably as the player. Returns false when it could not post. */

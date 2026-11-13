@@ -18,6 +18,8 @@ export const keys = {
   celebration: (season: number) => `celebrate:${season}`,
   /** The pinned how-to-play post, created once on install. */
   welcomePost: () => 'welcome:post',
+  /** The stage post the guide links to now, so it is edited once a day. */
+  welcomeStage: () => 'welcome:stage',
   votes: (season: number) => `votes:${season}`,
   /** Cached Reddit avatar URLs: username -> {url, day}. */
   avatars: () => 'avatars',

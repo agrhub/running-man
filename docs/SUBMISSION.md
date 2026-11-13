@@ -176,7 +176,7 @@ In `docs/screenshots/` (portrait, 2x):
 4. `04-landmark-hanoi.png`: the landmark moment in Hanoi
 5. `05-race-hanoi-obstacles.png`: cones, a high-five fan and the TV motorbike in Hanoi
 6. `06-result-bib.png`: the race bib result with the race report
-7. `07-locker-pets.png`: pets in the shop
+7. `07-shop-pets.png`: pets and pet gear in the shop
 8. `08-register.png`: making your runner
 9. `09-start-corral.png`: the start corral with your bib and today's field
 10. `10-quick-chat.png`: quick-chat bubbles in a crowded race
@@ -184,6 +184,10 @@ In `docs/screenshots/` (portrait, 2x):
 12. `12-desert-dubai.png`: a desert stage in Dubai
 13. `13-zoo.png`: a zoo stage
 14. `14-city-vote.png`: the next-city vote on the result screen
+15. `15-checkin-quests.png`: daily check-in and quests
+16. `16-snack-dash.png`: the Snack Dash mini game
+17. `17-friends-club.png`: friends and a running club
+18. `18-weekly-board.png`: this week's standings
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

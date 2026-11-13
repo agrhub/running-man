@@ -228,12 +228,58 @@ describe('game API', () => {
       victim.json.leaderboard.find((r) => r.username === 'slowpoke')?.seconds
     ).toBe(victim.json.myRun?.seconds);
 
+    // The crash penalty counts in the weekly standings too.
+    expect(
+      victim.json.weekly.rows.find((r) => r.username === 'slowpoke')?.seconds
+    ).toBe(victim.json.myRun?.seconds);
+
     const bad = await call(h.as('bob'), 'POST', '/run', {
       plan,
       moves: [{ step: 1, lane: 5 }],
       rivals: [],
     });
     expect(bad.status).toBe(400);
+  });
+
+  it('ranks the week by stages run, then total time', async () => {
+    const day1 = '2026-11-12';
+    const day2 = addDays(day1, 1);
+    // bob is fast but runs once; alice runs twice
+    const fast = planFor(day1, [
+      'push',
+      'steady',
+      'steady',
+      'push',
+      'push',
+      'steady',
+    ]);
+    const a1 = await call<RunResponse>(h.as('alice').at(day1), 'POST', '/run', {
+      plan: planFor(day1),
+    });
+    await call(h.as('bob').at(day1), 'POST', '/run', { plan: fast });
+    const a2 = await call<RunResponse>(h.as('alice').at(day2), 'POST', '/run', {
+      plan: planFor(day2),
+    });
+    expect(a2.json.weekly.rows.map((r) => r.username)).toEqual([
+      'alice',
+      'bob',
+    ]);
+    expect(a2.json.weekly.rows[0]).toMatchObject({ rank: 1, stages: 2 });
+    expect(a2.json.weekly.rows[0]?.seconds).toBeCloseTo(
+      a1.json.run.seconds + a2.json.run.seconds,
+      1
+    );
+    expect(a2.json.weekly.mine?.username).toBe('alice');
+    const bob = await call<InitResponse>(h.as('bob').at(day2), 'GET', '/init');
+    expect(bob.json.weekly.mine).toMatchObject({ rank: 2, stages: 1 });
+    // A new city week starts a new board.
+    const later = await call<InitResponse>(
+      h.as('bob').at(addDays(day1, 7)),
+      'GET',
+      '/init'
+    );
+    expect(later.json.weekly.rows).toHaveLength(0);
+    expect(later.json.weekly.mine).toBeNull();
   });
 
   it('registers a runner with a look and hands out bibs in order', async () => {

@@ -105,6 +105,8 @@ describe('timeline helpers', () => {
 
   it('formats times as m:ss', () => {
     expect(formatTime(1805.4)).toBe('30:05');
+    expect(formatTime(5636)).toBe('1:33:56');
+    expect(formatTime(3600)).toBe('1:00:00');
   });
 });
 

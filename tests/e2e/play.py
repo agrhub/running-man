@@ -143,6 +143,13 @@ with sync_playwright() as p:
     vote.scroll_into_view_if_needed()
     page.screenshot(path=f'{OUT}/06b-vote.png')
     check('vote is counted once and shows the result', vote.get_by_role('button').count() == 0 and 'Seoul leads' in vote.inner_text())
+    page.get_by_role('button', name='This week').click()
+    page.wait_for_selector('text=This week in Tokyo')
+    weekly = page.inner_text('body')
+    page.screenshot(path=f'{OUT}/06c-week.png', full_page=True)
+    check('weekly standings list stages and totals', 'Most stages this week first' in weekly and '1 stage' in weekly)
+    page.get_by_role('button', name='Today').click()
+    page.wait_for_selector('text=Today’s top 10')
 
     # 5. Locker
     page.get_by_role('button', name=re.compile(r'^Locker')).click()

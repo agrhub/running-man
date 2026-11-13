@@ -4,6 +4,7 @@ import type { DayInfo } from '../../shared/content';
 import {
   ITEM_LABEL,
   courseItems,
+  isBooster,
   isRoadLife,
   isVehicle,
   type ItemKind,
@@ -38,6 +39,7 @@ import {
   type Chat,
 } from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
+import type { RideKind } from '../three/boosters';
 import {
   ambience,
   onSoundChange,
@@ -126,6 +128,18 @@ const eventToast = (e: RaceEvent): Toast => {
     return e.atFault
       ? { title: `💥 You ran into u/${e.rival}`, body, tone: 'bad' }
       : { title: `💥 u/${e.rival} ran into you`, body, tone: 'bad' };
+  }
+  if (isBooster(e.kind)) {
+    const what = {
+      skates: '🛼 Roller skates',
+      skateboard: '🛹 Skateboard',
+      bike: '🚲 Bicycle',
+    }[e.kind as RideKind];
+    return {
+      title: `${what}!`,
+      body: `Ride it for a big burst: ${e.seconds}s`,
+      tone: 'good',
+    };
   }
   if (
     e.kind === 'bottle' ||
@@ -340,6 +354,9 @@ export const RunScreen = ({
     let stepPhase = 0;
     let stepLeft = false;
     let raceT = 0;
+    let riding: RideKind | null = null;
+    // The burst itself is over in a blink of race clock; the ride is shown for a few real seconds.
+    let rideUntil = 0;
     let grabbed = false;
     let crashed = false;
     let coachView: CoachView | null = null;
@@ -382,7 +399,11 @@ export const RunScreen = ({
           else if (isRoadLife(e.kind)) sfx.roadLife(e.kind);
           else if (e.kind === 'puddle') sfx.splash();
           else if (e.kind === 'cone' || e.kind === 'cups') sfx.stumble();
-          else {
+          else if (isBooster(e.kind)) {
+            riding = e.kind as RideKind;
+            rideUntil = animT + (e.kind === 'bike' ? 3.2 : 2.6);
+            sfx.boost();
+          } else {
             sfx.snack();
             grabbed = true;
           }
@@ -432,6 +453,7 @@ export const RunScreen = ({
       const kmIndex = Math.min(5, Math.floor(state.km));
       const split = sim.splits[kmIndex];
       const limping = state.debt > 0;
+      if (animT > rideUntil || state.done) riding = null;
       const mySpeed = state.done
         ? 0
         : limping
@@ -446,6 +468,7 @@ export const RunScreen = ({
           speed: countdown > 0 ? 0 : mySpeed,
           lane: state.lane,
           limp: limping,
+          ride: riding,
         },
       ];
       let ahead = 0;

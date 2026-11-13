@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { dayInfo } from './content';
+import { addDays, dayInfo } from './content';
 import {
+  BOOSTERS,
   ITEM_SECONDS,
   PICKUPS,
   ROAD_LIFE,
   courseItems,
+  isBooster,
   isPickup,
   isRoadLife,
   isVehicle,
@@ -88,5 +90,21 @@ describe('road life', () => {
       .filter((i) => isRoadLife(i.kind))
       .map((i) => i.kind);
     expect(hills.some((k) => isVehicle(k))).toBe(false);
+  });
+});
+
+describe('boosters', () => {
+  it('turn up on some stages and are the biggest bursts of speed', () => {
+    let found = 0;
+    for (let i = 0; i < 20; i++) {
+      const d = dayInfo(addDays('2026-11-09', i));
+      found += courseItems(d.dateKey, d.stage, d.weather.id).filter((it) =>
+        isBooster(it.kind)
+      ).length;
+    }
+    expect(found).toBeGreaterThan(3);
+    for (const k of BOOSTERS)
+      for (const p of PICKUPS)
+        expect(ITEM_SECONDS[k]).toBeLessThan(ITEM_SECONDS[p]);
   });
 });

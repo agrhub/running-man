@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import type { Deps } from '../core/deps';
-import { ensureDailyPost } from '../core/game';
+import { ensureDailyPost, ensureWelcomePost } from '../core/game';
 
 export const createInternal = (
   deps: Deps,
@@ -36,6 +36,9 @@ export const createInternal = (
   internal.post('/triggers/on-app-install', async (c) => {
     try {
       const postId = await ensureDailyPost(deps);
+      await ensureWelcomePost(deps).catch((error: unknown) => {
+        console.error('Could not post the how-to-play guide', error);
+      });
       return c.json<TriggerResponse>(
         { status: 'success', message: `Today's stage post: ${postId}` },
         200

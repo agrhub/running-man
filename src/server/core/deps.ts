@@ -31,6 +31,10 @@ export type Deps = {
   username(): Promise<string | undefined>;
   postId(): string | undefined;
   createPost(post: NewPost): Promise<string>;
+  /** Posts a plain text post as the app (the subreddit's how-to-play guide). */
+  createTextPost?(title: string, text: string): Promise<string>;
+  /** Pins a post to a sticky slot; slot 1 is the top of the subreddit. Best-effort. */
+  pin?(postId: string, slot: 1 | 2): Promise<void>;
   /** Posts a comment, preferably as the player. Returns false when it could not post. */
   comment(postId: string, text: string): Promise<boolean>;
   setFlair(username: string, text: string): Promise<void>;

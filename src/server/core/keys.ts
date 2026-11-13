@@ -8,6 +8,8 @@ export const keys = {
   cheers: (dateKey: string) => `cheers:${dateKey}`,
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
+  /** The pinned how-to-play post, created once on install. */
+  welcomePost: () => 'welcome:post',
   votes: (season: number) => `votes:${season}`,
   /** Cached Reddit avatar URLs: username -> {url, day}. */
   avatars: () => 'avatars',

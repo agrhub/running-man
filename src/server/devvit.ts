@@ -56,6 +56,18 @@ export const devvitDeps: Deps = {
     }
     return post.id;
   },
+  createTextPost: async (title, text) => {
+    const post = await reddit.submitPost({
+      subredditName: subredditName(),
+      title,
+      text,
+    });
+    return post.id;
+  },
+  pin: async (postId, slot) => {
+    const post = await reddit.getPostById(asT3(postId));
+    await post.sticky(slot);
+  },
   comment: async (postId, text) => {
     try {
       await reddit.submitComment({ id: asT3(postId), text, runAs: 'USER' });

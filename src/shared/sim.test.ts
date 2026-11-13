@@ -146,7 +146,10 @@ describe('economy', () => {
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);
     expect(itemById('kumo')?.slot).toBe('shoes');
     expect(petById('shiba')?.name).toBe('Shiba');
-    expect(PETS).toHaveLength(4);
+    expect(PETS).toHaveLength(7);
+    expect(
+      ITEMS.filter((i) => i.slot === 'petGear').length
+    ).toBeGreaterThanOrEqual(6);
   });
 
   it('checks unlock conditions against progress', () => {

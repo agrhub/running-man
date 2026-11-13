@@ -91,9 +91,9 @@ export const PlanScreen = ({
           onClick={onLocker}
           className="chunky shrink-0 rounded-2xl bg-white px-3 py-1.5 text-[13px] font-extrabold"
         >
-          🏅 {profile.badges}
+          🪙 {profile.badges}
           <span className="block text-[11px] font-semibold text-ink-soft">
-            Locker
+            Shop
           </span>
         </button>
       </header>

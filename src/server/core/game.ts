@@ -116,7 +116,14 @@ export const loadProfile = async (
   username: string
 ): Promise<Profile> => {
   const saved = parse<Partial<Profile>>(await store.get(keys.user(username)));
-  return { ...freshProfile(username), ...saved, username };
+  const fresh = freshProfile(username);
+  // Merge the look too, so slots added later (pet gear) get their default.
+  return {
+    ...fresh,
+    ...saved,
+    look: { ...fresh.look, ...saved?.look },
+    username,
+  };
 };
 
 const saveProfile = (store: Store, profile: Profile) =>
@@ -719,7 +726,7 @@ export const buyItem = async (deps: Deps, itemId: string): Promise<Profile> => {
   if (item.unlock.kind !== 'badges')
     throw new GameError('This one is earned, not bought.');
   if (profile.badges < item.unlock.cost)
-    throw new GameError('Not enough badges yet. Keep running!');
+    throw new GameError('Not enough coins yet. Keep running!');
   profile.badges -= item.unlock.cost;
   profile.owned.push(item.id);
   profile.look = { ...profile.look, [item.slot]: item.id };
@@ -749,7 +756,7 @@ export const choosePet = async (deps: Deps, petId: PetId): Promise<Profile> => {
     if (pet.unlock.kind !== 'badges')
       throw new GameError('Unlock this pet first.');
     if (profile.badges < pet.unlock.cost)
-      throw new GameError('Not enough badges yet. Keep running!');
+      throw new GameError('Not enough coins yet. Keep running!');
     profile.badges -= pet.unlock.cost;
     profile.ownedPets.push(pet.id);
   }
@@ -796,7 +803,7 @@ export const cheer = async (
   await saveProfile(deps.store, profile);
   return {
     profile,
-    message: `Cheer sent to u/${target}! +${CHEER_REWARD} badges`,
+    message: `Cheer sent to u/${target}! +${CHEER_REWARD} coins`,
   };
 };
 

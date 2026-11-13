@@ -241,7 +241,7 @@ export class RunWorld {
       }
       let pet: Animated | null = null;
       if (!runner.other) {
-        pet = buildPet(runner.look.pet, paint);
+        pet = buildPet(runner.look.pet, paint, runner.look.petGear);
         pet.group.rotation.y = opts.preview ? 0 : FORWARD;
         this.scene.add(pet.group);
       }

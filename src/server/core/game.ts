@@ -91,6 +91,7 @@ import {
 import type {
   CrewProgress,
   DayRecap,
+  GameSettings,
   HistoryRow,
   MeResponse,
   RunnerTrack,
@@ -108,6 +109,7 @@ import type {
   RunResponse,
   SplashResponse,
 } from '../../shared/api';
+import { DEFAULT_SETTINGS } from '../../shared/api';
 import type { Deps } from './deps';
 import { keys } from './keys';
 import type { Store } from './store';
@@ -428,6 +430,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     deps.telemetry.start().catch(() => null),
   ]);
   const before = await dayRecap(store, addDays(dateKey, -1));
+  const options = await gameSettings(deps);
 
   return {
     type: 'init',
@@ -448,6 +451,10 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     friends,
     club,
     yesterday: before.runners > 0 ? before : null,
+    settings: {
+      quickChat: options.quickChat,
+      roadLife: options.roadLife,
+    },
     journeyId,
   };
 };
@@ -675,6 +682,7 @@ export const celebrationText = (
 /** Posts the city celebration once, the moment the crew crosses the line. */
 const celebrateCity = async (deps: Deps, day: DayInfo, finisher: string) => {
   if (!deps.createTextPost) return;
+  if (!(await gameSettings(deps)).appPosts) return;
   const key = keys.celebration(day.season);
   if (await deps.store.get(key)) return;
   await deps.store.set(key, 'posting');
@@ -801,6 +809,7 @@ export const postRecap = async (
   dateKey: string
 ): Promise<boolean> => {
   if (!deps.appComment) return false;
+  if (!(await gameSettings(deps)).dailyRecap) return false;
   if (await deps.store.get(keys.recap(dateKey))) return false;
   const postId = await deps.store.get(keys.dayPost(dateKey));
   if (!postId) return false;
@@ -838,7 +847,9 @@ export const run = async (
   const moves = movesInput;
   if (!isValidChat(chatInput))
     throw new GameError('That chat could not be saved.');
-  const chat = chatInput;
+  const options = await gameSettings(deps);
+  // With quick chat switched off, nothing said is kept.
+  const chat = options.quickChat ? chatInput : [];
 
   if (await store.get(keys.run(dateKey, username))) {
     throw new GameError(
@@ -880,6 +891,7 @@ export const run = async (
         city: day.city.id,
         time: day.time,
         triathlon: isTriathlon(day),
+        life: options.roadLife,
       }),
       rivals: rivalRuns,
       startLane: startLane(username),
@@ -1717,6 +1729,11 @@ export const postTitle = (day: DayInfo): string =>
   `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
 
 /** Creates the post for a day once; later calls return the same post. */
+export const gameSettings = async (deps: Deps): Promise<GameSettings> => ({
+  ...DEFAULT_SETTINGS,
+  ...((await deps.settings?.().catch(() => ({}))) ?? {}),
+});
+
 export const ensureDailyPost = async (
   deps: Deps,
   dateKey = toDateKey(deps.now())
@@ -1734,9 +1751,10 @@ export const ensureDailyPost = async (
     deps.store.set(keys.postDate(postId), dateKey),
   ]);
   // Today's stage takes the top sticky slot, which unpins yesterday's.
-  await deps.pin?.(postId, 1).catch((error: unknown) => {
-    console.error('Could not pin today’s stage', error);
-  });
+  if ((await gameSettings(deps)).pinPosts)
+    await deps.pin?.(postId, 1).catch((error: unknown) => {
+      console.error('Could not pin today’s stage', error);
+    });
   return postId;
 };
 
@@ -1763,6 +1781,7 @@ export const ensureWelcomePost = async (deps: Deps): Promise<string | null> => {
   const existing = await deps.store.get(keys.welcomePost());
   if (existing) return existing;
   if (!deps.createTextPost) return null;
+  if (!(await gameSettings(deps)).appPosts) return null;
   const postId = await deps.createTextPost(WELCOME_TITLE, welcomeText());
   await deps.store.set(keys.welcomePost(), postId);
   await deps.pin?.(postId, 2).catch((error: unknown) => {

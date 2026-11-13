@@ -6,7 +6,7 @@ import {
   simulate,
   type Plan,
 } from '../../shared/sim';
-import { courseItems } from '../../shared/course';
+import { courseItems, isRoadLife } from '../../shared/course';
 import { replayRace, startLane, type Move } from '../../shared/race';
 import type {
   InitResponse,
@@ -1188,6 +1188,37 @@ describe('daily posts', () => {
     h.at('2026-11-15');
     await internal.request('/scheduler/daily-stage', { method: 'POST' });
     expect(h.appComments).toHaveLength(1);
+  });
+
+  it('follows the moderators’ settings', async () => {
+    const h = makeHarness();
+    h.deps.settings = async () => ({
+      quickChat: false,
+      roadLife: false,
+      pinPosts: false,
+      dailyRecap: false,
+      appPosts: false,
+    });
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/triggers/on-app-install', { method: 'POST' });
+    expect(h.posts).toHaveLength(1);
+    expect(h.pins).toEqual([]);
+    expect(h.texts).toEqual([]);
+
+    const date = '2026-11-12';
+    const ran = await call<RunResponse>(h.on('t3_post1'), 'POST', '/run', {
+      plan: planFor(date),
+      chat: [{ step: 3, line: 2 }],
+    });
+    expect(ran.json.run.chat).toEqual([]);
+    expect(ran.json.run.met.some((k) => isRoadLife(k))).toBe(false);
+    const page = await call<InitResponse>(h, 'GET', '/init');
+    expect(page.json.settings).toEqual({ quickChat: false, roadLife: false });
+
+    h.at('2026-11-13');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.appComments).toEqual([]);
+    expect(h.pins).toEqual([]);
   });
 
   it('pins each new stage at the top, once', async () => {

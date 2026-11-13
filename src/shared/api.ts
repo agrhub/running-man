@@ -160,6 +160,23 @@ export type RunRecord = {
   achieved?: string[];
 };
 
+/** What moderators can switch off for their subreddit (all on by default). */
+export type GameSettings = {
+  quickChat: boolean;
+  roadLife: boolean;
+  pinPosts: boolean;
+  dailyRecap: boolean;
+  appPosts: boolean;
+};
+
+export const DEFAULT_SETTINGS: GameSettings = {
+  quickChat: true,
+  roadLife: true,
+  pinPosts: true,
+  dailyRecap: true,
+  appPosts: true,
+};
+
 /** What happened on a closed stage: posted as a recap comment and shown in the game the next day. */
 export type DayRecap = {
   dateKey: string;
@@ -199,6 +216,8 @@ export type InitResponse = {
   club: ClubView | null;
   /** The day before this post's stage, when anyone ran it. */
   yesterday: DayRecap | null;
+  /** The race options this subreddit's moderators chose. */
+  settings: Pick<GameSettings, 'quickChat' | 'roadLife'>;
   journeyId: string | null;
 };
 

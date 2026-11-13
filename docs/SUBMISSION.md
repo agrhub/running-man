@@ -150,10 +150,10 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-A captioned 1:40 cut with sound, recorded from the local harness, follows this order: feed card, runner, pace plan,
+A captioned 1:40 cut with an English voiceover, music and game sound, recorded from the local harness, follows this order: feed card, runner, pace plan,
 corral, race (steering, a crash, the landmark, quick chat, finish), race bib and weekly board, city vote, check-in and
-quests, Snack Dash, friends and a club, pets and pet gear, then the beach and desert stages. Narrate over it with the
-lines below, or re-record on Reddit once the demo subreddit is live.
+quests, Snack Dash, friends and a club, pets and pet gear, then the beach and desert stages. The table below is the
+script for re-recording it on Reddit once the demo subreddit is live.
 
 | Time | Show                                                | Say                                                                                         |
 | ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |

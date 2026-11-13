@@ -17,6 +17,7 @@ import type {
   QuestsResponse,
   DashResponse,
   FriendsResponse,
+  ClubResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -785,6 +786,98 @@ describe('game API', () => {
     );
     expect(removed.json.profile.friends).toEqual(['newbie']);
     expect((await call(h.as(undefined), 'GET', '/friends')).status).toBe(401);
+  });
+
+  it('runs clubs: create, join by code, weekly total, shared road, leave', async () => {
+    const date = '2026-11-12';
+    h.at(date);
+    const reg = (u: string) =>
+      call(h.as(u), 'POST', '/register', {
+        skin: 0,
+        hair: 0,
+        hairStyle: 0,
+        top: 'tee-coral',
+      });
+    await reg('alice');
+    await reg('bob');
+    expect(
+      (
+        await call(h.as('alice'), 'POST', '/club/create', {
+          adjective: 99,
+          noun: 0,
+        })
+      ).status
+    ).toBe(400);
+    const made = await call<ClubResponse>(
+      h.as('alice'),
+      'POST',
+      '/club/create',
+      { adjective: 0, noun: 0, journeyId: 'journey-1' }
+    );
+    expect(made.status).toBe(200);
+    const code = made.json.club?.code ?? '';
+    expect(made.json.club).toMatchObject({
+      name: 'Speedy Pandas',
+      owner: 'alice',
+      weekStages: 0,
+    });
+    expect(code).toMatch(/^[A-Z2-9]{6}$/);
+    expect(h.events).toContain('club_created');
+    expect(
+      (
+        await call(h.as('alice'), 'POST', '/club/create', {
+          adjective: 1,
+          noun: 1,
+        })
+      ).status
+    ).toBe(409);
+    expect(
+      (await call(h.as('bob'), 'POST', '/club/join', { code: 'nope' })).status
+    ).toBe(400);
+    expect(
+      (await call(h.as('bob'), 'POST', '/club/join', { code: 'ZZZZZZ' })).status
+    ).toBe(404);
+    expect(
+      (await call(h.as('ghost'), 'POST', '/club/join', { code })).status
+    ).toBe(400);
+    const joined = await call<ClubResponse>(h.as('bob'), 'POST', '/club/join', {
+      code: code.toLowerCase(),
+    });
+    expect(joined.json.club?.members.map((m) => m.username).sort()).toEqual([
+      'alice',
+      'bob',
+    ]);
+
+    // bob runs: the club gets a stage, alice sees him on her road.
+    await call(h.as('bob'), 'POST', '/run', { plan: planFor(date) });
+    const view = await call<ClubResponse>(h.as('alice'), 'GET', '/club');
+    expect(view.json.club?.weekStages).toBe(1);
+    expect(view.json.club?.members[0]).toMatchObject({
+      username: 'bob',
+      weekStages: 1,
+    });
+    expect(view.json.top[0]).toMatchObject({
+      rank: 1,
+      code,
+      name: 'Speedy Pandas',
+      weekStages: 1,
+    });
+    const road = await call<InitResponse>(h.as('alice'), 'GET', '/init');
+    expect(road.json.club?.code).toBe(code);
+    expect(road.json.runners.map((r) => r.username)).toContain('bob');
+
+    // The owner leaves: bob takes over.
+    const left = await call<ClubResponse>(
+      h.as('alice'),
+      'POST',
+      '/club/leave',
+      {}
+    );
+    expect(left.json.club).toBeNull();
+    expect(left.json.profile.club).toBeNull();
+    const bobView = await call<ClubResponse>(h.as('bob'), 'GET', '/club');
+    expect(bobView.json.club).toMatchObject({ owner: 'bob' });
+    expect(bobView.json.club?.members).toHaveLength(1);
   });
 
   it('checks in once a day and climbs a 7-day calendar', async () => {

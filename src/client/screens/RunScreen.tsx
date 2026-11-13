@@ -52,6 +52,8 @@ type Props = {
   /** Your own chat lines, replayed with your run. */
   replayChat?: Chat[];
   firstRun: boolean;
+  /** Clubmates get their own tag colour. */
+  clubmates?: string[];
   saving?: boolean;
   onFinish: (outcome: RaceOutcome) => void;
 };
@@ -129,6 +131,7 @@ export const RunScreen = ({
   replayMoves,
   replayChat,
   firstRun,
+  clubmates,
   saving,
   onFinish,
 }: Props) => {
@@ -227,10 +230,15 @@ export const RunScreen = ({
         other: true,
         offset: OFFSETS[i % OFFSETS.length] ?? 0,
         // Friends always carry a tag; others only the first few.
-        labelled: i < 5 || profile.friends.includes(g.username),
+        labelled:
+          i < 5 ||
+          profile.friends.includes(g.username) ||
+          (clubmates ?? []).includes(g.username),
         ...(profile.friends.includes(g.username)
           ? { tag: 'friend' as const }
-          : {}),
+          : (clubmates ?? []).includes(g.username)
+            ? { tag: 'club' as const }
+            : {}),
       })),
       {
         name: '__me',
@@ -508,6 +516,7 @@ export const RunScreen = ({
     profile.bib,
     profile.username,
     profile.friends,
+    clubmates,
     plan,
     rivals,
     live,

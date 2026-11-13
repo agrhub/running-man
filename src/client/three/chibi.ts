@@ -280,6 +280,65 @@ export const buildChibi = (
       );
       break;
     }
+    case 'santa': {
+      const red = paint(hat.color);
+      const white = paint('#fbfbfb');
+      const cap = new THREE.Group();
+      cap.position.set(-0.02, 0.33, 0);
+      cap.rotation.z = 0.5;
+      cap.add(
+        mesh(new THREE.ConeGeometry(0.27, 0.5, 18), red, 0, 0.25, 0),
+        mesh(new THREE.SphereGeometry(0.075, 10, 8), white, 0, 0.52, 0)
+      );
+      head.add(cap);
+      head.add(
+        mesh(
+          new THREE.TorusGeometry(0.28, 0.07, 8, 22),
+          white,
+          -0.02,
+          0.33,
+          0
+        ).rotateX(Math.PI / 2)
+      );
+      break;
+    }
+    case 'antlers': {
+      const horn = paint(hat.color);
+      const beam = new THREE.CapsuleGeometry(0.035, 0.24, 3, 8);
+      const tine = new THREE.CapsuleGeometry(0.03, 0.12, 3, 8);
+      for (const side of [1, -1]) {
+        const antler = new THREE.Group();
+        antler.position.set(-0.02, 0.36, side * 0.17);
+        antler.rotation.x = side * -0.45;
+        antler.add(mesh(beam, horn, 0, 0.14, 0));
+        const t1 = mesh(tine, horn, 0.07, 0.17, 0);
+        t1.rotation.z = -0.9;
+        const t2 = mesh(tine, horn, -0.06, 0.24, 0);
+        t2.rotation.z = 0.8;
+        antler.add(t1, t2);
+        head.add(antler);
+      }
+      head.add(
+        mesh(
+          new THREE.TorusGeometry(0.33, 0.022, 6, 24, Math.PI),
+          paint('#2a2340'),
+          -0.02,
+          0.12,
+          0
+        ).rotateY(Math.PI / 2)
+      );
+      // A red nose, of course.
+      head.add(
+        mesh(
+          new THREE.SphereGeometry(0.05, 10, 8),
+          paint('#e0313b', { emissive: '#5a0000' }),
+          0.34,
+          -0.05,
+          0
+        )
+      );
+      break;
+    }
     case 'ears': {
       const fur = paint(hat.color);
       const inner = paint('#ffb3c7');
@@ -654,6 +713,31 @@ const addPetGear = (
         a.eyes.clone().add(new THREE.Vector3(0.015, 0.01, 0)),
         mesh(new THREE.BoxGeometry(0.02, 0.015, 0.06 * k), dark)
       );
+      break;
+    }
+    case 'petSanta': {
+      const red = paint(gear.color);
+      const white = paint('#fbfbfb');
+      const cap = new THREE.Group();
+      cap.add(
+        mesh(
+          new THREE.ConeGeometry(0.06 * k, 0.12 * k, 12),
+          red,
+          0,
+          0.06 * k,
+          0
+        ),
+        mesh(new THREE.SphereGeometry(0.02 * k, 8, 6), white, 0, 0.125 * k, 0),
+        mesh(
+          new THREE.TorusGeometry(0.06 * k, 0.016 * k, 6, 16),
+          white,
+          0,
+          0,
+          0
+        ).rotateX(Math.PI / 2)
+      );
+      cap.rotation.z = 0.45;
+      at(a.headTop.clone().add(new THREE.Vector3(0, 0.005, 0)), cap);
       break;
     }
     case 'petCrown': {

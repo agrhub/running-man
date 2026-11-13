@@ -39,6 +39,8 @@ export type Profile = {
   /** Seasons whose crew-finish reward this runner has already collected. */
   claimedSeasons: number[];
   weathersRun: WeatherId[];
+  /** Ran a stage in a December holiday season (Santa hats). */
+  holidayRun: boolean;
   top10: boolean;
   cheeredOn: string | null;
   totalRuns: number;

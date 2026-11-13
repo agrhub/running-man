@@ -7,6 +7,7 @@ import type { SplashResponse } from '../shared/api';
 import { TERRAIN, dayInfo, toDateKey, type City } from '../shared/content';
 import { hashString, mulberry32 } from '../shared/rng';
 import { CrewBar } from './components/CrewBar';
+import { holidayShort } from '../shared/festive';
 import { request } from './lib/api';
 import { applyCityTheme } from './lib/theme';
 
@@ -171,6 +172,11 @@ export const Splash = () => {
               ? `, and you are on a ${data.streak}-day streak 🔥`
               : ''}
           </p>
+          {holidayShort(day.dateKey) && (
+            <p className="mt-1 inline-block rounded-full border-2 border-ink bg-white px-2 text-[12px] font-extrabold">
+              {holidayShort(day.dateKey)}
+            </p>
+          )}
         </div>
         {data && <CrewBar crew={data.crew} runners={data.totalRunners} />}
         <button

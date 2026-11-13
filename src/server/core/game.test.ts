@@ -22,6 +22,7 @@ import type {
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
+import { postTitle } from './game';
 import { noTelemetry, type Deps, type NewPost } from './deps';
 import { createMemoryStore } from './store';
 import { keys } from './keys';
@@ -402,6 +403,38 @@ describe('game API', () => {
       chat: [{ step: 1, line: 99 }],
     });
     expect(unknown.status).toBe(400);
+  });
+
+  it('dresses December for the holidays and doubles coins on Christmas', async () => {
+    const before = await call<RunResponse>(
+      h.at('2026-11-30').as('noel'),
+      'POST',
+      '/run',
+      {
+        plan: planFor('2026-11-30'),
+      }
+    );
+    expect(before.json.profile.owned).not.toContain('santa-hat');
+
+    const dec = await call<RunResponse>(h.at('2026-12-08'), 'POST', '/run', {
+      plan: planFor('2026-12-08'),
+    });
+    expect(dec.json.run.unlocked).toEqual(
+      expect.arrayContaining(['santa-hat', 'pet-santa'])
+    );
+    expect(dec.json.run.reward.holiday).toBeUndefined();
+
+    const xmas = await call<RunResponse>(h.at('2026-12-25'), 'POST', '/run', {
+      plan: planFor('2026-12-25'),
+    });
+    const r = xmas.json.run.reward;
+    expect(r.holiday).toBe(r.finish + r.rank + r.streak);
+    expect(r.total).toBe(2 * (r.finish + r.rank + r.streak) + r.crew);
+  });
+
+  it('titles the Christmas Day post as the Christmas Run', () => {
+    expect(postTitle(dayInfo('2026-12-25'))).toMatch(/^🎄 Christmas Run · Day/);
+    expect(postTitle(dayInfo('2026-12-24'))).toMatch(/^Day/);
   });
 
   it('rejects invalid plans', async () => {

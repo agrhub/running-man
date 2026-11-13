@@ -80,6 +80,7 @@ export const ResultScreen = (p: Props) => {
     [run.reward.rank >= 50 ? 'Top 10%' : 'Top half', run.reward.rank],
     [`${run.streak}-day streak`, run.reward.streak],
     ['Crew finished the city', run.reward.crew],
+    ['🎄 Christmas Run bonus', run.reward.holiday ?? 0],
   ];
 
   return (

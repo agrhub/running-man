@@ -56,6 +56,11 @@ import {
   type Progress,
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
+import {
+  holidayMultiplier,
+  isHolidaySeason,
+  isChristmasRun,
+} from '../../shared/festive';
 import { QUICK_CHAT, isValidChat } from '../../shared/chat';
 import { courseItems } from '../../shared/course';
 import {
@@ -136,6 +141,7 @@ export const freshProfile = (username: string): Profile => ({
   claimedSeasons: [],
   weathersRun: [],
   top10: false,
+  holidayRun: false,
   cheeredOn: null,
   totalRuns: 0,
   checkInDate: null,
@@ -171,6 +177,7 @@ const progressOf = (p: Profile): Progress => ({
   finisher: p.finisher,
   weathersRun: p.weathersRun,
   top10: p.top10,
+  holidayRun: p.holidayRun,
 });
 
 /**
@@ -576,7 +583,6 @@ const recordDayStats = async (
     await store.hIncrBy(key, field, n);
 };
 
-
 export const dayRecap = async (
   store: Store,
   dateKey: string
@@ -803,6 +809,7 @@ export const run = async (
   if (!profile.weathersRun.includes(day.weather.id))
     profile.weathersRun.push(day.weather.id);
   if (percentile < 0.1) profile.top10 = true;
+  if (isHolidaySeason(today)) profile.holidayRun = true;
 
   const seasonKey = String(day.season);
   profile.stagesBySeason[seasonKey] =
@@ -829,6 +836,11 @@ export const run = async (
 
   const crewPaid = await claimCrewRewards(store, profile);
   const reward = runReward(percentile, profile.streak, false);
+  const holiday = (holidayMultiplier(today) - 1) * reward.total;
+  if (holiday > 0) {
+    reward.holiday = holiday;
+    reward.total += holiday;
+  }
   reward.crew = crewPaid;
   reward.total += crewPaid;
   profile.badges += reward.total - crewPaid;
@@ -1537,7 +1549,7 @@ export const share = async (
 };
 
 export const postTitle = (day: DayInfo): string =>
-  `Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label}`;
+  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label}`;
 
 /** Creates the post for a day once; later calls return the same post. */
 export const ensureDailyPost = async (

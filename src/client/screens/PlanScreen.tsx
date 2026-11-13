@@ -11,6 +11,7 @@ import {
 import { CourseProfile } from '../components/CourseProfile';
 import { CrewBar } from '../components/CrewBar';
 import { YesterdayCard } from '../components/YesterdayCard';
+import { holidayBanner } from '../../shared/festive';
 import { PACE_COLOR, PACE_HINT } from '../lib/theme';
 
 type Props = {
@@ -110,6 +111,12 @@ export const PlanScreen = ({
           {weather.hint}
         </p>
       </div>
+
+      {holidayBanner(day.dateKey) && (
+        <p className="rounded-2xl border-2 border-ink bg-[#e9f6ff] px-3 py-2 text-[13px] font-bold">
+          {holidayBanner(day.dateKey)}
+        </p>
+      )}
 
       <section className="bib bib-pins px-3 pt-5 pb-3" aria-label="Race plan">
         <CourseProfile

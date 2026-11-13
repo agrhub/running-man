@@ -11,6 +11,8 @@ import type {
   ShareResponse,
   VoteRequest,
   QuestClaimRequest,
+  ClubRequest,
+  ClubResponse,
   FriendRequest,
   FriendsResponse,
   DashRequest,
@@ -28,6 +30,10 @@ import {
   castVote,
   checkIn,
   claimQuest,
+  createClub,
+  joinClub,
+  leaveClub,
+  myClub,
   addFriend,
   friendsOf,
   removeFriend,
@@ -179,6 +185,44 @@ export const createApi = (deps: Deps): Hono => {
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/club', async (c) => {
+    try {
+      return c.json<ClubResponse>({ type: 'club', ...(await myClub(deps)) });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/club/create', async (c) => {
+    try {
+      const body = await readJson<ClubRequest>(c);
+      const res = await createClub(deps, body.adjective, body.noun);
+      await track(deps, body.journeyId, 'club_created');
+      return c.json<ClubResponse>({ type: 'club', ...res });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/club/join', async (c) => {
+    try {
+      const body = await readJson<ClubRequest>(c);
+      const res = await joinClub(deps, body.code);
+      await track(deps, body.journeyId, 'club_joined');
+      return c.json<ClubResponse>({ type: 'club', ...res });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/club/leave', async (c) => {
+    try {
+      return c.json<ClubResponse>({ type: 'club', ...(await leaveClub(deps)) });
     } catch (e) {
       return fail(c, e);
     }

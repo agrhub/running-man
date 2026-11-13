@@ -30,6 +30,12 @@ import {
   replayDash,
 } from '../../shared/dash';
 import {
+  CLUB_CODE_CHARS,
+  CLUB_MAX_MEMBERS,
+  clubName,
+  isClubCode,
+} from '../../shared/club';
+import {
   CHECKIN_REWARDS,
   nextCheckInDay,
   CHEER_REWARD,
@@ -77,6 +83,8 @@ import type {
   WeeklyRow,
   DashBoard,
   FriendRow,
+  ClubRow,
+  ClubView,
   Profile,
   RunRecord,
   RunResponse,
@@ -133,6 +141,7 @@ export const freshProfile = (username: string): Profile => ({
   questClaims: {},
   dash: { date: null, plays: 0, best: 0 },
   friends: [],
+  club: null,
 });
 
 export const loadProfile = async (
@@ -363,6 +372,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     weekly,
     quests,
     friends,
+    club,
     journeyId,
   ] = await Promise.all([
     username
@@ -371,7 +381,10 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     leaderboard(store, dateKey),
     myRank(store, dateKey, username),
     store.zCard(keys.leaderboard(dateKey)),
-    runnersOnRoad(store, dateKey, username, profile.friends),
+    runnersOnRoad(store, dateKey, username, [
+      ...profile.friends,
+      ...((await loadClub(store, profile.club))?.members ?? []),
+    ]),
     crewProgress(store, day),
     username ? store.hGet(keys.cheers(dateKey), username) : undefined,
     dateKey === today
@@ -381,6 +394,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     weeklyBoard(store, day.season, username),
     questStates(store, profile, today),
     friendRows(store, profile.friends, today),
+    clubView(store, profile.club, today),
     deps.telemetry.start().catch(() => null),
   ]);
 
@@ -401,6 +415,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     weekly,
     quests,
     friends,
+    club,
     journeyId,
   };
 };
@@ -715,6 +730,9 @@ export const run = async (
     store.set(keys.run(dateKey, username), JSON.stringify(record)),
     saveProfile(store, profile),
   ]);
+  // Your stage counts for your club's week too.
+  const myClubNow = await loadClub(store, profile.club);
+  if (myClubNow) await updateClubWeek(store, myClubNow, today);
 
   if (finisherNow) {
     await deps
@@ -1126,6 +1144,172 @@ export const removeFriend = async (deps: Deps, raw: string) => {
   profile.friends = profile.friends.filter((f) => f !== name);
   await saveProfile(deps.store, profile);
   return friendsOf(deps);
+};
+
+type Club = { code: string; name: string; owner: string; members: string[] };
+
+const loadClub = async (store: Store, code: string | null) =>
+  code ? parse<Club>(await store.get(keys.club(code))) : null;
+
+const saveClub = (store: Store, club: Club) =>
+  store.set(keys.club(club.code), JSON.stringify(club));
+
+/** A club's week: the stages its members ran this week, ranked across clubs. */
+const updateClubWeek = async (store: Store, club: Club, today: string) => {
+  const { season } = dayInfo(today);
+  const stages = await Promise.all(
+    club.members.map(
+      async (m) =>
+        (await loadProfile(store, m)).stagesBySeason[String(season)] ?? 0
+    )
+  );
+  await store.zAdd(keys.clubWeek(season), {
+    member: club.code,
+    score: -stages.reduce((a, n) => a + n, 0),
+  });
+};
+
+export const clubView = async (
+  store: Store,
+  code: string | null,
+  today: string
+): Promise<ClubView | null> => {
+  const club = await loadClub(store, code);
+  if (!club) return null;
+  const { season } = dayInfo(today);
+  const rows = await friendRows(store, club.members, today);
+  const weeks = await Promise.all(
+    club.members.map(async (m) => {
+      const p = await loadProfile(store, m);
+      return p.stagesBySeason[String(season)] ?? 0;
+    })
+  );
+  const total = await store.zScore(keys.clubWeek(season), club.code);
+  const members = rows
+    .map((r, i) => ({ ...r, weekStages: weeks[i] ?? 0 }))
+    .sort(
+      (a, b) =>
+        b.weekStages - a.weekStages || (a.seconds ?? 1e9) - (b.seconds ?? 1e9)
+    );
+  return {
+    code: club.code,
+    name: club.name,
+    owner: club.owner,
+    members,
+    weekStages: total === undefined ? 0 : -total,
+  };
+};
+
+export const topClubs = async (
+  store: Store,
+  today: string
+): Promise<ClubRow[]> => {
+  const { season } = dayInfo(today);
+  const top = await store.zRange(keys.clubWeek(season), 0, 4, { by: 'rank' });
+  const clubs = await Promise.all(top.map((t) => loadClub(store, t.member)));
+  return top.flatMap((t, i) => {
+    const c = clubs[i];
+    return c
+      ? [{ rank: i + 1, code: c.code, name: c.name, weekStages: -t.score }]
+      : [];
+  });
+};
+
+const clubResponse = async (deps: Deps, profile: Profile, message?: string) => {
+  const today = toDateKey(deps.now());
+  return {
+    club: await clubView(deps.store, profile.club, today),
+    top: await topClubs(deps.store, today),
+    profile,
+    ...(message ? { message } : {}),
+  };
+};
+
+export const myClub = async (deps: Deps) => {
+  const username = await requireUser(deps);
+  return clubResponse(deps, await loadProfile(deps.store, username));
+};
+
+const newClubCode = async (store: Store) => {
+  for (let tries = 0; tries < 20; tries++) {
+    let code = '';
+    for (let i = 0; i < 6; i++)
+      code +=
+        CLUB_CODE_CHARS[Math.floor(Math.random() * CLUB_CODE_CHARS.length)];
+    if (!(await store.get(keys.club(code)))) return code;
+  }
+  throw new GameError('Could not make a club code. Try again.', 409);
+};
+
+export const createClub = async (
+  deps: Deps,
+  adjective: unknown,
+  noun: unknown
+) => {
+  const username = await requireUser(deps);
+  const profile = await loadProfile(deps.store, username);
+  if (!profile.registered) throw new GameError('Make your runner first.');
+  if (profile.club)
+    throw new GameError('Leave your club before starting a new one.', 409);
+  const name =
+    typeof adjective === 'number' && typeof noun === 'number'
+      ? clubName(adjective, noun)
+      : null;
+  if (!name) throw new GameError('Pick a club name.');
+  const code = await newClubCode(deps.store);
+  const club = { code, name, owner: username, members: [username] };
+  await saveClub(deps.store, club);
+  await updateClubWeek(deps.store, club, toDateKey(deps.now()));
+  profile.club = code;
+  await saveProfile(deps.store, profile);
+  return clubResponse(deps, profile, `${name} is open. Share code ${code}!`);
+};
+
+export const joinClub = async (deps: Deps, rawCode: unknown) => {
+  const username = await requireUser(deps);
+  const code = typeof rawCode === 'string' ? rawCode.trim().toUpperCase() : '';
+  if (!isClubCode(code))
+    throw new GameError('Club codes are 6 letters and numbers.');
+  const profile = await loadProfile(deps.store, username);
+  if (!profile.registered) throw new GameError('Make your runner first.');
+  if (profile.club === code)
+    throw new GameError('You are already in this club.', 409);
+  if (profile.club)
+    throw new GameError('Leave your club before joining another.', 409);
+  const club = await loadClub(deps.store, code);
+  if (!club) throw new GameError('No club has that code.', 404);
+  if (club.members.length >= CLUB_MAX_MEMBERS)
+    throw new GameError(
+      `That club is full (${CLUB_MAX_MEMBERS} runners).`,
+      409
+    );
+  club.members = [...club.members, username];
+  await saveClub(deps.store, club);
+  profile.club = code;
+  await saveProfile(deps.store, profile);
+  await updateClubWeek(deps.store, club, toDateKey(deps.now()));
+  return clubResponse(deps, profile, `Welcome to ${club.name}!`);
+};
+
+export const leaveClub = async (deps: Deps) => {
+  const username = await requireUser(deps);
+  const profile = await loadProfile(deps.store, username);
+  const club = await loadClub(deps.store, profile.club);
+  if (club) {
+    club.members = club.members.filter((m) => m !== username);
+    // The club lives on with its next member; an empty club closes.
+    if (club.owner === username && club.members[0])
+      club.owner = club.members[0];
+    await saveClub(deps.store, club);
+    await updateClubWeek(deps.store, club, toDateKey(deps.now()));
+  }
+  profile.club = null;
+  await saveProfile(deps.store, profile);
+  return clubResponse(
+    deps,
+    profile,
+    club ? `You left ${club.name}.` : undefined
+  );
 };
 
 /** Once a UTC day; consecutive days climb the 7-day calendar. */

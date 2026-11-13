@@ -51,6 +51,8 @@ export type Profile = {
   dash: { date: string | null; plays: number; best: number };
   /** Runners this player follows as friends (usernames). */
   friends: string[];
+  /** Join code of this runner's club, if any. */
+  club: string | null;
 };
 
 export type RunnerTrack = {
@@ -145,6 +147,7 @@ export type InitResponse = {
   quests: QuestState[];
   /** Your friends and how their day went. */
   friends: FriendRow[];
+  club: ClubView | null;
   journeyId: string | null;
 };
 
@@ -205,6 +208,42 @@ export type FriendsResponse = {
   friends: FriendRow[];
   /** Today's runners you might add. */
   suggestions: string[];
+  profile: Profile;
+  message?: string;
+};
+
+export type ClubMember = FriendRow & {
+  /** Stages this member ran this week. */
+  weekStages: number;
+};
+
+export type ClubView = {
+  code: string;
+  name: string;
+  owner: string;
+  members: ClubMember[];
+  /** Stages the club ran this week (6 km each). */
+  weekStages: number;
+};
+
+export type ClubRow = {
+  rank: number;
+  code: string;
+  name: string;
+  weekStages: number;
+};
+
+export type ClubRequest = {
+  code?: string;
+  adjective?: number;
+  noun?: number;
+  journeyId?: string | null;
+};
+
+export type ClubResponse = {
+  type: 'club';
+  club: ClubView | null;
+  top: ClubRow[];
   profile: Profile;
   message?: string;
 };

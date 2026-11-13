@@ -15,6 +15,8 @@ import type {
   DashBoardResponse,
   DashResponse,
   FriendsResponse,
+  ClubResponse,
+  ClubRow,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -35,6 +37,7 @@ import { QuestList, QuestsScreen } from './screens/QuestsScreen';
 import { PlayScreen, type DashResult } from './screens/PlayScreen';
 import { DashGame } from './screens/DashGame';
 import { FriendsScreen } from './screens/FriendsScreen';
+import { ClubSection } from './components/ClubSection';
 import type { DashMove } from '../shared/dash';
 
 type Screen =
@@ -80,6 +83,7 @@ export const App = () => {
   const [dashBoard, setDashBoard] = useState<DashBoard | null>(null);
   const [dashLast, setDashLast] = useState<DashResult | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [topClubs, setTopClubs] = useState<ClubRow[]>([]);
 
   const load = useCallback(
     () =>
@@ -307,6 +311,31 @@ export const App = () => {
     }
   };
 
+  const applyClub = (r: ClubResponse) => {
+    patch({ club: r.club, profile: r.profile });
+    setTopClubs(r.top);
+    if (r.message) showToast(r.message);
+  };
+
+  const clubCall = async (path: string, body: object) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      applyClub(
+        await request<ClubResponse>(path, {
+          ...body,
+          journeyId: data.journeyId,
+        })
+      );
+      if (path !== '/club/leave') sfx.snack();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const loadDashBoard = () =>
     request<DashBoardResponse>('/dash')
       .then((r) => setDashBoard(r.board))
@@ -390,6 +419,10 @@ export const App = () => {
     else if (tab === 'shop') openLocker();
     else if (tab === 'friends') {
       loadFriends();
+      if (data.profile.username !== 'guest')
+        request<ClubResponse>('/club')
+          .then(applyClub)
+          .catch(() => undefined);
       setScreen('friends');
     } else if (tab === 'play') {
       void loadDashBoard();
@@ -465,6 +498,7 @@ export const App = () => {
               rivals={data.runners}
               mode="live"
               firstRun={data.profile.totalRuns === 0}
+              clubmates={data.club?.members.map((m) => m.username) ?? []}
               saving={busy}
               onFinish={(outcome) => void submitRun(livePlan, outcome)}
             />
@@ -530,7 +564,19 @@ export const App = () => {
             busy={busy}
             onAdd={(u) => void friendCall('/friends/add', u)}
             onRemove={(u) => void friendCall('/friends/remove', u)}
-          />
+          >
+            <ClubSection
+              profile={data.profile}
+              club={data.club}
+              top={topClubs}
+              busy={busy}
+              onCreate={(adjective, noun) =>
+                void clubCall('/club/create', { adjective, noun })
+              }
+              onJoin={(code) => void clubCall('/club/join', { code })}
+              onLeave={() => void clubCall('/club/leave', {})}
+            />
+          </FriendsScreen>
         );
       case 'play':
         return (

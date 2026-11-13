@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { CrewProgress, Profile } from '../../shared/api';
+import type { CrewProgress, DayRecap, Profile } from '../../shared/api';
 import { TERRAIN, type DayInfo } from '../../shared/content';
 import {
   PACES,
@@ -10,6 +10,7 @@ import {
 } from '../../shared/sim';
 import { CourseProfile } from '../components/CourseProfile';
 import { CrewBar } from '../components/CrewBar';
+import { YesterdayCard } from '../components/YesterdayCard';
 import { PACE_COLOR, PACE_HINT } from '../lib/theme';
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
   profile: Profile;
   crew: CrewProgress;
   totalRunners: number;
+  yesterday?: DayRecap | null;
   starting: boolean;
   onStart: (plan: Plan) => void;
   onLocker: () => void;
@@ -49,6 +51,7 @@ export const PlanScreen = ({
   profile,
   crew,
   totalRunners,
+  yesterday,
   starting,
   onStart,
   onLocker,
@@ -183,6 +186,7 @@ export const PlanScreen = ({
         >
           {starting ? 'Lacing up…' : 'Start the race'}
         </button>
+        {yesterday && <YesterdayCard recap={yesterday} />}
       </div>
     </div>
   );

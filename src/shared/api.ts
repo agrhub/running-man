@@ -124,6 +124,19 @@ export type RunRecord = {
   shared: boolean;
 };
 
+/** What happened on a closed stage: posted as a recap comment and shown in the game the next day. */
+export type DayRecap = {
+  dateKey: string;
+  runners: number;
+  podium: { username: string; seconds: number }[];
+  bumps: number;
+  snacks: number;
+  fives: number;
+  crashKing: { username: string; crashes: number } | null;
+  topLine: { line: string; times: number } | null;
+  crew: CrewProgress;
+};
+
 export type InitResponse = {
   type: 'init';
   /** The date the current post belongs to. */
@@ -148,6 +161,8 @@ export type InitResponse = {
   /** Your friends and how their day went. */
   friends: FriendRow[];
   club: ClubView | null;
+  /** The day before this post's stage, when anyone ran it. */
+  yesterday: DayRecap | null;
   journeyId: string | null;
 };
 

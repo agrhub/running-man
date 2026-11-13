@@ -36,6 +36,7 @@ type Harness = {
   posts: NewPost[];
   texts: { title: string; text: string }[];
   pins: { postId: string; slot: number }[];
+  appComments: { postId: string; text: string }[];
   comments: { postId: string; text: string }[];
   flairs: { username: string; text: string }[];
   events: string[];
@@ -50,6 +51,7 @@ const makeHarness = (): Harness => {
     posts: [],
     texts: [],
     pins: [],
+    appComments: [],
     comments: [],
     flairs: [],
     events: [],
@@ -68,6 +70,10 @@ const makeHarness = (): Harness => {
       },
       pin: async (postId, slot) => {
         h.pins.push({ postId, slot });
+      },
+      appComment: async (postId, text) => {
+        h.appComments.push({ postId, text });
+        return `t1_recap${h.appComments.length}`;
       },
       comment: async (postId, text) => {
         h.comments.push({ postId, text });
@@ -1047,6 +1053,52 @@ describe('daily posts', () => {
       plan: planFor('2026-11-12'),
     });
     expect(closed.status).toBe(409);
+  });
+
+  it('posts a recap of the closed day under its post, once', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    const date = '2026-11-12';
+    const middle: Move[] = [{ step: 0, lane: 0 }];
+    await call(h.as('slowpoke').on('t3_post1'), 'POST', '/run', {
+      plan: planFor(date, ['push', 'push', 'easy', 'easy', 'easy', 'easy']),
+      moves: middle,
+      rivals: [],
+      chat: [{ step: 3, line: 2 }],
+    });
+    await call(h.as('alice'), 'POST', '/run', {
+      plan: planFor(date),
+      moves: middle,
+      rivals: ['slowpoke'],
+      chat: [
+        { step: 3, line: 2 },
+        { step: 20, line: 0 },
+      ],
+    });
+    await call(h.as('bob'), 'POST', '/run', { plan: planFor(date) });
+
+    // Nothing to recap while the stage is still open.
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.appComments).toHaveLength(0);
+
+    h.at('2026-11-13');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.appComments).toHaveLength(1);
+    const { postId, text } = h.appComments[0]!;
+    expect(postId).toBe('t3_post1');
+    expect(text).toMatch(/Race recap: .* Tokyo 4\/7, Meiji Forest/);
+    expect(text).toMatch(/🥇 u\/\w+ \d+:\d\d/);
+    expect(text).toMatch(/\*\*3\*\* runners covered \*\*18 km\*\*/);
+    expect(text).toMatch(/💥 \d+ crash/);
+    expect(text).toMatch(/Most shouted: "Let's go! 🔥" \(2 times\)/);
+    expect(text).toMatch(/Next up: .* Tokyo 5\/7/);
+
+    // A day nobody ran gets no recap.
+    h.at('2026-11-15');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.appComments).toHaveLength(1);
   });
 
   it('pins each new stage at the top, once', async () => {

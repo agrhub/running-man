@@ -56,7 +56,7 @@ import {
   type Progress,
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
-import { isValidChat } from '../../shared/chat';
+import { QUICK_CHAT, isValidChat } from '../../shared/chat';
 import { courseItems } from '../../shared/course';
 import {
   MAX_MOVES,
@@ -65,6 +65,7 @@ import {
   isValidMoves,
   replayRace,
   startLane,
+  type RaceEvent,
 } from '../../shared/race';
 import {
   PACE_LABEL,
@@ -75,6 +76,7 @@ import {
 } from '../../shared/sim';
 import type {
   CrewProgress,
+  DayRecap,
   RunnerTrack,
   Incident,
   InitResponse,
@@ -397,6 +399,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     clubView(store, profile.club, today),
     deps.telemetry.start().catch(() => null),
   ]);
+  const before = await dayRecap(store, addDays(dateKey, -1));
 
   return {
     type: 'init',
@@ -416,6 +419,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     quests,
     friends,
     club,
+    yesterday: before.runners > 0 ? before : null,
     journeyId,
   };
 };
@@ -547,6 +551,131 @@ const applyIncident = async (
   ]);
 };
 
+/** Counts what happened on the road today, for the recap posted after the stage closes. */
+const recordDayStats = async (
+  store: Store,
+  dateKey: string,
+  username: string,
+  events: RaceEvent[],
+  chat: { line: number }[]
+) => {
+  const key = keys.dayStats(dateKey);
+  const add: Record<string, number> = {};
+  const bump = (field: string) => (add[field] = (add[field] ?? 0) + 1);
+  for (const e of events) {
+    if (e.kind === 'bump') {
+      bump('bumps');
+      bump(`crash:${username}`);
+      bump(`crash:${e.rival}`);
+    } else if (e.kind === 'fan') bump('fives');
+    else if (isPickup(e.kind)) bump('snacks');
+    else bump('hits');
+  }
+  for (const c of chat) bump(`chat:${c.line}`);
+  for (const [field, n] of Object.entries(add))
+    await store.hIncrBy(key, field, n);
+};
+
+
+export const dayRecap = async (
+  store: Store,
+  dateKey: string
+): Promise<DayRecap> => {
+  const day = dayInfo(dateKey);
+  const [runners, top, stats, crew] = await Promise.all([
+    store.zCard(keys.leaderboard(dateKey)),
+    store.zRange(keys.leaderboard(dateKey), 0, 2, { by: 'rank' }),
+    store.hGetAll(keys.dayStats(dateKey)),
+    crewProgress(store, day),
+  ]);
+  const best = (prefix: string) => {
+    let found: [string, number] | null = null;
+    for (const [field, raw] of Object.entries(stats)) {
+      if (!field.startsWith(prefix)) continue;
+      const n = Number(raw);
+      const name = field.slice(prefix.length);
+      if (!found || n > found[1] || (n === found[1] && name < found[0]))
+        found = [name, n];
+    }
+    return found;
+  };
+  const crash = best('crash:');
+  const line = best('chat:');
+  const lineText = line ? QUICK_CHAT[Number(line[0])] : undefined;
+  return {
+    dateKey,
+    runners,
+    podium: top.map((r) => ({ username: r.member, seconds: r.score })),
+    bumps: Number(stats.bumps ?? 0),
+    snacks: Number(stats.snacks ?? 0),
+    fives: Number(stats.fives ?? 0),
+    crashKing: crash ? { username: crash[0], crashes: crash[1] } : null,
+    topLine: line && lineText ? { line: lineText, times: line[1] } : null,
+    crew,
+  };
+};
+
+const MEDALS = ['🥇', '🥈', '🥉'];
+
+export const recapText = (r: DayRecap): string => {
+  const day = dayInfo(r.dateKey);
+  const next = dayInfo(addDays(r.dateKey, 1));
+  const lines = [
+    `**Race recap: ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7, ${day.stage.name}** 🏁`,
+    '',
+    r.podium
+      .map(
+        (p, i) => `${MEDALS[i] ?? ''} u/${p.username} ${formatTime(p.seconds)}`
+      )
+      .join(' · '),
+    '',
+    `**${r.runners}** ${r.runners === 1 ? 'runner' : 'runners'} covered **${r.runners * KM_PER_STAGE} km** together.`,
+  ];
+  const road = [
+    r.snacks > 0 ? `🍰 ${r.snacks} snacks grabbed` : '',
+    r.fives > 0 ? `🙌 ${r.fives} high fives` : '',
+    r.bumps > 0 ? `💥 ${r.bumps} ${r.bumps === 1 ? 'crash' : 'crashes'}` : '',
+  ].filter(Boolean);
+  if (road.length) lines.push('', road.join(' · '));
+  if (r.crashKing && r.crashKing.crashes > 1)
+    lines.push(
+      '',
+      `Most crashes: u/${r.crashKing.username} (${r.crashKing.crashes}). Watch your elbows out there.`
+    );
+  if (r.topLine)
+    lines.push(
+      '',
+      `Most shouted: "${r.topLine.line}" (${r.topLine.times} ${r.topLine.times === 1 ? 'time' : 'times'})`
+    );
+  const km = Math.floor(r.crew.meters / 1000);
+  const target = Math.round(r.crew.target / 1000);
+  lines.push(
+    '',
+    r.crew.finished
+      ? `Crew goal: ${day.city.name} is finished! 🎉`
+      : `Crew goal: ${km} / ${target} km in ${day.city.name}.`,
+    '',
+    `Next up: ${next.city.flag} ${next.city.name} ${next.stageIndex + 1}/7, ${next.stage.name}. The new post is pinned at the top. See you at the start line!`
+  );
+  return lines.join('\n');
+};
+
+/** Posts the recap of a closed day under that day's post, once. */
+export const postRecap = async (
+  deps: Deps,
+  dateKey: string
+): Promise<boolean> => {
+  if (!deps.appComment) return false;
+  if (await deps.store.get(keys.recap(dateKey))) return false;
+  const postId = await deps.store.get(keys.dayPost(dateKey));
+  if (!postId) return false;
+  const recap = await dayRecap(deps.store, dateKey);
+  if (recap.runners === 0) return false;
+  const id = await deps.appComment(postId, recapText(recap));
+  await deps.store.set(keys.recap(dateKey), id);
+  return true;
+};
+
 export const run = async (
   deps: Deps,
   planInput: unknown,
@@ -646,6 +775,7 @@ export const run = async (
     member: username,
     score: result.totalSeconds,
   });
+  await recordDayStats(store, dateKey, username, race.events, chat);
   await addToWeek(store, day.season, username, 1, result.totalSeconds);
   const track: RunnerTrack = {
     username,

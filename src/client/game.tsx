@@ -627,6 +627,7 @@ export const App = () => {
             profile={data.profile}
             crew={data.crew}
             totalRunners={data.totalRunners}
+            yesterday={data.yesterday}
             starting={busy}
             onStart={startRun}
             onLocker={openLocker}

@@ -183,7 +183,8 @@ Installing the app creates today's post. Moderators can also use the subreddit m
 ## Credits and licences
 
 - Fonts: Baloo 2 and Nunito (SIL Open Font License) via Fontsource.
-- Project template: Reddit's Devvit Web React template (BSD-3-Clause), see `LICENSE`.
+- Code: MIT, see `LICENSE`.
+- Project template: Reddit's Devvit Web React template (BSD-3-Clause), see `THIRD_PARTY_NOTICES.md`.
 - The city's facade technique (one floor-by-bay facade module repeated by UV, tinted per building, merged per material)
   is inspired by [my-office](https://github.com/khanh020905/my-office) (MIT).
 - Landmarks are simplified, stylised shapes. All shop signs and brands in the game are fictional.

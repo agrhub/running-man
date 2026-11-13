@@ -60,6 +60,13 @@ import {
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
 import {
+  ARCADE_MAX_ROUNDS,
+  arcadeReward,
+  isArcadeId,
+  scoreArcade,
+  type ArcadeId,
+} from '../../shared/arcade';
+import {
   achievementById,
   achievementStates,
   newlyEarned,
@@ -172,6 +179,7 @@ export const freshProfile = (username: string): Profile => ({
     dashBest: 0,
   },
   achievements: [],
+  arcade: {},
 });
 
 export const loadProfile = async (
@@ -186,6 +194,7 @@ export const loadProfile = async (
     ...saved,
     look: { ...fresh.look, ...saved?.look },
     stats: { ...fresh.stats, ...saved?.stats },
+    arcade: { ...saved?.arcade },
     username,
   };
 };
@@ -1332,9 +1341,10 @@ export const claimQuest = async (
 export const dashBoard = async (
   store: Store,
   dateKey: string,
-  username: string | null
+  username: string | null,
+  key = keys.dashBoard(dateKey)
 ): Promise<DashBoard> => {
-  const top = await store.zRange(keys.dashBoard(dateKey), 0, 4, { by: 'rank' });
+  const top = await store.zRange(key, 0, 4, { by: 'rank' });
   const rows = top.map((t, i) => ({
     rank: i + 1,
     username: t.member,
@@ -1343,8 +1353,8 @@ export const dashBoard = async (
   let mine = rows.find((r) => r.username === username) ?? null;
   if (!mine && username) {
     const [rank, score] = await Promise.all([
-      store.zRank(keys.dashBoard(dateKey), username),
-      store.zScore(keys.dashBoard(dateKey), username),
+      store.zRank(key, username),
+      store.zScore(key, username),
     ]);
     if (rank !== undefined && score !== undefined)
       mine = { rank: rank + 1, username, score: -score };
@@ -1387,6 +1397,58 @@ export const playDash = async (deps: Deps, round: unknown, moves: unknown) => {
     profile,
     board: await dashBoard(deps.store, today, username),
     quests: await questStates(deps.store, profile, today),
+  };
+};
+
+export const arcadeBoard = (
+  store: Store,
+  game: ArcadeId,
+  dateKey: string,
+  username: string | null
+) => dashBoard(store, dateKey, username, keys.arcadeBoard(game, dateKey));
+
+/** Scores a round of Hurdle Hop, Rhythm Steps or Pet Fetch by replaying its taps. */
+export const playArcade = async (
+  deps: Deps,
+  game: unknown,
+  round: unknown,
+  taps: unknown
+) => {
+  if (!isArcadeId(game)) throw new GameError('That game does not exist.', 404);
+  const username = await requireUser(deps);
+  const today = toDateKey(deps.now());
+  const profile = await loadProfile(deps.store, username);
+  const day =
+    profile.arcade[game]?.date === today
+      ? profile.arcade[game]!
+      : { date: today, plays: 0, best: 0 };
+  if (day.plays >= ARCADE_MAX_ROUNDS)
+    throw new GameError('That is all for today. Back tomorrow!', 409);
+  if (round !== day.plays)
+    throw new GameError('That round is over. Start a new one.', 409);
+  const result = scoreArcade(game, today, day.plays, taps);
+  if (!result) throw new GameError('Those taps look wrong.');
+  const reward = arcadeReward(result.score, day.plays);
+  profile.arcade = {
+    ...profile.arcade,
+    [game]: {
+      date: today,
+      plays: day.plays + 1,
+      best: Math.max(day.best, result.score),
+    },
+  };
+  profile.badges += reward;
+  await saveProfile(deps.store, profile);
+  const key = keys.arcadeBoard(game, today);
+  const prev = await deps.store.zScore(key, username);
+  if (prev === undefined || -prev < result.score)
+    await deps.store.zAdd(key, { member: username, score: -result.score });
+  return {
+    game,
+    score: result.score,
+    reward,
+    profile,
+    board: await arcadeBoard(deps.store, game, today, username),
   };
 };
 

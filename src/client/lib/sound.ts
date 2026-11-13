@@ -122,6 +122,15 @@ const buzz = (ms: number | number[]) => {
 const NOTE = { C5: 523.25, E5: 659.25, G5: 783.99, C6: 1046.5, E6: 1318.5 };
 
 export const sfx = {
+  /** A light spring for a hurdle jump. */
+  jump: () => {
+    tone({ freq: 380, to: 760, dur: 0.14, gain: 0.08, type: 'triangle' });
+  },
+  /** The beat in Rhythm Steps. */
+  tick: () => {
+    tone({ freq: 1800, dur: 0.03, gain: 0.04, type: 'square' });
+    burst({ filter: 'lowpass', freq: 160, q: 1, dur: 0.12, gain: 0.18 });
+  },
   /** A whoosh and a rising chime when you hop on a booster. */
   boost: () => {
     burst({

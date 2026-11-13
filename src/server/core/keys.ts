@@ -27,6 +27,8 @@ export const keys = {
   clubWeek: (season: number) => `clubweek:${season}`,
   /** Best Snack Dash score per runner that day (stored negative: lowest rank is best). */
   dashBoard: (dateKey: string) => `dashlb:${dateKey}`,
+  /** Best score per runner that day in Hurdle Hop, Rhythm Steps or Pet Fetch. */
+  arcadeBoard: (game: string, dateKey: string) => `arcadelb:${game}:${dateKey}`,
   /** Stages run and total seconds this week, per runner. */
   week: (season: number) => `week:${season}`,
   /** This week's standings: more stages first, then less total time. */

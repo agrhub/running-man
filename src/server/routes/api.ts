@@ -21,7 +21,11 @@ import type {
   DashBoardResponse,
   QuestsResponse,
   VoteResponse,
+  ArcadeRequest,
+  ArcadeResponse,
+  ArcadeBoardResponse,
 } from '../../shared/api';
+import { isArcadeId } from '../../shared/arcade';
 import type { Deps } from '../core/deps';
 import { petById } from '../../shared/economy';
 import { toDateKey } from '../../shared/content';
@@ -41,6 +45,8 @@ import {
   removeFriend,
   dashBoard,
   playDash,
+  arcadeBoard,
+  playArcade,
   loadProfile,
   questStates,
   carePet,
@@ -306,6 +312,40 @@ export const createApi = (deps: Deps): Hono => {
       const res = await playDash(deps, body.round, body.moves);
       await track(deps, body.journeyId, 'dash_played', String(res.score));
       return c.json<DashResponse>({ type: 'dash', ...res });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/arcade', async (c) => {
+    try {
+      const game = c.req.query('game');
+      if (!isArcadeId(game))
+        throw new GameError('That game does not exist.', 404);
+      const username = (await deps.username()) ?? null;
+      const board = await arcadeBoard(
+        deps.store,
+        game,
+        toDateKey(deps.now()),
+        username
+      );
+      return c.json<ArcadeBoardResponse>({ type: 'arcadeBoard', game, board });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/arcade', async (c) => {
+    try {
+      const body = await readJson<ArcadeRequest>(c);
+      const res = await playArcade(deps, body.game, body.round, body.taps);
+      await track(
+        deps,
+        body.journeyId,
+        `${res.game}_played`,
+        String(res.score)
+      );
+      return c.json<ArcadeResponse>({ type: 'arcade', ...res });
     } catch (e) {
       return fail(c, e);
     }

@@ -1,4 +1,5 @@
 import type { AchievementState } from './achievements';
+import type { ArcadeId } from './arcade';
 import type { CityId, WeatherId } from './content';
 import type { Chat } from './chat';
 import type { ItemKind } from './course';
@@ -60,6 +61,10 @@ export type Profile = {
   stats: RunnerStats;
   /** Achievement ids already earned (and paid). */
   achievements: string[];
+  /** Today's rounds and best score in each of the other mini games. */
+  arcade: Partial<
+    Record<ArcadeId, { date: string | null; plays: number; best: number }>
+  >;
 };
 
 export type RunnerStats = {
@@ -344,6 +349,28 @@ export type DashResponse = {
 };
 
 export type DashBoardResponse = { type: 'dashBoard'; board: DashBoard };
+
+export type ArcadeRequest = {
+  game: ArcadeId;
+  round: number;
+  taps: unknown;
+  journeyId?: string | null;
+};
+
+export type ArcadeResponse = {
+  type: 'arcade';
+  game: ArcadeId;
+  score: number;
+  reward: number;
+  profile: Profile;
+  board: DashBoard;
+};
+
+export type ArcadeBoardResponse = {
+  type: 'arcadeBoard';
+  game: ArcadeId;
+  board: DashBoard;
+};
 
 export type QuestClaimRequest = { questId: string; journeyId?: string | null };
 

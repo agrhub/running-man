@@ -18,6 +18,7 @@ import {
   type ItemView,
 } from './city';
 import { buildFestive, type Festive } from './festive';
+import { RIDE_LIFT, buildRide, type RideKind } from './boosters';
 import { buildAtmosphere, type Atmosphere } from './atmosphere';
 
 export { UNITS_PER_KM };
@@ -50,6 +51,8 @@ type RunnerView = {
   /** Materials of other runners, faded while they stand between the camera and you. */
   materials: THREE.Material[];
   opacity: number;
+  /** Boosters this runner has ridden, built once and shown while riding. */
+  rides: Partial<Record<RideKind, THREE.Group>>;
 };
 
 const makeLabel = (text: string, color: string): THREE.Sprite => {
@@ -135,6 +138,8 @@ export type Position = {
   name: string;
   km: number;
   speed: number;
+  /** Riding a booster right now. */
+  ride?: RideKind | null;
   /** Lane -1..1 (may be fractional while changing lanes). */
   lane?: number;
   /** Limping after a fall or a cone. */
@@ -304,6 +309,7 @@ export class RunWorld {
         fellAt: -10,
         materials: [...materials],
         opacity: 1,
+        rides: {},
       });
     }
 
@@ -455,7 +461,20 @@ export class RunWorld {
           view.holder.rotation.z = Math.sin(t * 9) * 0.12;
         else view.holder.rotation.z = 0;
       }
-      view.chibi.update(t, since < 1.2 ? 0 : p.speed);
+      // Boosters: the runner rides skates, a skateboard or a bike while the burst lasts.
+      for (const [k, g] of Object.entries(view.rides))
+        if (g) g.visible = k === p.ride;
+      if (p.ride) {
+        let g = view.rides[p.ride];
+        if (!g) {
+          g = buildRide(p.ride);
+          view.holder.add(g);
+          view.rides[p.ride] = g;
+        }
+        g.visible = true;
+        view.chibi.group.position.y = RIDE_LIFT[p.ride];
+      } else view.chibi.group.position.y = 0;
+      view.chibi.update(t, since < 1.2 ? 0 : p.ride === 'bike' ? 0.3 : p.speed);
       if (view.pet) {
         if (!this.opts.preview)
           view.pet.group.position.set(view.x + 0.75, 0, z + 0.6);

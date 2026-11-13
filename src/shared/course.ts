@@ -32,7 +32,15 @@ export type ItemKind =
   | 'dog'
   | 'cat'
   | 'chicken'
-  | 'pig';
+  | 'pig'
+  // Boosters: grab one and ride it for a big burst of speed.
+  | 'skates'
+  | 'skateboard'
+  | 'bike';
+
+export const BOOSTERS: ItemKind[] = ['skates', 'skateboard', 'bike'];
+
+export const isBooster = (kind: ItemKind): boolean => BOOSTERS.includes(kind);
 
 /** People, vehicles and animals: they cost more than a cone, so steer round them. */
 export const ROAD_LIFE: ItemKind[] = [
@@ -91,6 +99,9 @@ export const ITEM_SECONDS: Record<ItemKind, number> = {
   cat: 2,
   chicken: 2,
   pig: 4,
+  skates: -4,
+  skateboard: -5,
+  bike: -7,
 };
 
 export const ITEM_LABEL: Record<ItemKind, string> = {
@@ -113,6 +124,9 @@ export const ITEM_LABEL: Record<ItemKind, string> = {
   cat: 'Cat',
   chicken: 'Chicken',
   pig: 'Pig',
+  skates: 'Roller skates',
+  skateboard: 'Skateboard',
+  bike: 'Bicycle',
 };
 
 /** Who is out on the road depends on the place and the hour. */
@@ -190,8 +204,17 @@ export const courseItems = (
           lane: rand() < 0.5 ? -1 : 1,
         });
       } else if (roll < 0.42) {
+        // Now and then a booster instead of a snack; a bicycle is the rarest.
+        const b = rand();
         const kind =
-          PICKUP_BAG[Math.floor(rand() * PICKUP_BAG.length)] ?? 'candy';
+          b < 0.07
+            ? 'skates'
+            : b < 0.12
+              ? 'skateboard'
+              : b < 0.15
+                ? 'bike'
+                : (PICKUP_BAG[Math.floor(rand() * PICKUP_BAG.length)] ??
+                  'candy');
         items.push({ kind, km: round3(km), lane: pickLane() });
       } else if (
         (weather === 'rain' && roll < 0.55) ||

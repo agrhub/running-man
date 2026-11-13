@@ -121,6 +121,32 @@ const buzz = (ms: number | number[]) => {
 const NOTE = { C5: 523.25, E5: 659.25, G5: 783.99, C6: 1046.5, E6: 1318.5 };
 
 export const sfx = {
+  /** A whoosh and a rising chime when you hop on a booster. */
+  boost: () => {
+    burst({
+      filter: 'bandpass',
+      freq: 900,
+      q: 0.8,
+      dur: 0.4,
+      gain: 0.12,
+      attack: 0.05,
+    });
+    tone({
+      freq: NOTE.C5,
+      to: NOTE.C6,
+      dur: 0.25,
+      gain: 0.08,
+      type: 'triangle',
+    });
+    tone({
+      freq: NOTE.G5,
+      start: 0.12,
+      dur: 0.18,
+      gain: 0.07,
+      type: 'triangle',
+    });
+    buzz(30);
+  },
   /** Whoever you ran into answers back: a horn, a siren, a bark, a cluck. */
   roadLife: (kind: string) => {
     buzz(60);

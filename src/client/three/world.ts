@@ -173,6 +173,8 @@ export class RunWorld {
   private readonly atmosphere: Atmosphere | null = null;
   private readonly hemi: THREE.HemisphereLight;
   private thunderAt = -1;
+  /** 0..1: how far the camera has come down for the swim. */
+  private pool = 0;
   private readonly trail: THREE.Points | null = null;
   private readonly trailData: {
     x: number;
@@ -578,17 +580,21 @@ export class RunWorld {
         if (me.pet) me.pet.group.rotation.y = me.chibi.group.rotation.y;
       }
       const swing = this.finishTurn;
-      const back = 6.4 - swing * 1.8;
+      // In the triathlon swim the camera comes down and closer to the water.
+      const inPool =
+        this.opts.triathlon && me ? (me.z > -UNITS_PER_KM ? 1 : 0) : 0;
+      this.pool += (inPool - this.pool) * (1 - Math.exp(-dt * 2));
+      const back = 6.4 - swing * 1.8 - this.pool * 1.4;
       const cx = this.camX * 0.7 + swing * 2.2;
       // Landmark moment: widen the view and pan a little to the right, keeping the runner in frame.
       this.camera.position.set(
         cx - gaze * 0.6,
-        3.1 - swing * 0.6 + gaze * 0.9,
+        3.1 - swing * 0.6 + gaze * 0.9 - this.pool * 0.9,
         this.camZ + back + gaze * 1.5
       );
       this.camera.lookAt(
         this.camX * 0.5 + gaze * 4.5,
-        1.35 - swing * 0.3 + gaze * 2.6,
+        1.35 - swing * 0.3 + gaze * 2.6 - this.pool * 0.6,
         this.camZ - 9 + swing * 9
       );
       const fov = this.baseFov + gaze * 16;

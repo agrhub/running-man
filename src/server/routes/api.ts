@@ -10,15 +10,21 @@ import type {
   RunRequest,
   ShareResponse,
   VoteRequest,
+  QuestClaimRequest,
+  QuestsResponse,
   VoteResponse,
 } from '../../shared/api';
 import type { Deps } from '../core/deps';
 import { petById } from '../../shared/economy';
+import { toDateKey } from '../../shared/content';
 import {
   GameError,
   buyItem,
   castVote,
   checkIn,
+  claimQuest,
+  loadProfile,
+  questStates,
   carePet,
   cheer,
   choosePet,
@@ -163,6 +169,34 @@ export const createApi = (deps: Deps): Hono => {
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/quests', async (c) => {
+    try {
+      const username = await deps.username();
+      if (!username)
+        throw new GameError('Log in to Reddit to see your quests.', 401);
+      const profile = await loadProfile(deps.store, username);
+      const quests = await questStates(
+        deps.store,
+        profile,
+        toDateKey(deps.now())
+      );
+      return c.json<QuestsResponse>({ type: 'quests', quests, profile });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/quest/claim', async (c) => {
+    try {
+      const body = await readJson<QuestClaimRequest>(c);
+      const res = await claimQuest(deps, String(body.questId ?? ''));
+      await track(deps, body.journeyId, 'quest_claimed', String(body.questId));
+      return c.json<QuestsResponse>({ type: 'quests', ...res });
     } catch (e) {
       return fail(c, e);
     }

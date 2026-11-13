@@ -14,6 +14,14 @@ import {
   isNextCity,
   type CityVote,
 } from '../../shared/vote';
+import { isPickup } from '../../shared/course';
+import {
+  WEEKLY,
+  dailyQuests,
+  questPeriod,
+  type QuestId,
+  type QuestState,
+} from '../../shared/quests';
 import {
   CHECKIN_REWARDS,
   nextCheckInDay,
@@ -113,6 +121,7 @@ export const freshProfile = (username: string): Profile => ({
   totalRuns: 0,
   checkInDate: null,
   checkInDay: 0,
+  questClaims: {},
 });
 
 export const loadProfile = async (
@@ -331,6 +340,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     todayPostId,
     vote,
     weekly,
+    quests,
     journeyId,
   ] = await Promise.all([
     username
@@ -347,6 +357,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
       : store.get(keys.dayPost(today)).then((p) => p ?? null),
     cityVote(store, dayInfo(today).season, username),
     weeklyBoard(store, day.season, username),
+    questStates(store, profile, today),
     deps.telemetry.start().catch(() => null),
   ]);
 
@@ -365,6 +376,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     cheersReceived: Number(cheers ?? '0'),
     vote,
     weekly,
+    quests,
     journeyId,
   };
 };
@@ -850,6 +862,109 @@ export const castVote = async (
     vote: await cityVote(deps.store, season, username),
     message:
       `Vote counted for ${city?.name ?? cityId} ${city?.flag ?? ''}`.trim(),
+  };
+};
+
+/** Quests the server can check today. Snack Dash joins the pool once it ships. */
+const QUEST_POOL = [
+  'snacks',
+  'highfive',
+  'clean',
+  'noCones',
+  'chat',
+  'cheer',
+  'share',
+  'pet',
+  'topHalf',
+] as QuestId[];
+
+export const questStates = async (
+  store: Store,
+  profile: Profile,
+  today: string
+): Promise<QuestState[]> => {
+  if (profile.username === 'guest') return [];
+  const { season } = dayInfo(today);
+  const [record, voted] = await Promise.all([
+    store
+      .get(keys.run(today, profile.username))
+      .then((r) => parse<RunRecord>(r)),
+    store.hGet(keys.voters(season), profile.username),
+  ]);
+  const met = record?.met ?? [];
+  const ran = record ? 1 : 0;
+  const progress = (id: QuestId): number => {
+    switch (id) {
+      case 'run':
+        return ran;
+      case 'snacks':
+        return met.filter(isPickup).length;
+      case 'highfive':
+        return met.filter((k) => k === 'fan').length;
+      case 'clean':
+        return record && (record.incidents ?? []).length === 0 ? 1 : 0;
+      case 'noCones':
+        return record && !met.includes('cone') ? 1 : 0;
+      case 'chat':
+        return record && (record.chat ?? []).length > 0 ? 1 : 0;
+      case 'cheer':
+        return profile.cheeredOn === today ? 1 : 0;
+      case 'share':
+        return record?.shared ? 1 : 0;
+      case 'pet':
+        return profile.petCaredOn === today ? 1 : 0;
+      case 'topHalf':
+        return record && record.rank <= Math.ceil(record.totalRunners / 2)
+          ? 1
+          : 0;
+      case 'dash':
+        return 0;
+      case 'week3':
+      case 'week5':
+        return profile.stagesBySeason[String(season)] ?? 0;
+      case 'vote':
+        return voted ? 1 : 0;
+    }
+  };
+  return [...dailyQuests(today, QUEST_POOL), ...WEEKLY].map((q) => {
+    const claimed = (
+      profile.questClaims[questPeriod(q.scope, today, season)] ?? []
+    ).includes(q.id);
+    return { ...q, progress: Math.min(q.goal, progress(q.id)), claimed };
+  });
+};
+
+export const claimQuest = async (
+  deps: Deps,
+  questId: string
+): Promise<{ profile: Profile; quests: QuestState[]; message: string }> => {
+  const username = await requireUser(deps);
+  const today = toDateKey(deps.now());
+  const profile = await loadProfile(deps.store, username);
+  const quest = (await questStates(deps.store, profile, today)).find(
+    (q) => q.id === questId
+  );
+  if (!quest) throw new GameError('That quest is not on today’s list.', 404);
+  if (quest.claimed) throw new GameError('Already claimed.', 409);
+  if (quest.progress < quest.goal)
+    throw new GameError('Finish the quest first.', 409);
+  const { season } = dayInfo(today);
+  const period = questPeriod(quest.scope, today, season);
+  // Keep only today's and this week's claims.
+  const keep = new Set([today, `w${season}`]);
+  profile.questClaims = Object.fromEntries(
+    Object.entries(profile.questClaims).filter(([k]) => keep.has(k))
+  );
+  profile.questClaims[period] = [
+    ...(profile.questClaims[period] ?? []),
+    quest.id,
+  ];
+  profile.badges += quest.reward;
+  await saveProfile(deps.store, profile);
+  return {
+    profile,
+    quests: await questStates(deps.store, profile, today),
+    message: `Quest done: +${quest.reward} coins`,
   };
 };
 

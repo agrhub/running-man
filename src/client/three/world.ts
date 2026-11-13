@@ -171,6 +171,10 @@ export class RunWorld {
   private finishTurn = 0;
   private baseFov = 55;
   private frames = 0;
+  /** Adaptive quality: 0 full, 1 lower resolution, 2 also no shadows. */
+  private quality = 0;
+  private perfTime = 0;
+  private perfFrames = 0;
   private readonly bubbles = new Map<
     string,
     { sprite: THREE.Sprite; until: number }
@@ -316,6 +320,36 @@ export class RunWorld {
     this.resize();
   }
 
+  /**
+   * Watches the frame rate and steps quality down on slow phones: first a lower
+   * resolution, then no shadows. It never steps back up within a race.
+   */
+  private adapt(dt: number) {
+    if (this.quality >= 2 || dt <= 0) return;
+    this.perfTime += dt;
+    this.perfFrames += 1;
+    if (this.perfTime < 2.5) return;
+    const fps = this.perfFrames / this.perfTime;
+    this.perfTime = 0;
+    this.perfFrames = 0;
+    if (fps >= 42) return;
+    this.quality += 1;
+    if (this.quality === 1) {
+      this.renderer.setPixelRatio(1);
+      this.resize();
+    } else {
+      this.sun.castShadow = false;
+      this.renderer.shadowMap.enabled = false;
+      this.scene.traverse((o) => {
+        if (o instanceof THREE.Mesh) {
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          for (const m of mats) m.needsUpdate = true;
+        }
+      });
+    }
+    this.opts.canvas.dataset.quality = String(this.quality);
+  }
+
   private resize() {
     const { canvas } = this.opts;
     const w = canvas.clientWidth || 1;
@@ -370,6 +404,8 @@ export class RunWorld {
     if (this.disposed) return;
     const dt = Math.max(0, Math.min(0.5, t - this.lastT));
     this.lastT = t;
+    // Skip the first seconds: shaders compile and the city uploads then.
+    if (!this.opts.preview && t > 3) this.adapt(dt);
     const ease = 1 - Math.exp(-dt * 10);
 
     for (const p of positions) {

@@ -1,6 +1,14 @@
 import './index.css';
 
-import { StrictMode, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  StrictMode,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { createRoot } from 'react-dom/client';
 import { navigateToPost, showLoginPrompt, showToast } from '@devvit/web/client';
 import type {
@@ -28,7 +36,8 @@ import { Leaderboard } from './components/Leaderboard';
 import { LockerScreen } from './screens/LockerScreen';
 import { PlanScreen } from './screens/PlanScreen';
 import { ResultScreen } from './screens/ResultScreen';
-import { RunScreen, type RaceOutcome } from './screens/RunScreen';
+import type { RaceOutcome } from './screens/RunScreen';
+import { preloadWorld } from './three/load';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { CorralScreen } from './screens/CorralScreen';
 import { sfx } from './lib/sound';
@@ -54,6 +63,23 @@ type Screen =
   | 'closed';
 
 /** Screens shown with the tab bar; the race itself and registration stay full screen. */
+// The race screen carries three.js: it loads on demand, and is fetched early in idle time.
+const loadRunScreen = () =>
+  import('./screens/RunScreen').then((m) => ({ default: m.RunScreen }));
+const RunScreen = lazy(loadRunScreen);
+const preloadRace = () => {
+  preloadWorld();
+  void loadRunScreen().catch(() => undefined);
+};
+
+const Warming = () => (
+  <div className="grid h-full place-items-center">
+    <p className="font-display text-[22px] font-extrabold text-ink-soft">
+      Warming up…
+    </p>
+  </div>
+);
+
 const HUB: Screen[] = ['plan', 'result', 'locker', 'quests', 'play', 'friends'];
 const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop'];
 const tabOf = (s: Screen): Tab =>
@@ -108,6 +134,14 @@ export const App = () => {
   useEffect(() => {
     void load();
   }, [load]);
+  // Fetch the 3D race in idle time once the first screen is up.
+  useEffect(() => {
+    if (!data) return;
+    const idle =
+      window.requestIdleCallback ??
+      ((cb: () => void) => window.setTimeout(cb, 600));
+    idle(() => preloadRace());
+  }, [data]);
 
   const day = useMemo(() => (data ? dayInfo(data.dateKey) : null), [data]);
   useEffect(() => {
@@ -636,7 +670,8 @@ export const App = () => {
     }
   })();
 
-  if (!HUB.includes(screen)) return view;
+  if (!HUB.includes(screen))
+    return <Suspense fallback={<Warming />}>{view}</Suspense>;
   const guest = data.profile.username === 'guest';
   return (
     <div className="flex h-full flex-col">

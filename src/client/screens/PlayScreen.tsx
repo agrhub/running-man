@@ -5,40 +5,93 @@ import {
   DASH_MAX_ROUNDS,
   DASH_PAID_ROUNDS,
 } from '../../shared/dash';
+import {
+  ARCADE_MAX_REWARD,
+  ARCADE_MAX_ROUNDS,
+  ARCADE_PAID_ROUNDS,
+} from '../../shared/arcade';
 import { COIN } from '../../shared/economy';
+import { GAME_INFO, PLAY_GAMES } from '../lib/games';
 
 export type DashResult = { score: number; reward: number };
+export type { PlayGame } from '../lib/games';
+import type { PlayGame } from '../lib/games';
 
 type Props = {
   today: string;
   profile: Profile;
+  game: PlayGame;
   board: DashBoard | null;
   last: DashResult | null;
   busy: boolean;
+  onSelect: (game: PlayGame) => void;
   onPlay: () => void;
+};
+
+const dayOf = (p: Profile, g: PlayGame, today: string) => {
+  const d = g === 'dash' ? p.dash : p.arcade[g];
+  return d && d.date === today ? d : { plays: 0, best: 0 };
 };
 
 export const PlayScreen = ({
   today,
   profile,
+  game,
   board,
   last,
   busy,
+  onSelect,
   onPlay,
 }: Props) => {
   const guest = profile.username === 'guest';
-  const plays = profile.dash.date === today ? profile.dash.plays : 0;
-  const best = profile.dash.date === today ? profile.dash.best : 0;
-  const paidLeft = Math.max(0, DASH_PAID_ROUNDS - plays);
-  const left = DASH_MAX_ROUNDS - plays;
+  const info = GAME_INFO[game];
+  const { plays, best } = dayOf(profile, game, today);
+  const paid = game === 'dash' ? DASH_PAID_ROUNDS : ARCADE_PAID_ROUNDS;
+  const max = game === 'dash' ? DASH_MAX_ROUNDS : ARCADE_MAX_ROUNDS;
+  const reward = game === 'dash' ? DASH_MAX_REWARD : ARCADE_MAX_REWARD;
+  const paidLeft = Math.max(0, paid - plays);
+  const left = max - plays;
   return (
     <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
       <header className="flex items-baseline justify-between">
-        <h1 className="font-display text-[26px] font-extrabold">Snack Dash</h1>
+        <h1 className="font-display text-[26px] font-extrabold">Play</h1>
         <p className="font-display text-[18px] font-extrabold">
           {COIN} {profile.badges}
         </p>
       </header>
+
+      <div
+        className="grid grid-cols-2 gap-1.5"
+        role="tablist"
+        aria-label="Mini games"
+      >
+        {PLAY_GAMES.map((g) => {
+          const on = g === game;
+          const d = dayOf(profile, g, today);
+          return (
+            <button
+              key={g}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => onSelect(g)}
+              className={`flex items-center gap-2 rounded-2xl border-2 px-2 py-1.5 text-left ${on ? 'border-ink bg-white shadow-[0_3px_0_#2a2340]' : 'border-ink/25 bg-white/60'}`}
+            >
+              <span className="text-[24px]" aria-hidden>
+                {GAME_INFO[g].icon}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-display text-[15px] font-extrabold leading-tight">
+                  {GAME_INFO[g].name}
+                </span>
+                <span className="block text-[11px] font-bold text-ink-soft">
+                  {d.plays > 0 ? `best ${d.best} today` : 'not played today'}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {last && (
         <section
@@ -46,7 +99,7 @@ export const PlayScreen = ({
           aria-label="Your last round"
         >
           <p className="text-[13px] font-extrabold text-ink-soft">
-            Round {plays} done
+            {info.name}: round {plays} done
           </p>
           <p className="font-display text-[44px] font-extrabold leading-none text-[var(--accent)]">
             {last.score}
@@ -60,36 +113,25 @@ export const PlayScreen = ({
       )}
 
       <section className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-3">
-        <p className="text-[14px] leading-snug">
-          20 seconds, three lanes. Catch 🍬 🥤 💧 for 10 points and 🍰 for 30.
-          Dodge 🚧 (−20) and 💦. Five snacks in a row double your points, ten
-          triple them.
-        </p>
+        <h2 className="font-display text-[20px] font-extrabold leading-tight">
+          {info.icon} {info.name}
+        </h2>
+        <p className="mt-1 text-[14px] leading-snug">{info.rules}</p>
         <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
-          <div className="rounded-xl bg-[var(--sky)] py-1.5">
-            <p className="font-display text-[20px] font-extrabold leading-none tabular">
-              {best}
-            </p>
-            <p className="text-[11px] font-extrabold text-ink-soft">
-              best today
-            </p>
-          </div>
-          <div className="rounded-xl bg-[var(--sky)] py-1.5">
-            <p className="font-display text-[20px] font-extrabold leading-none tabular">
-              {paidLeft}
-            </p>
-            <p className="text-[11px] font-extrabold text-ink-soft">
-              paid rounds left
-            </p>
-          </div>
-          <div className="rounded-xl bg-[var(--sky)] py-1.5">
-            <p className="font-display text-[20px] font-extrabold leading-none tabular">
-              {left}
-            </p>
-            <p className="text-[11px] font-extrabold text-ink-soft">
-              rounds left
-            </p>
-          </div>
+          {[
+            [best, 'best today'],
+            [paidLeft, 'paid rounds left'],
+            [left, 'rounds left'],
+          ].map(([n, label]) => (
+            <div key={label} className="rounded-xl bg-[var(--sky)] py-1.5">
+              <p className="font-display text-[20px] font-extrabold leading-none tabular">
+                {n}
+              </p>
+              <p className="text-[11px] font-extrabold text-ink-soft">
+                {label}
+              </p>
+            </div>
+          ))}
         </div>
         <button
           type="button"
@@ -102,7 +144,7 @@ export const PlayScreen = ({
             : left <= 0
               ? 'Back tomorrow for more'
               : paidLeft > 0
-                ? `Play round ${plays + 1} (up to ${DASH_MAX_REWARD} ${COIN})`
+                ? `Play round ${plays + 1} (up to ${reward} ${COIN})`
                 : `Play round ${plays + 1} for fun`}
         </button>
         <p className="mt-1 text-[11px] text-ink-soft">
@@ -113,7 +155,7 @@ export const PlayScreen = ({
 
       <section
         className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2"
-        aria-label="Today’s best Snack Dash scores"
+        aria-label={`Today’s best ${info.name} scores`}
       >
         <h2 className="px-2 font-display text-[19px] font-extrabold">
           Today’s best

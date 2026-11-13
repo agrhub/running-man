@@ -26,6 +26,8 @@ import type {
   ClubResponse,
   ClubRow,
   MeResponse,
+  ArcadeResponse,
+  ArcadeBoardResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -44,8 +46,14 @@ import { CorralScreen } from './screens/CorralScreen';
 import { sfx } from './lib/sound';
 import { TabBar, type Tab } from './components/TabBar';
 import { QuestList, QuestsScreen } from './screens/QuestsScreen';
-import { PlayScreen, type DashResult } from './screens/PlayScreen';
+import {
+  PlayScreen,
+  type DashResult,
+  type PlayGame,
+} from './screens/PlayScreen';
 import { DashGame } from './screens/DashGame';
+import { ArcadeGame } from './screens/ArcadeGame';
+import type { ArcadeId } from '../shared/arcade';
 import { FriendsScreen } from './screens/FriendsScreen';
 import { MeScreen } from './screens/MeScreen';
 import { achievementById } from '../shared/achievements';
@@ -62,6 +70,7 @@ type Screen =
   | 'quests'
   | 'play'
   | 'dash'
+  | 'arcade'
   | 'friends'
   | 'me'
   | 'closed';
@@ -122,6 +131,7 @@ export const App = () => {
   const [justFinished, setJustFinished] = useState(false);
   const [dashBoard, setDashBoard] = useState<DashBoard | null>(null);
   const [dashLast, setDashLast] = useState<DashResult | null>(null);
+  const [playGame, setPlayGame] = useState<PlayGame>('dash');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [topClubs, setTopClubs] = useState<ClubRow[]>([]);
   const [meData, setMeData] = useState<MeResponse | null>(null);
@@ -385,10 +395,38 @@ export const App = () => {
     }
   };
 
-  const loadDashBoard = () =>
-    request<DashBoardResponse>('/dash')
+  const loadDashBoard = (game: PlayGame = playGame) =>
+    (game === 'dash'
+      ? request<DashBoardResponse>('/dash')
+      : request<ArcadeBoardResponse>(`/arcade?game=${game}`)
+    )
       .then((r) => setDashBoard(r.board))
       .catch(() => undefined);
+
+  const submitArcade = async (
+    game: ArcadeId,
+    round: number,
+    taps: number[]
+  ) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      const res = await request<ArcadeResponse>('/arcade', {
+        game,
+        round,
+        taps,
+        journeyId: data.journeyId,
+      });
+      patch({ profile: res.profile });
+      setDashBoard(res.board);
+      setDashLast({ score: res.score, reward: res.reward });
+    } catch (e) {
+      showToast(message(e));
+    } finally {
+      setBusy(false);
+      setScreen('play');
+    }
+  };
 
   const submitDash = async (round: number, moves: DashMove[]) => {
     if (!data) return;
@@ -663,15 +701,37 @@ export const App = () => {
           <PlayScreen
             today={data.today}
             profile={data.profile}
+            game={playGame}
             board={dashBoard}
             last={dashLast}
             busy={busy}
+            onSelect={(g) => {
+              setPlayGame(g);
+              setDashLast(null);
+              setDashBoard(null);
+              void loadDashBoard(g);
+            }}
             onPlay={() => {
               setDashLast(null);
-              setScreen('dash');
+              setScreen(playGame === 'dash' ? 'dash' : 'arcade');
             }}
           />
         );
+      case 'arcade': {
+        if (playGame === 'dash') return null;
+        const d = data.profile.arcade[playGame];
+        const round = d && d.date === data.today ? d.plays : 0;
+        return (
+          <ArcadeGame
+            game={playGame}
+            dateKey={data.today}
+            round={round}
+            look={data.profile.look}
+            bib={data.profile.bib}
+            onDone={(taps) => void submitArcade(playGame, round, taps)}
+          />
+        );
+      }
       case 'dash': {
         const round =
           data.profile.dash.date === data.today ? data.profile.dash.plays : 0;

@@ -20,7 +20,15 @@ import type {
   ClubResponse,
   AvatarsResponse,
   MeResponse,
+  ArcadeResponse,
+  ArcadeBoardResponse,
 } from '../../shared/api';
+import {
+  fetchCourse,
+  hurdleCourse,
+  rhythmCourse,
+  scoreFetch,
+} from '../../shared/arcade';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
 import { postTitle } from './game';
@@ -817,6 +825,62 @@ describe('game API', () => {
       { round: 0, moves: [] }
     );
     expect(next.status).toBe(200);
+  });
+
+  it('scores Hurdle Hop, Rhythm Steps and Pet Fetch on the server', async () => {
+    const day = '2026-11-12';
+    const jumps = hurdleCourse(day, 0).map((t) => t - 300);
+    const hop = await call<ArcadeResponse>(h.as('ana'), 'POST', '/arcade', {
+      game: 'hurdle',
+      round: 0,
+      taps: jumps,
+    });
+    expect(hop.status).toBe(200);
+    expect(hop.json.score).toBeGreaterThan(200);
+    expect(hop.json.reward).toBe(40);
+    expect(hop.json.profile.arcade.hurdle).toMatchObject({ plays: 1 });
+    expect(hop.json.board.rows[0]).toMatchObject({ username: 'ana' });
+
+    const again = await call(h, 'POST', '/arcade', {
+      game: 'hurdle',
+      round: 0,
+      taps: jumps,
+    });
+    expect(again.status).toBe(409);
+    const beat = await call<ArcadeResponse>(h, 'POST', '/arcade', {
+      game: 'rhythm',
+      round: 0,
+      taps: rhythmCourse(day, 0),
+    });
+    expect(beat.json.score).toBeGreaterThan(300);
+    const fetch = await call<ArcadeResponse>(h, 'POST', '/arcade', {
+      game: 'fetch',
+      round: 0,
+      taps: [700, 700, 700, 700, 700],
+    });
+    expect(fetch.status).toBe(200);
+    expect(fetch.json.score).toBe(
+      scoreFetch(fetchCourse(day, 0), [700, 700, 700, 700, 700]).score
+    );
+    expect(
+      (await call(h, 'POST', '/arcade', { game: 'golf', round: 0, taps: [] }))
+        .status
+    ).toBe(404);
+    expect(
+      (
+        await call(h, 'POST', '/arcade', {
+          game: 'rhythm',
+          round: 1,
+          taps: [9, 1],
+        })
+      ).status
+    ).toBe(400);
+    const board = await call<ArcadeBoardResponse>(
+      h,
+      'GET',
+      '/arcade?game=rhythm'
+    );
+    expect(board.json.board.mine?.username).toBe('ana');
   });
 
   it('adds friends, shows their day, and puts them first on the road', async () => {

@@ -32,6 +32,9 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
    run into you, and you **both fall and lose 4 seconds**, and the crash is written into both official times.
 5. **Share and come back.** Your result is a race bib with your rank. Share it to the comments, cheer another runner,
    keep your streak, and help the crew finish the city.
+6. **Between races.** The tab bar at the bottom has the rest of the game: **Quests** (daily check-in and quests),
+   **Play** (Snack Dash, a 20-second mini game), **Friends** (friends and running clubs) and the **Shop** (outfits,
+   pets and pet gear). Everything pays in coins 🪙.
 
 One counted run per person per day. A new stage opens at 00:00 UTC.
 
@@ -61,15 +64,31 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Cheat-proof:** the client sends only the plan and the lane changes. The server replays the whole race step by step
   (same course, same runners) and records the time it computes.
 - **Crew marathon:** every runner adds 6 km to the subreddit's goal of ten marathons (421.95 km) per city. When the crew
-  finishes, everyone who ran that week gets badges and the city's hat.
+  finishes, everyone who ran that week gets coins and the city's hat.
 - **A living world:** floor-scale buildings in each city's style, shops, street trees, park lawns and ponds, forest,
   zoo animals behind fences, rolling hills, a beach with sea, boats and umbrellas, desert dunes with a camel caravan,
   traffic on the cross streets that
   queues at the marshals and turns round, waving crowds, birds, balloons, a TV motorbike filming the leaders, confetti
   at the finish, and a landmark moment on every stage.
 - **Race bib result card:** rank, time, splits, streak and rewards on one screen, with share and cheer buttons.
-- **Locker:** 21 cosmetic items and 4 pets that run with you (corgi, tabby cat, shiba, penguin), earned by streaks,
-  city finishes and weather, or bought with badges. Cosmetics never change race times.
+- **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time) and a Friends
+  board, each with the players' own Reddit avatars.
+- **Coins and the shop:** coins come from races, the check-in, quests and Snack Dash. The shop has 33 outfit items,
+  7 pets (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and pet gear (collar, bandana, bow, cap, shades,
+  crown) drawn on every pet. Some items are earned by streaks, city finishes and weather instead. Nothing you buy
+  changes race times.
+- **Daily check-in and quests:** a 7-day check-in calendar (20 to 150 coins), three daily quests that are the same
+  for everyone (run today, grab snacks, high-five fans, finish without a crash…) and weekly quests. The server checks
+  every quest against what really happened.
+- **Snack Dash:** a 20-second mini game on three lanes: catch snacks, dodge cones, build a combo. Every round's
+  course comes from the date and the server replays your lane changes to score it. The first three rounds a day pay
+  up to 50 coins each, with a daily top five.
+- **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
+  who ran today join your road first with their own tag colour.
+- **Running clubs (group runs):** start a club (named from word lists, so nothing to moderate) and invite others with
+  a 6-character code. Clubmates share your road with purple tags, and clubs compete on weekly km.
+- **Reddit avatars:** each player's own Reddit avatar appears next to their name, looked up by the server and cached
+  for a day, with a coloured initial when there is none.
 - **Reddit-native:** one post per day created by the scheduler with a pinned strategy thread, result sharing as a
   comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.
 
@@ -97,7 +116,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 61 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 73 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -107,7 +126,8 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (30 checks: register, corral, steering, sound, chat, result, vote, replay, locker; needs Playwright for Python):
+Browser end-to-end check (41 checks: register, check-in, corral, steering, sound, chat, result, vote, weekly and
+friends boards, quests, Snack Dash, friends, clubs, shop, replay; needs Playwright for Python):
 
 ```bash
 npm run dev:local

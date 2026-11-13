@@ -82,19 +82,55 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 
 - **Crew bar** on the feed card and the plan screen: "Crew goal: 10 marathons in Tokyo, 306 / 422 km".
 - **A season is one city:** seven days, seven stages. If the crew finishes early, the remaining stages stay open.
-- **City finish:** everyone who ran that week gets 200 badges and the city's hat (Tokyo hachimaki, Paris beret,
+- **City finish:** everyone who ran that week gets 200 coins and the city's hat (Tokyo hachimaki, Paris beret,
   Hanoi leaf hat, Dubai sun visor). Runners get a "🏅 Tokyo Finisher" user flair.
 - **Real runners on the road:** up to 12 of today's runners share the road with you.
 - **The comments are the strategy room:** each stage post pins a "Today's strategy?" comment, and sharing a result
   posts a compact result card as a comment.
-- **Cheers:** one free cheer a day for another runner (+5 badges to you).
+- **Cheers:** one free cheer a day for another runner (+5 coins to you).
 - **Next-city vote:** on the result screen, everyone who ran a stage that week gets one vote for the next city to
   build: London, New York, Seoul or Rio. Votes are counted on the server, one per runner per week, with live
   percentages and the city in the lead.
+- **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time, crash penalties
+  included) and a Friends board, all with each player's own Reddit avatar.
+- **Friends:** add runners by Reddit username or from today's runners (up to 50). Their day shows on the Friends tab
+  (time, rank, streak), friends who ran today join your road first with teal tags, and the result screen has a
+  Friends board.
+- **Running clubs (group runs):** start a club, named from two word lists ("Speedy Pandas") so there is no free text
+  to moderate, and share its 6-character join code; up to 20 members, one club each. Clubmates who ran today share
+  your road with purple tags. A club's week is the sum of its members' stages, and the top clubs of the week are
+  ranked by km. When the owner leaves, the next member takes over.
+
+## Between races: the tab bar
+
+The game view has a bottom tab bar: **Race** (plan or result), **Quests**, **Play**, **Friends** and **Shop**. The
+race itself, registration and the corral stay full screen. A dot on Quests means a check-in or a finished quest is
+waiting.
+
+### Daily check-in
+
+A 7-day calendar: 20, 30, 40, 50, 60, 80 and 150 coins on consecutive UTC days. After day 7, or after a missed day,
+it starts again at day 1.
+
+### Quests
+
+Three daily quests, the same for everyone and picked by the date: always "Run today's stage", plus two of grab 3
+snacks, high-five 2 fans, finish without a crash, finish without a cone, quick chat, cheer, share, pet treat, top half
+or a round of Snack Dash. Weekly quests: run 3 stages (150), run 5 stages (300), vote for the next city (50). The
+server works out progress from what really happened (the run record, cheers, votes, mini game rounds), and each quest
+pays once.
+
+### Snack Dash (mini game)
+
+Twenty seconds on three lanes, drawn on a 2D canvas: candy, soda and water are worth 10, cake 30, a cone costs 20 and
+a puddle breaks the combo. Five snacks in a row double the points, ten triple them; a missed snack or a hit resets the
+combo. Each round's course comes from the date and the round number, so everyone plays the same rounds in the same
+order, and the server replays the lane changes to score them. The first three rounds a day pay up to 50 coins
+(score ÷ 6); up to ten rounds a day in all, for the daily top five.
 
 ## Runner, outfits and pets
 
-One low-poly chibi model with swappable slots, plus four pets with their own animations.
+One low-poly chibi model with swappable slots, plus seven pets with their own animations and gear of their own.
 
 - Big head, short body. Hair styles, top, hat, shoes, accessory and a running trail.
 - Animations: run, tired run, fall and get up, finish celebration, idle sway.
@@ -102,34 +138,46 @@ One low-poly chibi model with swappable slots, plus four pets with their own ani
 
 ### Items
 
-| Item                | Slot      | How to get it              |
-| ------------------- | --------- | -------------------------- |
-| Five coloured tees  | Top       | Free                       |
-| Clear Raincoat      | Top       | Run a rainy stage          |
-| Finisher Tee        | Top       | Run 5 of a city's 7 stages |
-| Running Cap         | Hat       | 400 badges                 |
-| Tokyo Hachimaki     | Hat       | Crew finishes Tokyo        |
-| Paris Beret         | Hat       | Crew finishes Paris        |
-| Hanoi Leaf Hat      | Hat       | Crew finishes Hanoi        |
-| Dubai Sun Visor     | Hat       | Crew finishes Dubai        |
-| Finish-Line Top Hat | Hat       | 14-day streak              |
-| Daily Runners       | Shoes     | Free                       |
-| Kumo Glow Runners   | Shoes     | 600 badges                 |
-| Striped Headband    | Accessory | 3-day streak               |
-| Sport Shades        | Accessory | 300 badges                 |
-| Wool Scarf          | Accessory | 500 badges                 |
-| Sakura Trail        | Trail     | Top 10% of a stage         |
-| Golden Leaves       | Trail     | 7-day streak               |
-| Sparkle Trail       | Trail     | 900 badges                 |
+| Item                     | Slot      | How to get it              |
+| ------------------------ | --------- | -------------------------- |
+| Five coloured tees       | Top       | Free                       |
+| Clear Raincoat           | Top       | Run a rainy stage          |
+| Finisher Tee             | Top       | Run 5 of a city's 7 stages |
+| Running Cap              | Hat       | 400 coins                  |
+| Tokyo Hachimaki          | Hat       | Crew finishes Tokyo        |
+| Paris Beret              | Hat       | Crew finishes Paris        |
+| Hanoi Leaf Hat           | Hat       | Crew finishes Hanoi        |
+| Dubai Sun Visor          | Hat       | Crew finishes Dubai        |
+| Finish-Line Top Hat      | Hat       | 14-day streak              |
+| Daily Runners            | Shoes     | Free                       |
+| Kumo Glow Runners        | Shoes     | 600 coins                  |
+| Striped Headband         | Accessory | 3-day streak               |
+| Sport Shades             | Accessory | 300 coins                  |
+| Wool Scarf               | Accessory | 500 coins                  |
+| Sakura Trail             | Trail     | Top 10% of a stage         |
+| Golden Leaves            | Trail     | 7-day streak               |
+| Sparkle Trail            | Trail     | 900 coins                  |
+| More tees and shoes      | Top/Shoes | 150 to 250 coins           |
+| Navy Cap                 | Hat       | 300 coins                  |
+| Bunny Ears               | Hat       | 550 coins                  |
+| Party Crown              | Hat       | 1,200 coins                |
+| Rose Shades, Mint Scarf  | Accessory | 350 / 450 coins            |
+| Mint Bubbles, Pink Puffs | Trail     | 700 / 800 coins            |
 
 ### Pets
 
 | Pet       | How it runs                             | How to get it       |
 | --------- | --------------------------------------- | ------------------- |
 | Corgi     | Bounces along, barks at every km marker | Free                |
-| Tabby Cat | Sprints, stops, stares at you, sprints  | 800 badges          |
+| Tabby Cat | Sprints, stops, stares at you, sprints  | 800 coins           |
 | Shiba     | Very serious about pacing, curly tail   | Crew finishes Tokyo |
 | Penguin   | Waddles uphill, belly-slides downhill   | 14-day streak       |
+| Bunny     | Hops, ears flop on every bounce         | 600 coins           |
+| Fox       | Sly sprinter with a big fluffy tail     | 1,000 coins         |
+| Panda     | Rolls along, in no hurry at all         | 1,500 coins         |
+
+**Pet gear** (one at a time, worn by whichever pet runs with you): Bell Collar 100, Bandana 150, Big Bow 200, Tiny
+Cap 300, Pet Shades 350, Tiny Crown 900 coins.
 
 - Pets and outfits **never change race times**, so the leaderboard stays fair.
 - Light care loop: pet or feed your buddy after a stage. Skip a few days and it is only a little sad.
@@ -137,17 +185,22 @@ One low-poly chibi model with swappable slots, plus four pets with their own ani
 
 ## Economy
 
-One currency, badges, earned only by playing.
+One currency, coins 🪙, earned only by playing. (Profiles store it under the older name `badges`.)
 
-| Action                               | Badges                          |
+| Action                               | Coins                           |
 | ------------------------------------ | ------------------------------- |
 | Finish a stage                       | 50                              |
 | Rank: top 10% / top 50%              | +50 / +20                       |
 | Streak                               | +10 per streak day, at most +70 |
 | Crew finishes the city (each runner) | 200                             |
 | Cheer another runner                 | 5                               |
+| Daily check-in (day 1 to 7)          | 20, 30, 40, 50, 60, 80, 150     |
+| Daily quests                         | 20 to 60 each                   |
+| Weekly quests                        | 50 to 300 each                  |
+| Snack Dash (first 3 rounds a day)    | up to 50 each                   |
 
-A regular player earns 100 to 150 badges a day and can buy a mid-priced item in 3 to 5 days.
+A regular player who runs, checks in and does the quests earns about 250 to 400 coins a day and can buy a
+mid-priced item every day or two; the crown and the panda take about a week.
 
 **After the hackathon:** Reddit Developer Funds reward daily engagement, which streaks and seasons fit. Premium
 cosmetics through Reddit's payments once eligible. Hard rules: no loot boxes, no paid speed or stamina, no payments
@@ -213,19 +266,25 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 
 ### Redis keys
 
-| Key               | Type       | Contents                                                            |
-| ----------------- | ---------- | ------------------------------------------------------------------- |
-| `user:{name}`     | string     | Profile: badges, streak, look, items, pet, bib                      |
-| `lb:{date}`       | sorted set | Everyone's official time that day                                   |
-| `tracks:{date}`   | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
-| `run:{date}:…`    | string     | Each runner's full record, including crashes                        |
-| `crew:{season}`   | hash       | Crew kilometres and finish state for that city's week               |
-| `cheers:{date}`   | hash       | Cheers each runner received that day                                |
-| `post:{postId}`   | string     | Which day a post belongs to                                         |
-| `bibs`            | counter    | The next bib number                                                 |
-| `day:{date}:post` | string     | The stage post for that day                                         |
-| `votes:{season}`  | hash       | Next-city vote counts for that week                                 |
-| `voters:{season}` | hash       | Who voted for which city that week (one vote each)                  |
+| Key                 | Type       | Contents                                                            |
+| ------------------- | ---------- | ------------------------------------------------------------------- |
+| `user:{name}`       | string     | Profile: badges, streak, look, items, pet, bib                      |
+| `lb:{date}`         | sorted set | Everyone's official time that day                                   |
+| `tracks:{date}`     | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
+| `run:{date}:…`      | string     | Each runner's full record, including crashes                        |
+| `crew:{season}`     | hash       | Crew kilometres and finish state for that city's week               |
+| `cheers:{date}`     | hash       | Cheers each runner received that day                                |
+| `post:{postId}`     | string     | Which day a post belongs to                                         |
+| `bibs`              | counter    | The next bib number                                                 |
+| `day:{date}:post`   | string     | The stage post for that day                                         |
+| `votes:{season}`    | hash       | Next-city vote counts for that week                                 |
+| `voters:{season}`   | hash       | Who voted for which city that week (one vote each)                  |
+| `week:{season}`     | hash       | Stages and total seconds this week per runner                       |
+| `weeklb:{season}`   | sorted set | This week's standings                                               |
+| `dashlb:{date}`     | sorted set | Best Snack Dash score per runner that day                           |
+| `club:{code}`       | string     | A running club: name, owner, members                                |
+| `clubweek:{season}` | sorted set | Clubs ranked by stages this week                                    |
+| `avatars`           | hash       | Reddit avatar URLs, refreshed once a day                            |
 
 ### Stage simulation (deterministic, runs on client and server)
 

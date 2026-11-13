@@ -29,7 +29,8 @@ import type {
   ArcadeResponse,
   ArcadeBoardResponse,
 } from '../shared/api';
-import { dayInfo } from '../shared/content';
+import { dayInfo, isTriathlon } from '../shared/content';
+import { simulate } from '../shared/sim';
 import type { PetId } from '../shared/economy';
 import type { NextCityId } from '../shared/vote';
 import type { Plan } from '../shared/sim';
@@ -132,6 +133,7 @@ export const App = () => {
   const [dashBoard, setDashBoard] = useState<DashBoard | null>(null);
   const [dashLast, setDashLast] = useState<DashResult | null>(null);
   const [playGame, setPlayGame] = useState<PlayGame>('dash');
+  const [guess, setGuess] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [topClubs, setTopClubs] = useState<ClubRow[]>([]);
   const [meData, setMeData] = useState<MeResponse | null>(null);
@@ -243,6 +245,7 @@ export const App = () => {
         moves: outcome.moves,
         rivals: outcome.rivals,
         chat: outcome.chat,
+        guess,
         journeyId: data.journeyId,
       });
       patch({
@@ -597,7 +600,21 @@ export const App = () => {
             day={day}
             profile={data.profile}
             runners={data.runners}
-            onGo={() => setScreen('run')}
+            projected={
+              livePlan
+                ? simulate(
+                    day.stage,
+                    day.weather.id,
+                    livePlan,
+                    day.time,
+                    isTriathlon(day)
+                  ).totalSeconds
+                : 0
+            }
+            onGo={(g) => {
+              setGuess(g);
+              setScreen('run');
+            }}
             onBack={() => setScreen('plan')}
           />
         );

@@ -492,6 +492,47 @@ describe('game API', () => {
     expect(third.json.earned).toEqual([]);
   });
 
+  it('pays for calling your finish time, within limits', async () => {
+    const date = '2026-11-12';
+    const plan = planFor(date);
+    const info = dayInfo(date);
+    const projected = simulate(
+      info.stage,
+      info.weather.id,
+      plan,
+      info.time
+    ).totalSeconds;
+    // A first run to learn the real time on an empty road (no rivals, no steering).
+    const probe = await call<RunResponse>(h.as('seer'), 'POST', '/run', {
+      plan,
+      guess: Math.round(projected),
+    });
+    const actual = probe.json.run.seconds;
+    expect(probe.json.run.guess?.seconds).toBe(Math.round(projected));
+    const off = Math.abs(actual - Math.round(projected));
+    expect(probe.json.run.reward.guess ?? 0).toBe(
+      off <= 3 ? 60 : off <= 10 ? 30 : 0
+    );
+
+    // Same plan, same empty road for the next runner: a perfect call.
+    const next = await call<RunResponse>(h.as('oracle'), 'POST', '/run', {
+      plan,
+      rivals: [],
+      guess: Math.round(actual),
+    });
+    if (Math.abs(next.json.run.seconds - Math.round(actual)) <= 3) {
+      expect(next.json.run.reward.guess).toBe(60);
+      expect(next.json.run.achieved).toContain('called-it');
+    }
+    // Guesses far from the plan are ignored.
+    const wild = await call<RunResponse>(h.as('wild'), 'POST', '/run', {
+      plan,
+      guess: 99999,
+    });
+    expect(wild.json.run.guess).toBeNull();
+    expect(wild.json.run.reward.guess).toBeUndefined();
+  });
+
   it('rejects invalid plans', async () => {
     const { status } = await call(h, 'POST', '/run', {
       plan: { paces: ['push'], drinks: [] },

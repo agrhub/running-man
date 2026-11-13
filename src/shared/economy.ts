@@ -623,10 +623,30 @@ export type RewardBreakdown = {
   crew: number;
   /** Extra coins on the Christmas Run. */
   holiday?: number;
+  /** Coins for calling your finish time. */
+  guess?: number;
   total: number;
 };
 
 export const FINISH_REWARD = 50;
+
+/**
+ * Call your time: guess your finish in the corral. Within 10 seconds pays 30
+ * coins, within 3 seconds 60. Guesses are whole seconds within 3 minutes of the
+ * plan's projection, so nobody can blanket every answer.
+ */
+export const GUESS_WINDOW = 180;
+export const guessReward = (guess: number, actual: number): number => {
+  const off = Math.abs(actual - guess);
+  return off <= 3 ? 60 : off <= 10 ? 30 : 0;
+};
+export const isValidGuess = (
+  guess: unknown,
+  projected: number
+): guess is number =>
+  typeof guess === 'number' &&
+  Number.isInteger(guess) &&
+  Math.abs(guess - projected) <= GUESS_WINDOW;
 export const CREW_FINISH_REWARD = 200;
 export const CHEER_REWARD = 5;
 

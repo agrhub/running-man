@@ -21,6 +21,8 @@ export type RunnerSummary = {
   friends: number;
   holidayRun: boolean;
   dashBest: number;
+  /** Finish-time guesses within 3 seconds. */
+  calledIt: number;
 };
 
 export type Achievement = {
@@ -136,6 +138,15 @@ export const ACHIEVEMENTS: Achievement[] = [
     'Add 3 friends',
     3,
     (s) => s.friends
+  ),
+  a(
+    'called-it',
+    '🔮',
+    'Called It',
+    'Guess your time within 3 seconds',
+    1,
+    (s) => s.calledIt,
+    100
   ),
   a('snow-runner', '❄️', 'Snow Runner', 'Run a stage in December', 1, (s) =>
     s.holidayRun ? 1 : 0

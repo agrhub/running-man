@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import type { Profile, RunnerTrack } from '../../shared/api';
+import { GUESS_WINDOW } from '../../shared/economy';
+import { formatTime } from '../../shared/sim';
 import { Avatar } from '../components/Avatar';
 import type { DayInfo } from '../../shared/content';
 import type { Lane } from '../../shared/course';
@@ -9,7 +12,9 @@ type Props = {
   day: DayInfo;
   profile: Profile;
   runners: RunnerTrack[];
-  onGo: () => void;
+  /** The plan's projected finish time, before steering and crashes. */
+  projected: number;
+  onGo: (guess: number) => void;
   onBack: () => void;
 };
 
@@ -27,9 +32,18 @@ export const CorralScreen = ({
   day,
   profile,
   runners,
+  projected,
   onGo,
   onBack,
 }: Props) => {
+  const [guess, setGuess] = useState(Math.round(projected));
+  const nudge = (d: number) =>
+    setGuess((g) =>
+      Math.max(
+        Math.round(projected) - GUESS_WINDOW,
+        Math.min(Math.round(projected) + GUESS_WINDOW, g + d)
+      )
+    );
   const lane = startLane(profile.username);
   const field = runners.length;
   return (
@@ -98,6 +112,49 @@ export const CorralScreen = ({
           </section>
         )}
 
+        <section
+          className="mt-3 rounded-2xl border-2 border-ink bg-white/85 px-3 py-2"
+          aria-label="Call your time"
+        >
+          <h2 className="text-[13px] font-extrabold">🔮 Call your time</h2>
+          <p className="text-[12px] leading-snug text-ink-soft">
+            Your plan says {formatTime(projected)}. Snacks, cones and crashes
+            will change it: guess your finish. Within 10 s pays {30} 🪙, within
+            3 s pays {60} 🪙.
+          </p>
+          <div className="mt-1.5 flex items-center justify-center gap-1.5">
+            {[-30, -5].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => nudge(d)}
+                className="chunky rounded-xl bg-white px-2.5 py-1 text-[13px] font-extrabold"
+                aria-label={`${-d} seconds faster`}
+              >
+                {d}s
+              </button>
+            ))}
+            <output
+              className="w-[92px] text-center font-display text-[28px] font-extrabold tabular"
+              aria-live="polite"
+              aria-label="Your guess"
+            >
+              {formatTime(guess)}
+            </output>
+            {[5, 30].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => nudge(d)}
+                className="chunky rounded-xl bg-white px-2.5 py-1 text-[13px] font-extrabold"
+                aria-label={`${d} seconds slower`}
+              >
+                +{d}s
+              </button>
+            ))}
+          </div>
+        </section>
+
         <ul className="mt-3 flex flex-col gap-1 text-[13px]">
           <li>◀ ▶ Swipe or tap to change lanes.</li>
           <li>
@@ -111,7 +168,7 @@ export const CorralScreen = ({
       <div className="px-4 pt-2 pb-4">
         <button
           type="button"
-          onClick={onGo}
+          onClick={() => onGo(guess)}
           className="chunky w-full rounded-2xl bg-[var(--accent)] py-3 font-display text-[22px] font-extrabold text-white"
         >
           Line up at the start

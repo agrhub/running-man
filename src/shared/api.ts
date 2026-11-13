@@ -74,6 +74,8 @@ export type RunnerStats = {
   chats: number;
   bestRank: number | null;
   dashBest: number;
+  /** Guesses within 3 seconds. */
+  calledIt?: number;
 };
 
 /** One run in a runner's history. */
@@ -163,6 +165,8 @@ export type RunRecord = {
   shared: boolean;
   /** Achievements this run completed. */
   achieved?: string[];
+  /** The finish-time guess and how far off it was. */
+  guess?: { seconds: number; off: number } | null;
 };
 
 /** What moderators can switch off for their subreddit (all on by default). */
@@ -243,6 +247,8 @@ export type RunRequest = {
   /** Usernames of the runners on the road, in the order the client raced them. */
   rivals: string[];
   chat?: Chat[];
+  /** The runner's guess of their finish time, in whole seconds. */
+  guess?: number | null;
   journeyId?: string | null;
 };
 

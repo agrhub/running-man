@@ -21,6 +21,7 @@ const empty: RunnerSummary = {
   friends: 0,
   holidayRun: false,
   dashBest: 0,
+  calledIt: 0,
 };
 
 describe('achievements', () => {

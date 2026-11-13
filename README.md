@@ -16,6 +16,10 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 | ------------------------------------------- | --------------------------------------------- | ----------------------------------------------- | --------------------------------------------- |
 | ![Chat](docs/screenshots/10-quick-chat.png) | ![Beach](docs/screenshots/11-beach-dubai.png) | ![Desert](docs/screenshots/12-desert-dubai.png) | ![Result](docs/screenshots/06-result-bib.png) |
 
+| Quests                                            | Snack Dash                                        | Friends and club                                 | Shop                                       |
+| ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ------------------------------------------ |
+| ![Quests](docs/screenshots/15-checkin-quests.png) | ![Snack Dash](docs/screenshots/16-snack-dash.png) | ![Friends](docs/screenshots/17-friends-club.png) | ![Shop](docs/screenshots/07-shop-pets.png) |
+
 ## How to play
 
 1. **Make your runner.** The first time you open the game you pick skin, hair style and colour, a shirt and a running

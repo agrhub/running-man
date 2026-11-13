@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Avatar } from './Avatar';
-import type { ClubRow, ClubView, Profile } from '../../shared/api';
+import type { ClubRow, ClubView, Profile, RelayRow } from '../../shared/api';
 import { CLUB_ADJECTIVES, CLUB_NOUNS, clubName } from '../../shared/club';
 import { KM_PER_STAGE } from '../../shared/content';
 import { formatTime } from '../../shared/sim';
@@ -9,6 +9,7 @@ type Props = {
   profile: Profile;
   club: ClubView | null;
   top: ClubRow[];
+  relays?: RelayRow[];
   busy: boolean;
   onCreate: (adjective: number, noun: number) => void;
   onJoin: (code: string) => void;
@@ -78,6 +79,53 @@ export const ClubSection = (p: Props) => {
               </li>
             ))}
           </ul>
+          <section
+            className="mt-2 rounded-xl bg-[var(--sky)] px-2 py-1.5"
+            aria-label="Today’s relay"
+          >
+            <p className="flex items-baseline justify-between text-[13px] font-extrabold">
+              <span>🤝 Today’s relay</span>
+              <span className="font-display tabular">
+                {p.club.relay.total !== null
+                  ? `${formatTime(p.club.relay.total)} · #${p.club.relay.rank}`
+                  : `${p.club.relay.legs.length} of 3 legs`}
+              </span>
+            </p>
+            <ol className="mt-1 grid grid-cols-3 gap-1">
+              {[0, 1, 2].map((i) => {
+                const leg = p.club?.relay.legs[i];
+                return (
+                  <li
+                    key={i}
+                    className={`flex flex-col items-center rounded-lg px-1 py-1 text-center ${leg ? 'bg-white' : 'border-2 border-dashed border-ink/25'}`}
+                  >
+                    <span className="text-[10px] font-extrabold text-ink-soft">
+                      Leg {i + 1}
+                    </span>
+                    {leg ? (
+                      <>
+                        <Avatar name={leg.username} size={22} />
+                        <span className="w-full truncate text-[11px] font-bold">
+                          u/{leg.username}
+                        </span>
+                        <span className="font-display text-[13px] font-semibold tabular">
+                          {formatTime(leg.seconds)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="py-2 text-[11px] text-ink-soft">
+                        open
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+            <p className="mt-1 text-[11px] text-ink-soft">
+              The first three clubmates to run each day are the relay. When the
+              third leg finishes, all three get 25 coins.
+            </p>
+          </section>
           <p className="mt-1 text-[11px] text-ink-soft">
             Clubmates who ran today join your road with purple tags. Share the
             code in the comments to invite people.
@@ -148,6 +196,33 @@ export const ClubSection = (p: Props) => {
               Join
             </button>
           </form>
+        </section>
+      )}
+
+      {(p.relays ?? []).length > 0 && (
+        <section
+          className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2"
+          aria-label="Fastest relays today"
+        >
+          <h2 className="px-2 font-display text-[17px] font-extrabold">
+            Fastest relays today
+          </h2>
+          <ol className="mt-1 flex flex-col gap-1">
+            {(p.relays ?? []).map((r) => (
+              <li
+                key={r.code}
+                className={`flex items-center gap-2 rounded-xl px-2 py-1 text-[14px] ${r.code === p.club?.code ? 'bg-[var(--sky)] font-extrabold' : ''}`}
+              >
+                <span className="w-7 text-center font-display font-extrabold">
+                  {r.rank}
+                </span>
+                <span className="flex-1 truncate">{r.name}</span>
+                <span className="font-display font-semibold tabular">
+                  {formatTime(r.total)}
+                </span>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

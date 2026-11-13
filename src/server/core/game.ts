@@ -99,6 +99,9 @@ import {
 } from '../../shared/sim';
 import type {
   CrewProgress,
+  ClubRelay,
+  RelayLeg,
+  RelayRow,
   DayRecap,
   GameSettings,
   HistoryRow,
@@ -1051,6 +1054,16 @@ export const run = async (
     await readHistory(store, username)
   );
 
+  // Your run is a leg of your club's relay if fewer than three clubmates ran before you.
+  const relayClub = await loadClub(store, profile.club);
+  const relay = relayClub
+    ? await runRelayLeg(store, relayClub, dateKey, profile, result.totalSeconds)
+    : null;
+  if (relay?.coins) {
+    reward.relay = relay.coins;
+    reward.total += relay.coins;
+  }
+
   const record: RunRecord = {
     dateKey,
     seconds: result.totalSeconds,
@@ -1072,6 +1085,7 @@ export const run = async (
     shared: false,
     ...(achieved.length ? { achieved } : {}),
     guess,
+    relay,
   };
 
   await Promise.all([
@@ -1571,6 +1585,92 @@ const updateClubWeek = async (store: Store, club: Club, today: string) => {
   });
 };
 
+export const RELAY_LEGS = 3;
+export const RELAY_REWARD = 25;
+
+const relayOf = async (
+  store: Store,
+  code: string,
+  dateKey: string
+): Promise<RelayLeg[]> =>
+  parse<RelayLeg[]>(await store.hGet(keys.relay(dateKey), code)) ?? [];
+
+/**
+ * The club relay: the first three clubmates to run each day are its legs. When
+ * the third leg finishes, the relay's total time goes on today's relay board
+ * and every leg runner gets coins.
+ */
+const runRelayLeg = async (
+  store: Store,
+  club: Club,
+  dateKey: string,
+  runner: Profile,
+  seconds: number
+): Promise<{ leg: number; done: boolean; coins: number } | null> => {
+  const legs = await relayOf(store, club.code, dateKey);
+  if (
+    legs.length >= RELAY_LEGS ||
+    legs.some((l) => l.username === runner.username)
+  )
+    return null;
+  legs.push({ username: runner.username, seconds });
+  await store.hSet(keys.relay(dateKey), { [club.code]: JSON.stringify(legs) });
+  if (legs.length < RELAY_LEGS)
+    return { leg: legs.length, done: false, coins: 0 };
+  const total = Math.round(legs.reduce((t, l) => t + l.seconds, 0) * 10) / 10;
+  await store.zAdd(keys.relayBoard(dateKey), {
+    member: club.code,
+    score: total,
+  });
+  // The runner finishing the relay is saved by the caller; pay the other legs here.
+  for (const l of legs) {
+    if (l.username === runner.username) continue;
+    const p = await loadProfile(store, l.username);
+    p.badges += RELAY_REWARD;
+    await saveProfile(store, p);
+  }
+  runner.badges += RELAY_REWARD;
+  return { leg: legs.length, done: true, coins: RELAY_REWARD };
+};
+
+const relayView = async (
+  store: Store,
+  code: string,
+  dateKey: string
+): Promise<ClubRelay> => {
+  const legs = await relayOf(store, code, dateKey);
+  const [total, rank] = await Promise.all([
+    store.zScore(keys.relayBoard(dateKey), code),
+    store.zRank(keys.relayBoard(dateKey), code),
+  ]);
+  return {
+    legs,
+    total: total ?? null,
+    rank: rank === undefined ? null : rank + 1,
+  };
+};
+
+export const topRelays = async (
+  store: Store,
+  dateKey: string
+): Promise<RelayRow[]> => {
+  const rows = await store.zRange(keys.relayBoard(dateKey), 0, 4, {
+    by: 'rank',
+  });
+  const out: RelayRow[] = [];
+  for (const [i, r] of rows.entries()) {
+    const club = await loadClub(store, r.member);
+    if (club)
+      out.push({
+        rank: i + 1,
+        code: r.member,
+        name: club.name,
+        total: r.score,
+      });
+  }
+  return out;
+};
+
 export const clubView = async (
   store: Store,
   code: string | null,
@@ -1599,6 +1699,7 @@ export const clubView = async (
     owner: club.owner,
     members,
     weekStages: total === undefined ? 0 : -total,
+    relay: await relayView(store, club.code, today),
   };
 };
 
@@ -1622,6 +1723,7 @@ const clubResponse = async (deps: Deps, profile: Profile, message?: string) => {
   return {
     club: await clubView(deps.store, profile.club, today),
     top: await topClubs(deps.store, today),
+    relays: await topRelays(deps.store, today),
     profile,
     ...(message ? { message } : {}),
   };

@@ -25,6 +25,10 @@ export const keys = {
   club: (code: string) => `club:${code}`,
   /** Clubs ranked by stages run this week (stored negative). */
   clubWeek: (season: number) => `clubweek:${season}`,
+  /** Today's relay legs per club: code -> legs. */
+  relay: (dateKey: string) => `relay:${dateKey}`,
+  /** Today's finished relays, by total time. */
+  relayBoard: (dateKey: string) => `relaylb:${dateKey}`,
   /** Best Snack Dash score per runner that day (stored negative: lowest rank is best). */
   dashBoard: (dateKey: string) => `dashlb:${dateKey}`,
   /** Best score per runner that day in Hurdle Hop, Rhythm Steps or Pet Fetch. */

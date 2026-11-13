@@ -97,6 +97,7 @@ export const ResultScreen = (p: Props) => {
     [`${run.streak}-day streak`, run.reward.streak],
     ['Crew finished the city', run.reward.crew],
     ['🎄 Christmas Run bonus', run.reward.holiday ?? 0],
+    ['🤝 Club relay complete', run.reward.relay ?? 0],
     [
       `🔮 Called your time (${run.guess?.off ?? 0}s off)`,
       run.reward.guess ?? 0,
@@ -184,6 +185,12 @@ export const ResultScreen = (p: Props) => {
                 </li>
               ))}
           </ul>
+          {run.relay && !run.relay.done && (
+            <p className="mt-1 text-[13px] font-bold">
+              🤝 You ran leg {run.relay.leg} of your club’s relay.{' '}
+              {3 - run.relay.leg} more to go today.
+            </p>
+          )}
           {run.guess && !run.reward.guess && (
             <p className="mt-1 text-[13px] text-ink-soft">
               🔮 You guessed {formatTime(run.guess.seconds)}: {run.guess.off}s

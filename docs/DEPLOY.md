@@ -6,8 +6,8 @@ The hackathon wants an **uploaded** app, not a published one: never run `devvit 
 ## What you need
 
 - Node 22 or newer (Devvit recommends Node 24) and npm.
-- A Reddit account that will own the app. The app name `running-man` is claimed by the first account that
-  uploads it; if it is already taken, change `name` in `devvit.json` (lowercase letters, numbers and dashes).
+- A Reddit account that will own the app. The app is registered as `daily-running-man`; a fork needs its own name,
+  set in `name` in `devvit.json` (3 to 20 lowercase letters, numbers and dashes).
 - A subreddit you moderate with **fewer than 200 members**. Uploaded (unpublished) apps can only be installed on small
   subreddits. Create a new one for the demo, for example r/RunningManGame.
 
@@ -53,12 +53,12 @@ npm run deploy          # type check + lint + npx devvit upload
 ```
 
 The first upload asks you to confirm the app name and creates the app page at
-`https://developers.reddit.com/apps/running-man`. Every later upload bumps the version. **Do not publish.**
+`https://developers.reddit.com/apps/daily-running-man`. Every later upload bumps the version. **Do not publish.**
 
 ## 5. Install it on the demo subreddit
 
 ```bash
-npx devvit install r/RunningManGame running-man
+npx devvit install r/RunningManGame daily-running-man
 ```
 
 Installing runs the `onAppInstall` trigger, which creates today's stage post and pins it to the top of the

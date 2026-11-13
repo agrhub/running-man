@@ -70,7 +70,7 @@ const deps: Deps = {
     return id;
   },
   appComment: async (postId, text) => {
-    comments.push({ postId, text, user: 'running-man-app' });
+    comments.push({ postId, text, user: 'daily-running-man-app' });
     return `t1_dev${comments.length}`;
   },
   pin: async (postId, slot) => {

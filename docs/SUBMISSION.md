@@ -7,7 +7,7 @@ Everything needed to submit Running Man to
 ## 1. Before you submit
 
 - [ ] `npm run test:unit`, `npm run test:types`, `npm run lint` and `npm run build` all pass.
-- [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/running-man`.
+- [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/daily-running-man`.
       Do **not** run `devvit publish`: the hackathon asks for unpublished apps.
 - [ ] A public demo subreddit (for example r/RunningManGame) with the app installed.
 - [ ] Today's stage post exists (install trigger, or the mod menu item **Post today's marathon stage**), and the
@@ -34,7 +34,7 @@ Everything needed to submit Running Man to
 
 **Links:**
 
-- App listing: `https://developers.reddit.com/apps/running-man`
+- App listing: `https://developers.reddit.com/apps/daily-running-man`
 - Demo post: `https://www.reddit.com/r/<your-subreddit>/comments/<today's post id>/`
 - Code: `https://github.com/agrhub/running-man`
 - Video: `<YouTube link>`

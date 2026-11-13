@@ -16,7 +16,10 @@ const FLAKES = 1400;
 const BOX = { x: 13, y: 11, back: 8, ahead: 55 };
 const BULBS = ['#ff4d5e', '#3ddc84', '#ffd447', '#7fd6ff', '#ffffff'];
 
-const tint = (g: THREE.BufferGeometry, color: string) => {
+/** Colours a geometry for merging; every piece is made non-indexed so they all merge. */
+const tint = (geo: THREE.BufferGeometry, color: string) => {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  if (g !== geo) geo.dispose();
   const c = new THREE.Color(color);
   const n = g.getAttribute('position').count;
   const data = new Float32Array(n * 3);

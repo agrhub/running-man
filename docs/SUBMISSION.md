@@ -94,7 +94,8 @@ ran that week gets coins and the city's hat (a hachimaki, a beret, a leaf hat or
 
 Between races, a tab bar holds the rest of the game. **Quests** has a 7-day check-in calendar and three daily quests
 that are the same for everyone (grab 3 snacks, high-five 2 fans, finish without a crash…) plus weekly ones, all
-checked on the server. **Play** is Snack Dash, a 20-second lane-dodging mini game whose course comes from the date, so
+checked on the server. **Play** has four mini games: Hurdle Hop (tap to jump), Rhythm Steps (tap on the beat), Pet
+Fetch (throw for your pet) and Snack Dash, a 20-second lane-dodging game. Every course comes from the date, so
 everyone plays the same rounds and the server replays your moves to score them. **Friends** lets you add friends, who
 then run on your road first and get their own board, and start or join a running club with a 6-character code:
 clubmates share your road and clubs compete on weekly km. The **Shop** turns coins into 33 outfit items, 7 pets
@@ -127,7 +128,7 @@ Moderators can switch quick chat, road life, pinning, recaps and app posts off i
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 91 unit tests and a 43-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 98 unit tests and a 45-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
   lower resolution, then no shadows, when a phone's frame rate falls.
 
@@ -165,10 +166,11 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-A captioned 1:40 cut with an English voiceover, music and game sound, recorded from the local harness, follows this order: feed card, runner, pace plan,
-corral, race (steering, a crash, the landmark, quick chat, finish), race bib and weekly board, city vote, check-in and
-quests, Snack Dash, friends and a club, pets and pet gear, then the beach and desert stages. The table below is the
-script for re-recording it on Reddit once the demo subreddit is live.
+A captioned 1:48 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
+order: feed card, runner, pace plan, corral, a first race in Hanoi (the coach, a chicken in the road, roller skates
+and a skateboard, the landmark, the finish), race bib, quests, the four mini games, friends and a club, the profile,
+the shop, a thunderstorm, the Triathlon Finale and a Christmas Run. The table below is the script for re-recording it
+on Reddit once the demo subreddit is live.
 
 | Time | Show                                                | Say                                                                                         |
 | ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |

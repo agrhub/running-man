@@ -41,7 +41,7 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 5. **Share and come back.** Your result is a race bib with your rank. Share it to the comments, cheer another runner,
    keep your streak, and help the crew finish the city.
 6. **Between races.** The tab bar at the bottom has the rest of the game: **Quests** (daily check-in and quests),
-   **Play** (Snack Dash, a 20-second mini game), **Friends** (friends and running clubs), the **Shop** (outfits,
+   **Play** (four mini games: Snack Dash, Hurdle Hop, Rhythm Steps, Pet Fetch), **Friends** (friends and running clubs), the **Shop** (outfits,
    pets and pet gear) and **Me** (your profile, achievements and options). Everything pays in coins 🪙.
 
 One counted run per person per day. A new stage opens at 00:00 UTC.
@@ -88,7 +88,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Race bib result card:** rank, time, splits, streak and rewards on one screen, with share and cheer buttons.
 - **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time) and a Friends
   board, each with the players' own Reddit avatars.
-- **Coins and the shop:** coins come from races, the check-in, quests and Snack Dash. The shop has 33 outfit items,
+- **Coins and the shop:** coins come from races, the check-in, quests, achievements and the mini games. The shop has 33 outfit items,
   7 pets (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and pet gear (collar, bandana, bow, cap, shades,
   crown) drawn on every pet. Some items are earned by streaks, city finishes and weather instead. Nothing you buy
   changes race times.
@@ -98,6 +98,9 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Snack Dash:** a 20-second mini game on three lanes: catch snacks, dodge cones, build a combo. Every round's
   course comes from the date and the server replays your lane changes to score it. The first three rounds a day pay
   up to 50 coins each, with a daily top five.
+- **Three more mini games:** Hurdle Hop (tap to jump, faster and faster), Rhythm Steps (tap on a rising beat) and Pet
+  Fetch (stop the power bar to throw for your pet, with wind), each scored on the server from its tap times, with
+  coins for the first rounds and a daily top five.
 - **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
   who ran today join your road first with their own tag colour.
 - **Running clubs (group runs):** start a club (named from word lists, so nothing to moderate) and invite others with
@@ -139,7 +142,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 91 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 98 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -149,8 +152,8 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (43 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
-vote, weekly and friends boards, quests, Snack Dash, friends, clubs, profile and options, shop, replay; needs
+Browser end-to-end check (45 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 
 ```bash

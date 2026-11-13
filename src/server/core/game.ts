@@ -76,6 +76,7 @@ import type {
   WeeklyBoard,
   WeeklyRow,
   DashBoard,
+  FriendRow,
   Profile,
   RunRecord,
   RunResponse,
@@ -131,6 +132,7 @@ export const freshProfile = (username: string): Profile => ({
   checkInDay: 0,
   questClaims: {},
   dash: { date: null, plays: 0, best: 0 },
+  friends: [],
 });
 
 export const loadProfile = async (
@@ -274,16 +276,26 @@ export const leaderboard = async (
   }));
 };
 
+/** The runners on your road: your friends who ran today first, then the day's leaders. */
 const runnersOnRoad = async (
   store: Store,
   dateKey: string,
-  self: string | null
+  self: string | null,
+  first: string[] = []
 ): Promise<RunnerTrack[]> => {
   const rows = await store.zRange(keys.leaderboard(dateKey), 0, RUNNER_LIMIT, {
     by: 'rank',
   });
-  const names = rows
-    .map((r) => r.member)
+  const ranFirst = (
+    await Promise.all(
+      first.map(async (n) =>
+        (await store.zScore(keys.leaderboard(dateKey), n)) === undefined
+          ? null
+          : n
+      )
+    )
+  ).filter((n): n is string => n !== null);
+  const names = [...new Set([...ranFirst, ...rows.map((r) => r.member)])]
     .filter((m) => m !== self)
     .slice(0, RUNNER_LIMIT);
   if (names.length === 0) return [];
@@ -350,6 +362,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     vote,
     weekly,
     quests,
+    friends,
     journeyId,
   ] = await Promise.all([
     username
@@ -358,7 +371,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     leaderboard(store, dateKey),
     myRank(store, dateKey, username),
     store.zCard(keys.leaderboard(dateKey)),
-    runnersOnRoad(store, dateKey, username),
+    runnersOnRoad(store, dateKey, username, profile.friends),
     crewProgress(store, day),
     username ? store.hGet(keys.cheers(dateKey), username) : undefined,
     dateKey === today
@@ -367,6 +380,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     cityVote(store, dayInfo(today).season, username),
     weeklyBoard(store, day.season, username),
     questStates(store, profile, today),
+    friendRows(store, profile.friends, today),
     deps.telemetry.start().catch(() => null),
   ]);
 
@@ -386,6 +400,7 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     vote,
     weekly,
     quests,
+    friends,
     journeyId,
   };
 };
@@ -1036,6 +1051,81 @@ export const playDash = async (deps: Deps, round: unknown, moves: unknown) => {
     board: await dashBoard(deps.store, today, username),
     quests: await questStates(deps.store, profile, today),
   };
+};
+
+export const MAX_FRIENDS = 50;
+
+const cleanName = (raw: string) => raw.trim().replace(/^\/?u\//i, '');
+
+export const friendRows = async (
+  store: Store,
+  names: string[],
+  today: string
+): Promise<FriendRow[]> =>
+  Promise.all(
+    names.map(async (username) => {
+      const [p, score, rank] = await Promise.all([
+        loadProfile(store, username),
+        store.zScore(keys.leaderboard(today), username),
+        store.zRank(keys.leaderboard(today), username),
+      ]);
+      const active =
+        p.lastRunDate === today || p.lastRunDate === addDays(today, -1);
+      return {
+        username,
+        bib: p.bib,
+        streak: active ? p.streak : 0,
+        seconds: score ?? null,
+        rank: rank === undefined ? null : rank + 1,
+      };
+    })
+  );
+
+export const friendsOf = async (deps: Deps, message?: string) => {
+  const username = await requireUser(deps);
+  const today = toDateKey(deps.now());
+  const profile = await loadProfile(deps.store, username);
+  const top = await deps.store.zRange(keys.leaderboard(today), 0, 30, {
+    by: 'rank',
+  });
+  const suggestions = top
+    .map((t) => t.member)
+    .filter((n) => n !== username && !profile.friends.includes(n))
+    .slice(0, 6);
+  return {
+    friends: await friendRows(deps.store, profile.friends, today),
+    suggestions,
+    profile,
+    ...(message ? { message } : {}),
+  };
+};
+
+export const addFriend = async (deps: Deps, raw: string) => {
+  const username = await requireUser(deps);
+  const name = cleanName(raw);
+  if (!name) throw new GameError('Type a Reddit username.');
+  if (name.toLowerCase() === username.toLowerCase())
+    throw new GameError('That is you!');
+  const profile = await loadProfile(deps.store, username);
+  if (profile.friends.includes(name))
+    throw new GameError(`u/${name} is already your friend.`, 409);
+  if (profile.friends.length >= MAX_FRIENDS)
+    throw new GameError(`You can have up to ${MAX_FRIENDS} friends.`, 409);
+  const saved = parse<Partial<Profile>>(await deps.store.get(keys.user(name)));
+  if (!saved || !(saved.registered || (saved.totalRuns ?? 0) > 0))
+    throw new GameError(`u/${name} has not joined the race yet.`, 404);
+  profile.friends = [...profile.friends, name];
+  await saveProfile(deps.store, profile);
+  return friendsOf(deps, `u/${name} is now your friend`);
+};
+
+export const removeFriend = async (deps: Deps, raw: string) => {
+  const username = await requireUser(deps);
+  const name = cleanName(raw);
+  const profile = await loadProfile(deps.store, username);
+  profile.friends = profile.friends.filter((f) => f !== name);
+  await saveProfile(deps.store, profile);
+  return friendsOf(deps);
 };
 
 /** Once a UTC day; consecutive days climb the 7-day calendar. */

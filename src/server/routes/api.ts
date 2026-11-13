@@ -11,6 +11,8 @@ import type {
   ShareResponse,
   VoteRequest,
   QuestClaimRequest,
+  FriendRequest,
+  FriendsResponse,
   DashRequest,
   DashResponse,
   DashBoardResponse,
@@ -26,6 +28,9 @@ import {
   castVote,
   checkIn,
   claimQuest,
+  addFriend,
+  friendsOf,
+  removeFriend,
   dashBoard,
   playDash,
   loadProfile,
@@ -174,6 +179,38 @@ export const createApi = (deps: Deps): Hono => {
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/friends', async (c) => {
+    try {
+      return c.json<FriendsResponse>({
+        type: 'friends',
+        ...(await friendsOf(deps)),
+      });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/friends/add', async (c) => {
+    try {
+      const body = await readJson<FriendRequest>(c);
+      const res = await addFriend(deps, String(body.username ?? ''));
+      await track(deps, body.journeyId, 'friend_added');
+      return c.json<FriendsResponse>({ type: 'friends', ...res });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/friends/remove', async (c) => {
+    try {
+      const body = await readJson<FriendRequest>(c);
+      const res = await removeFriend(deps, String(body.username ?? ''));
+      return c.json<FriendsResponse>({ type: 'friends', ...res });
     } catch (e) {
       return fail(c, e);
     }

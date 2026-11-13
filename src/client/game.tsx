@@ -14,6 +14,7 @@ import type {
   DashBoard,
   DashBoardResponse,
   DashResponse,
+  FriendsResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -33,6 +34,7 @@ import { TabBar, type Tab } from './components/TabBar';
 import { QuestList, QuestsScreen } from './screens/QuestsScreen';
 import { PlayScreen, type DashResult } from './screens/PlayScreen';
 import { DashGame } from './screens/DashGame';
+import { FriendsScreen } from './screens/FriendsScreen';
 import type { DashMove } from '../shared/dash';
 
 type Screen =
@@ -45,11 +47,12 @@ type Screen =
   | 'quests'
   | 'play'
   | 'dash'
+  | 'friends'
   | 'closed';
 
 /** Screens shown with the tab bar; the race itself and registration stay full screen. */
-const HUB: Screen[] = ['plan', 'result', 'locker', 'quests', 'play'];
-const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'shop'];
+const HUB: Screen[] = ['plan', 'result', 'locker', 'quests', 'play', 'friends'];
+const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop'];
 const tabOf = (s: Screen): Tab =>
   s === 'locker'
     ? 'shop'
@@ -57,7 +60,9 @@ const tabOf = (s: Screen): Tab =>
       ? 'quests'
       : s === 'play'
         ? 'play'
-        : 'race';
+        : s === 'friends'
+          ? 'friends'
+          : 'race';
 
 const isPostId = (id: string | null): id is `t3_${string}` =>
   id !== null && id.startsWith('t3_');
@@ -74,6 +79,7 @@ export const App = () => {
   const [justFinished, setJustFinished] = useState(false);
   const [dashBoard, setDashBoard] = useState<DashBoard | null>(null);
   const [dashLast, setDashLast] = useState<DashResult | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const load = useCallback(
     () =>
@@ -269,6 +275,38 @@ export const App = () => {
     }
   };
 
+  const applyFriends = (r: FriendsResponse) => {
+    patch({ friends: r.friends, profile: r.profile });
+    setSuggestions(r.suggestions);
+    if (r.message) showToast(r.message);
+  };
+
+  const loadFriends = () => {
+    if (!data || data.profile.username === 'guest') return;
+    request<FriendsResponse>('/friends')
+      .then(applyFriends)
+      .catch(() => undefined);
+  };
+
+  const friendCall = async (path: string, username: string) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      applyFriends(
+        await request<FriendsResponse>(path, {
+          username,
+          journeyId: data.journeyId,
+        })
+      );
+      if (path === '/friends/add') sfx.highFive();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const loadDashBoard = () =>
     request<DashBoardResponse>('/dash')
       .then((r) => setDashBoard(r.board))
@@ -350,7 +388,10 @@ export const App = () => {
   const goTab = (tab: Tab) => {
     if (tab === 'race') setScreen(data.myRun ? 'result' : 'plan');
     else if (tab === 'shop') openLocker();
-    else if (tab === 'play') {
+    else if (tab === 'friends') {
+      loadFriends();
+      setScreen('friends');
+    } else if (tab === 'play') {
       void loadDashBoard();
       setScreen('play');
     } else if (tab === 'quests') {
@@ -460,6 +501,7 @@ export const App = () => {
             onReplay={() => setScreen('run')}
             onCheer={(username) => void profileCall('/cheer', { username })}
             weekly={data.weekly}
+            friends={data.friends}
             vote={data.vote}
             voting={busy}
             onVote={(cityId) => void vote(cityId)}
@@ -477,6 +519,17 @@ export const App = () => {
             onBuy={(itemId) => void profileCall('/shop/buy', { itemId })}
             onPet={(petId: PetId) => void profileCall('/pet/choose', { petId })}
             onCare={() => void profileCall('/pet/care', {})}
+          />
+        );
+      case 'friends':
+        return (
+          <FriendsScreen
+            profile={data.profile}
+            friends={data.friends}
+            suggestions={suggestions}
+            busy={busy}
+            onAdd={(u) => void friendCall('/friends/add', u)}
+            onRemove={(u) => void friendCall('/friends/remove', u)}
           />
         );
       case 'play':

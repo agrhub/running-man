@@ -32,6 +32,8 @@ export type Runner = {
   /** Small sideways offset so runners in one lane do not overlap exactly. */
   offset?: number;
   labelled?: boolean;
+  /** Friends and clubmates get their own tag colour. */
+  tag?: 'friend' | 'club';
 };
 
 type RunnerView = {
@@ -249,7 +251,13 @@ export class RunWorld {
       if (!opts.preview && runner.labelled !== false) {
         label = makeLabel(
           runner.other ? runner.name : 'You',
-          runner.other ? '#2a2340' : palette.accent
+          !runner.other
+            ? palette.accent
+            : runner.tag === 'friend'
+              ? '#1f8f7f'
+              : runner.tag === 'club'
+                ? '#6c4fd8'
+                : '#2a2340'
         );
         this.scene.add(label);
       }

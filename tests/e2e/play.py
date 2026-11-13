@@ -106,7 +106,9 @@ with sync_playwright() as p:
     page.screenshot(path=f'{OUT}/03a-corral.png')
     page.click('text=Line up at the start')
     page.wait_for_selector('canvas[aria-label="Race"]', timeout=10000)
-    check('first race shows the steering hint', page.is_visible('text=Swipe or tap'))
+    tip = page.locator('[role=status]', has_text='First race tip')
+    tip.wait_for(timeout=8000)
+    check('first race coach teaches lane changes', 'change lanes' in tip.inner_text())
     time.sleep(4.5)
     page.screenshot(path=f'{OUT}/04-run.png')
     hud = page.inner_text('body')
@@ -209,13 +211,25 @@ with sync_playwright() as p:
     page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Race')).click()
     page.wait_for_selector('text=Today’s top 10')
 
+    # 4b. Profile: history, achievements and options
+    page.get_by_role('navigation', name='Main').get_by_role('button', name='Me', exact=True).click()
+    page.wait_for_selector('section[aria-label="Achievements"]')
+    numbers = page.inner_text('section[aria-label="Your numbers"]')
+    earned = page.inner_text('section[aria-label="Achievements"]')
+    check('profile shows the run and the first achievement', numbers.split()[0] == '1' and 'First Steps' in earned and 'Earned' in earned, numbers.replace('\n', ' '))
+    page.get_by_role('switch', name='Bigger steering buttons').click()
+    check('comfort options are saved in the browser', 'bigControls":true' in (page.evaluate("localStorage.getItem('rm-prefs')") or ''))
+    page.screenshot(path=f'{OUT}/12-me.png', full_page=True)
+    page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Race')).click()
+    page.wait_for_selector('text=Today’s top 10')
+
     # 5. Shop
     page.get_by_role('button', name=re.compile(r'^Shop 🪙')).click()
     page.wait_for_selector('canvas[aria-label="Your runner"]')
     time.sleep(1.2)
     page.screenshot(path=f'{OUT}/07-locker.png')
-    page.get_by_role('button', name='Extra').click()
-    check('shades locked behind coins', page.locator('button', has_text='Buy 300 🪙').first.is_disabled())
+    page.get_by_role('button', name='Head').click()
+    check('the party crown is locked behind coins', page.locator('li:has-text("Party Crown") button', has_text='Buy 1200 🪙').first.is_disabled())
     post('/__dev/badges?n=2500')
     page.reload(); page.wait_for_selector('text=Share')  # comes back to result
     page.get_by_role('button', name=re.compile(r'^Shop 🪙')).click(); page.get_by_role('button', name='Extra').click()

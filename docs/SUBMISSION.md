@@ -6,10 +6,10 @@ Everything needed to submit Running Man to
 
 ## 1. Before you submit
 
-- [ ] `npm run test:unit`, `npm run test:types`, `npm run lint` and `npm run build` all pass.
-- [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/daily-running-man`.
+- [x] `npm run test:unit`, `npm run test:types`, `npm run lint` and `npm run build` all pass.
+- [x] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/daily-running-man`.
       Do **not** run `devvit publish`: the hackathon asks for unpublished apps.
-- [ ] A public demo subreddit (for example r/RunningManGame) with the app installed.
+- [x] A public demo subreddit, [r/RunningManGame](https://www.reddit.com/r/RunningManGame/), with the app installed.
 - [ ] Today's stage post exists (install trigger, or the mod menu item **Post today's marathon stage**), and the
       scheduler has created posts for a few days in a row so judges see the daily loop.
 - [ ] Ask 8 to 15 friends to run the stage on several days, so the leaderboard, the road and the crew bar are busy.
@@ -18,7 +18,7 @@ Everything needed to submit Running Man to
       subreddit (the app does both; pin them by hand if the app account is not a moderator).
 - [ ] Open the demo post on a phone and in a desktop browser, logged in and logged out. Everything should fit in
       the post without scrolling sideways.
-- [ ] Record the demo video (script below) and upload it to YouTube (unlisted is fine).
+- [x] Record the demo video (script below) and upload it to YouTube: https://youtu.be/CTI8BU9ABzw
 - [ ] Fill in the optional [developer satisfaction survey](https://forms.gle/dW45UgK6SctevE756) for the
       Feedback award.
 - [ ] Help others in r/Devvit and the Devvit Discord during the hackathon (Devvit Helper award).
@@ -35,9 +35,10 @@ Everything needed to submit Running Man to
 **Links:**
 
 - App listing: `https://developers.reddit.com/apps/daily-running-man`
-- Demo post: `https://www.reddit.com/r/<your-subreddit>/comments/<today's post id>/`
+- Demo subreddit: `https://www.reddit.com/r/RunningManGame/` (a new stage post every day)
 - Code: `https://github.com/agrhub/running-man`
-- Video: `<YouTube link>`
+- Video: `https://youtu.be/CTI8BU9ABzw`
+- Submitted: `https://devpost.com/software/running-man-7dm4w8`
 
 **Built with:** devvit, devvit-web, reddit, typescript, react, three.js, tailwindcss, hono, redis, vite, vitest,
 playwright

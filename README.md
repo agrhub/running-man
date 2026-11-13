@@ -8,6 +8,11 @@ ten marathons in each city, one city a week.
 Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web/devvit_web_overview) for
 [Reddit's Daily Games Hackathon](https://redditgameofday2026.devpost.com/).
 
+- Play it: [r/RunningManGame](https://www.reddit.com/r/RunningManGame/)
+- Watch the demo: [YouTube, 1:56](https://youtu.be/CTI8BU9ABzw)
+- Devpost: [Running Man](https://devpost.com/software/running-man-7dm4w8)
+- App: [daily-running-man](https://developers.reddit.com/apps/daily-running-man)
+
 | Feed card                                       | Make your runner                              | Start corral                                    | Race                                        |
 | ----------------------------------------------- | --------------------------------------------- | ----------------------------------------------- | ------------------------------------------- |
 | ![Feed card](docs/screenshots/01-feed-card.png) | ![Register](docs/screenshots/08-register.png) | ![Corral](docs/screenshots/09-start-corral.png) | ![Race](docs/screenshots/03-race-tokyo.png) |

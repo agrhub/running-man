@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { RunnerTrack, Profile } from '../../shared/api';
 import type { DayInfo } from '../../shared/content';
-import { ITEM_LABEL, courseItems, type Lane } from '../../shared/course';
+import {
+  ITEM_LABEL,
+  courseItems,
+  isRoadLife,
+  isVehicle,
+  type ItemKind,
+  type Lane,
+} from '../../shared/course';
 import {
   RACE_DT,
   finishRace,
@@ -99,6 +106,20 @@ const ordinal = (n: number) => {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 };
 
+const LIFE_ICON: Partial<Record<ItemKind, string>> = {
+  walker: '🚶',
+  cyclist: '🚴',
+  scooter: '🛵',
+  cyclo: '🛺',
+  taxi: '🚕',
+  ambulance: '🚑',
+  firetruck: '🚒',
+  dog: '🐕',
+  cat: '🐈',
+  chicken: '🐔',
+  pig: '🐖',
+};
+
 const eventToast = (e: RaceEvent): Toast => {
   if (e.kind === 'bump') {
     const body = `You both fell and lose ${e.seconds}s each.`;
@@ -130,6 +151,18 @@ const eventToast = (e: RaceEvent): Toast => {
       body: `A burst of speed: ${e.seconds}s`,
       tone: 'good',
     };
+  if (isRoadLife(e.kind)) {
+    const emergency = e.kind === 'ambulance' || e.kind === 'firetruck';
+    return {
+      title: `${LIFE_ICON[e.kind] ?? '⚠️'} ${ITEM_LABEL[e.kind]}!`,
+      body: emergency
+        ? `You stop to make way. +${e.seconds}s`
+        : isVehicle(e.kind)
+          ? `Beep beep! You have to stop. +${e.seconds}s`
+          : `You stop short. +${e.seconds}s`,
+      tone: 'bad',
+    };
+  }
   const icon = e.kind === 'cone' ? '🚧' : e.kind === 'puddle' ? '💦' : '🥤';
   return {
     title: `${icon} ${ITEM_LABEL[e.kind]}!`,
@@ -232,7 +265,10 @@ export const RunScreen = ({
     }));
     const setup: RaceSetup = {
       base: checkpoints(sim.splits),
-      items: courseItems(day.dateKey, day.stage, day.weather.id),
+      items: courseItems(day.dateKey, day.stage, day.weather.id, {
+        city: day.city.id,
+        time: day.time,
+      }),
       rivals: rivalList,
       startLane: startLane(profile.username),
     };
@@ -343,6 +379,7 @@ export const RunScreen = ({
         } else {
           world.hitItem(e.item);
           if (e.kind === 'fan') sfx.highFive();
+          else if (isRoadLife(e.kind)) sfx.roadLife(e.kind);
           else if (e.kind === 'puddle') sfx.splash();
           else if (e.kind === 'cone' || e.kind === 'cups') sfx.stumble();
           else {

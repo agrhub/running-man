@@ -836,7 +836,10 @@ export const run = async (
   const race = replayRace(
     {
       base: checkpoints(sim.splits),
-      items: courseItems(dateKey, day.stage, day.weather.id),
+      items: courseItems(dateKey, day.stage, day.weather.id, {
+        city: day.city.id,
+        time: day.time,
+      }),
       rivals: rivalRuns,
       startLane: startLane(username),
     },

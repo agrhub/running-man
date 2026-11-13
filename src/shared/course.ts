@@ -1,4 +1,10 @@
-import { KM_PER_STAGE, type Stage, type WeatherId } from './content';
+import {
+  KM_PER_STAGE,
+  type CityId,
+  type Stage,
+  type TimeOfDay,
+  type WeatherId,
+} from './content';
 import { hashString, mulberry32 } from './rng';
 
 /** -1 left, 0 middle, 1 right. */
@@ -7,7 +13,50 @@ export type Lane = -1 | 0 | 1;
 export const LANES: Lane[] = [-1, 0, 1];
 
 export type ItemKind =
-  'cone' | 'puddle' | 'cups' | 'fan' | 'bottle' | 'soda' | 'cake' | 'candy';
+  | 'cone'
+  | 'puddle'
+  | 'cups'
+  | 'fan'
+  | 'bottle'
+  | 'soda'
+  | 'cake'
+  | 'candy'
+  // Life on the road: people, traffic and animals in your lane.
+  | 'walker'
+  | 'cyclist'
+  | 'scooter'
+  | 'cyclo'
+  | 'taxi'
+  | 'ambulance'
+  | 'firetruck'
+  | 'dog'
+  | 'cat'
+  | 'chicken'
+  | 'pig';
+
+/** People, vehicles and animals: they cost more than a cone, so steer round them. */
+export const ROAD_LIFE: ItemKind[] = [
+  'walker',
+  'cyclist',
+  'scooter',
+  'cyclo',
+  'taxi',
+  'ambulance',
+  'firetruck',
+  'dog',
+  'cat',
+  'chicken',
+  'pig',
+];
+
+export const isRoadLife = (kind: ItemKind): boolean => ROAD_LIFE.includes(kind);
+
+export const isVehicle = (kind: ItemKind): boolean =>
+  kind === 'scooter' ||
+  kind === 'cyclo' ||
+  kind === 'taxi' ||
+  kind === 'ambulance' ||
+  kind === 'firetruck';
 
 /** Snacks on the road: run through one to pick it up and get a burst of speed. */
 export const PICKUPS: ItemKind[] = ['bottle', 'soda', 'cake', 'candy'];
@@ -31,6 +80,17 @@ export const ITEM_SECONDS: Record<ItemKind, number> = {
   soda: -3,
   cake: -2,
   candy: -1,
+  walker: 3,
+  cyclist: 4,
+  scooter: 4,
+  cyclo: 4,
+  taxi: 5,
+  ambulance: 6,
+  firetruck: 6,
+  dog: 3,
+  cat: 2,
+  chicken: 2,
+  pig: 4,
 };
 
 export const ITEM_LABEL: Record<ItemKind, string> = {
@@ -42,6 +102,49 @@ export const ITEM_LABEL: Record<ItemKind, string> = {
   soda: 'Soda',
   cake: 'Cake',
   candy: 'Candy',
+  walker: 'Someone crossing',
+  cyclist: 'Cyclist',
+  scooter: 'Motorbike',
+  cyclo: 'Cyclo',
+  taxi: 'Taxi',
+  ambulance: 'Ambulance',
+  firetruck: 'Fire engine',
+  dog: 'Dog',
+  cat: 'Cat',
+  chicken: 'Chicken',
+  pig: 'Pig',
+};
+
+/** Who is out on the road depends on the place and the hour. */
+const roadLifeBag = (
+  city: CityId | undefined,
+  terrain: Stage['terrain'],
+  time: TimeOfDay
+): ItemKind[] => {
+  const bag: ItemKind[] = [];
+  if (terrain === 'city') {
+    bag.push('walker', 'walker', 'cyclist', 'taxi', 'scooter', 'dog');
+    if (city === 'hanoi')
+      bag.push('scooter', 'scooter', 'cyclo', 'cyclo', 'chicken');
+    if (city === 'paris') bag.push('cyclist', 'cat');
+    if (city === 'tokyo') bag.push('cyclist', 'taxi');
+    if (city === 'dubai') bag.push('taxi', 'taxi');
+    if (time === 'afternoon') bag.push('taxi', 'scooter');
+    if (time === 'evening') bag.push('walker', 'walker');
+    bag.push('ambulance', 'firetruck');
+  } else if (terrain === 'park' || terrain === 'zoo') {
+    bag.push('walker', 'dog', 'dog', 'cat', 'cyclist');
+    if (terrain === 'zoo') bag.push('chicken', 'pig');
+  } else if (terrain === 'hills') {
+    bag.push('chicken', 'pig', 'pig', 'dog', 'cyclist');
+  } else if (terrain === 'forest') {
+    bag.push('walker', 'dog', 'cyclist');
+  } else if (terrain === 'beach') {
+    bag.push('walker', 'walker', 'dog', 'cyclist');
+  } else {
+    bag.push('walker', 'dog');
+  }
+  return bag;
 };
 
 /** Which snack shows up, weighted: candy and water are common, soda is rare. */
@@ -65,8 +168,10 @@ const round3 = (n: number): number => Math.round(n * 1000) / 1000;
 export const courseItems = (
   dateKey: string,
   stage: Stage,
-  weather: WeatherId
+  weather: WeatherId,
+  where: { city?: CityId; time?: TimeOfDay } = {}
 ): CourseItem[] => {
+  const life = roadLifeBag(where.city, stage.terrain, where.time ?? 'morning');
   const rand = mulberry32(hashString(`course:${dateKey}:${stage.name}`));
   const items: CourseItem[] = [];
   const pickLane = (): Lane => LANE_PICK[Math.floor(rand() * 3)] ?? 0;
@@ -93,6 +198,10 @@ export const courseItems = (
         (weather === 'storm' && roll < 0.62)
       ) {
         items.push({ kind: 'puddle', km: round3(km), lane: pickLane() });
+      } else if (roll < 0.74) {
+        // Someone or something in your lane: never on more than one lane at once.
+        const kind = life[Math.floor(rand() * life.length)] ?? 'walker';
+        items.push({ kind, km: round3(km), lane: pickLane() });
       } else {
         const lane = pickLane();
         items.push({ kind: 'cone', km: round3(km), lane });

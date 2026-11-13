@@ -213,7 +213,10 @@ describe('game API', () => {
     const race = replayRace(
       {
         base: checkpoints(sim.splits),
-        items: courseItems(date, info.stage, info.weather.id),
+        items: courseItems(date, info.stage, info.weather.id, {
+          city: info.city.id,
+          time: info.time,
+        }),
         rivals: [
           {
             username: 'slowpoke',

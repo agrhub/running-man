@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { dayInfo } from './content';
-import { ITEM_SECONDS, PICKUPS, courseItems, isPickup } from './course';
+import {
+  ITEM_SECONDS,
+  PICKUPS,
+  ROAD_LIFE,
+  courseItems,
+  isPickup,
+  isRoadLife,
+  isVehicle,
+} from './course';
 
 const day = dayInfo('2026-11-12');
 const items = courseItems(day.dateKey, day.stage, day.weather.id);
@@ -39,7 +47,9 @@ describe('courseItems', () => {
       '2026-11-06',
     ]
       .map((d) => ({ d, info: dayInfo(d) }))
-      .find(({ info }) => info.weather.id !== 'rain');
+      .find(
+        ({ info }) => info.weather.id !== 'rain' && info.weather.id !== 'storm'
+      );
     if (rainDay) {
       const dry = courseItems(
         rainDay.d,
@@ -58,5 +68,25 @@ describe('pickups', () => {
     const snacks = items.filter((i) => isPickup(i.kind));
     expect(snacks.length).toBeGreaterThanOrEqual(3);
     for (const k of PICKUPS) expect(ITEM_SECONDS[k]).toBeLessThan(0);
+  });
+});
+
+describe('road life', () => {
+  it('puts people, traffic and animals on the road, fitting the place', () => {
+    const hanoi = dayInfo('2026-11-24');
+    const city = courseItems(hanoi.dateKey, hanoi.stage, 'cool', {
+      city: 'hanoi',
+      time: 'afternoon',
+    });
+    const life = city.filter((i) => isRoadLife(i.kind));
+    expect(life.length).toBeGreaterThanOrEqual(3);
+    for (const k of ROAD_LIFE) expect(ITEM_SECONDS[k]).toBeGreaterThan(0);
+    const farm = dayInfo('2026-11-18');
+    const hills = courseItems(farm.dateKey, farm.stage, 'cool', {
+      city: 'paris',
+    })
+      .filter((i) => isRoadLife(i.kind))
+      .map((i) => i.kind);
+    expect(hills.some((k) => isVehicle(k))).toBe(false);
   });
 });

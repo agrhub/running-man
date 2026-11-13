@@ -154,7 +154,7 @@ export const Splash = () => {
       <Scene city={day.city} />
       <div className="relative flex h-full flex-col gap-2 px-4 pt-3 pb-[132px] max-w-[460px] mx-auto">
         <p className="font-display text-[15px] font-extrabold text-[var(--accent)] [text-shadow:0_1.5px_0_#2a2340]">
-          Chibi City Marathon
+          Running Man
         </p>
         <div>
           <p className="text-[13px] font-extrabold text-ink-soft">

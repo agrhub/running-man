@@ -1,13 +1,13 @@
 # Devpost submission kit
 
-Everything needed to submit Chibi City Marathon to
+Everything needed to submit Running Man to
 [Reddit's Daily Games Hackathon](https://redditgameofday2026.devpost.com/). Deadline: **Dec 8, 2026, 6:00pm PST**
 (Dec 9, 9:00am in Vietnam). Aim to submit a day early.
 
 ## 1. Before you submit
 
 - [ ] `npm run test:unit`, `npm run test:types`, `npm run lint` and `npm run build` all pass.
-- [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/chibi-marathon`.
+- [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/running-man`.
       Do **not** run `devvit publish`: the hackathon asks for unpublished apps.
 - [ ] A public demo subreddit (for example r/ChibiCityMarathon) with the app installed.
 - [ ] Today's stage post exists (install trigger, or the mod menu item **Post today's marathon stage**), and the
@@ -24,7 +24,7 @@ Everything needed to submit Chibi City Marathon to
 
 ## 2. Devpost form
 
-**Project name:** Chibi City Marathon
+**Project name:** Running Man
 
 **Elevator pitch (under 200 characters):**
 
@@ -33,7 +33,7 @@ Everything needed to submit Chibi City Marathon to
 
 **Links:**
 
-- App listing: `https://developers.reddit.com/apps/chibi-marathon`
+- App listing: `https://developers.reddit.com/apps/running-man`
 - Demo post: `https://www.reddit.com/r/<your-subreddit>/comments/<today's post id>/`
 - Code: `https://github.com/agrhub/running-man`
 - Video: `<YouTube link>`
@@ -136,7 +136,7 @@ minutes but still gives the comments something to argue about.
 Daily games live or die by the reason to come back tomorrow. A personal streak alone is not enough; a shared goal
 that only the community can finish works better.
 
-**What's next for Chibi City Marathon**
+**What's next for Running Man**
 
 Building the cities the crew votes for (London, New York, Seoul, Rio), mountain trail and snow stages, weekly "half marathon" weekend specials,
 sub-communities racing as clubs, and premium cosmetics through Reddit's payments once eligible.

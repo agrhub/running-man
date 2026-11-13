@@ -263,7 +263,7 @@ if (process.env.SEED !== '0') {
 
 serve({ fetch: app.fetch, port: PORT }, () => {
   console.log(
-    `Chibi City Marathon harness on http://localhost:${PORT}/splash.html`
+    `Running Man harness on http://localhost:${PORT}/splash.html`
   );
   console.log(
     `Cities: ${CITIES.map((c) => c.name).join(', ')}. Posts seeded: ${posts.length}.`

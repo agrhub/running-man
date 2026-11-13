@@ -1,6 +1,6 @@
 # Game design
 
-Chibi City Marathon is a daily running game played inside a Reddit post. Each day the subreddit gets one 6 km stage of
+Running Man is a daily running game played inside a Reddit post. Each day the subreddit gets one 6 km stage of
 a city marathon. You plan your pace, then steer a 3D chibi runner down the road past obstacles, snacks and the other
 redditors who ran that day. Every finish adds to a shared goal the whole subreddit runs toward.
 

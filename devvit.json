@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "chibi-marathon",
+  "name": "running-man",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -29,7 +29,7 @@
     "items": [
       {
         "label": "Post today's marathon stage",
-        "description": "Creates (or re-opens) today's Chibi City Marathon post",
+        "description": "Creates (or re-opens) today's Running Man post",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-today"

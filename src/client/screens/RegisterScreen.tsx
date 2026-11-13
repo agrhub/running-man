@@ -67,7 +67,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
     <div className="flex h-full flex-col max-w-[440px] mx-auto">
       <header className="px-4 pt-3">
         <p className="text-[13px] font-extrabold text-ink-soft">
-          {day.city.flag} Chibi City Marathon
+          {day.city.flag} Running Man
         </p>
         <h1 className="font-display text-[28px] font-extrabold leading-tight">
           Make your runner

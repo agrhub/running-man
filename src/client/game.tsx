@@ -11,6 +11,9 @@ import type {
   ShareResponse,
   VoteResponse,
   QuestsResponse,
+  DashBoard,
+  DashBoardResponse,
+  DashResponse,
 } from '../shared/api';
 import { dayInfo } from '../shared/content';
 import type { PetId } from '../shared/economy';
@@ -28,6 +31,9 @@ import { CorralScreen } from './screens/CorralScreen';
 import { sfx } from './lib/sound';
 import { TabBar, type Tab } from './components/TabBar';
 import { QuestList, QuestsScreen } from './screens/QuestsScreen';
+import { PlayScreen, type DashResult } from './screens/PlayScreen';
+import { DashGame } from './screens/DashGame';
+import type { DashMove } from '../shared/dash';
 
 type Screen =
   | 'register'
@@ -37,13 +43,21 @@ type Screen =
   | 'result'
   | 'locker'
   | 'quests'
+  | 'play'
+  | 'dash'
   | 'closed';
 
 /** Screens shown with the tab bar; the race itself and registration stay full screen. */
-const HUB: Screen[] = ['plan', 'result', 'locker', 'quests'];
-const SHIPPED_TABS: Tab[] = ['race', 'quests', 'shop'];
+const HUB: Screen[] = ['plan', 'result', 'locker', 'quests', 'play'];
+const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'shop'];
 const tabOf = (s: Screen): Tab =>
-  s === 'locker' ? 'shop' : s === 'quests' ? 'quests' : 'race';
+  s === 'locker'
+    ? 'shop'
+    : s === 'quests'
+      ? 'quests'
+      : s === 'play'
+        ? 'play'
+        : 'race';
 
 const isPostId = (id: string | null): id is `t3_${string}` =>
   id !== null && id.startsWith('t3_');
@@ -58,6 +72,8 @@ export const App = () => {
   const [back, setBack] = useState<Screen>('plan');
   const [busy, setBusy] = useState(false);
   const [justFinished, setJustFinished] = useState(false);
+  const [dashBoard, setDashBoard] = useState<DashBoard | null>(null);
+  const [dashLast, setDashLast] = useState<DashResult | null>(null);
 
   const load = useCallback(
     () =>
@@ -253,6 +269,31 @@ export const App = () => {
     }
   };
 
+  const loadDashBoard = () =>
+    request<DashBoardResponse>('/dash')
+      .then((r) => setDashBoard(r.board))
+      .catch(() => undefined);
+
+  const submitDash = async (round: number, moves: DashMove[]) => {
+    if (!data) return;
+    setBusy(true);
+    try {
+      const res = await request<DashResponse>('/dash', {
+        round,
+        moves,
+        journeyId: data.journeyId,
+      });
+      patch({ profile: res.profile, quests: res.quests });
+      setDashBoard(res.board);
+      setDashLast({ score: res.score, reward: res.reward });
+    } catch (e) {
+      showToast(message(e));
+    } finally {
+      setBusy(false);
+      setScreen('play');
+    }
+  };
+
   const share = async () => {
     if (!data?.myRun) return;
     setBusy(true);
@@ -309,7 +350,10 @@ export const App = () => {
   const goTab = (tab: Tab) => {
     if (tab === 'race') setScreen(data.myRun ? 'result' : 'plan');
     else if (tab === 'shop') openLocker();
-    else if (tab === 'quests') {
+    else if (tab === 'play') {
+      void loadDashBoard();
+      setScreen('play');
+    } else if (tab === 'quests') {
       refreshQuests();
       setScreen('quests');
     }
@@ -435,6 +479,33 @@ export const App = () => {
             onCare={() => void profileCall('/pet/care', {})}
           />
         );
+      case 'play':
+        return (
+          <PlayScreen
+            today={data.today}
+            profile={data.profile}
+            board={dashBoard}
+            last={dashLast}
+            busy={busy}
+            onPlay={() => {
+              setDashLast(null);
+              setScreen('dash');
+            }}
+          />
+        );
+      case 'dash': {
+        const round =
+          data.profile.dash.date === data.today ? data.profile.dash.plays : 0;
+        return (
+          <DashGame
+            dateKey={data.today}
+            round={round}
+            look={data.profile.look}
+            bib={data.profile.bib}
+            onDone={(moves) => void submitDash(round, moves)}
+          />
+        );
+      }
       case 'quests':
         return (
           <QuestsScreen

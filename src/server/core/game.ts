@@ -23,6 +23,13 @@ import {
   type QuestState,
 } from '../../shared/quests';
 import {
+  DASH_MAX_ROUNDS,
+  dashCourse,
+  dashReward,
+  isValidDashMoves,
+  replayDash,
+} from '../../shared/dash';
+import {
   CHECKIN_REWARDS,
   nextCheckInDay,
   CHEER_REWARD,
@@ -68,6 +75,7 @@ import type {
   LeaderRow,
   WeeklyBoard,
   WeeklyRow,
+  DashBoard,
   Profile,
   RunRecord,
   RunResponse,
@@ -122,6 +130,7 @@ export const freshProfile = (username: string): Profile => ({
   checkInDate: null,
   checkInDay: 0,
   questClaims: {},
+  dash: { date: null, plays: 0, best: 0 },
 });
 
 export const loadProfile = async (
@@ -876,6 +885,7 @@ const QUEST_POOL = [
   'share',
   'pet',
   'topHalf',
+  'dash',
 ] as QuestId[];
 
 export const questStates = async (
@@ -918,7 +928,7 @@ export const questStates = async (
           ? 1
           : 0;
       case 'dash':
-        return 0;
+        return profile.dash.date === today ? profile.dash.plays : 0;
       case 'week3':
       case 'week5':
         return profile.stagesBySeason[String(season)] ?? 0;
@@ -965,6 +975,66 @@ export const claimQuest = async (
     profile,
     quests: await questStates(deps.store, profile, today),
     message: `Quest done: +${quest.reward} coins`,
+  };
+};
+
+export const dashBoard = async (
+  store: Store,
+  dateKey: string,
+  username: string | null
+): Promise<DashBoard> => {
+  const top = await store.zRange(keys.dashBoard(dateKey), 0, 4, { by: 'rank' });
+  const rows = top.map((t, i) => ({
+    rank: i + 1,
+    username: t.member,
+    score: -t.score,
+  }));
+  let mine = rows.find((r) => r.username === username) ?? null;
+  if (!mine && username) {
+    const [rank, score] = await Promise.all([
+      store.zRank(keys.dashBoard(dateKey), username),
+      store.zScore(keys.dashBoard(dateKey), username),
+    ]);
+    if (rank !== undefined && score !== undefined)
+      mine = { rank: rank + 1, username, score: -score };
+  }
+  return { rows, mine };
+};
+
+/** Scores a Snack Dash round by replaying its lane changes on today's course. */
+export const playDash = async (deps: Deps, round: unknown, moves: unknown) => {
+  const username = await requireUser(deps);
+  const today = toDateKey(deps.now());
+  const profile = await loadProfile(deps.store, username);
+  if (profile.dash.date !== today)
+    profile.dash = { date: today, plays: 0, best: 0 };
+  if (profile.dash.plays >= DASH_MAX_ROUNDS)
+    throw new GameError(
+      'That is all the Snack Dash for today. Back tomorrow!',
+      409
+    );
+  // Rounds are played in order, so nobody can replay an easy course.
+  if (round !== profile.dash.plays)
+    throw new GameError('That round is over. Start a new one.', 409);
+  if (!isValidDashMoves(moves)) throw new GameError('Those moves look wrong.');
+  const result = replayDash(dashCourse(today, profile.dash.plays), moves);
+  const reward = dashReward(result.score, profile.dash.plays);
+  profile.dash.plays += 1;
+  profile.dash.best = Math.max(profile.dash.best, result.score);
+  profile.badges += reward;
+  await saveProfile(deps.store, profile);
+  const prev = await deps.store.zScore(keys.dashBoard(today), username);
+  if (prev === undefined || -prev < result.score)
+    await deps.store.zAdd(keys.dashBoard(today), {
+      member: username,
+      score: -result.score,
+    });
+  return {
+    score: result.score,
+    reward,
+    profile,
+    board: await dashBoard(deps.store, today, username),
+    quests: await questStates(deps.store, profile, today),
   };
 };
 

@@ -11,6 +11,9 @@ import type {
   ShareResponse,
   VoteRequest,
   QuestClaimRequest,
+  DashRequest,
+  DashResponse,
+  DashBoardResponse,
   QuestsResponse,
   VoteResponse,
 } from '../../shared/api';
@@ -23,6 +26,8 @@ import {
   castVote,
   checkIn,
   claimQuest,
+  dashBoard,
+  playDash,
   loadProfile,
   questStates,
   carePet,
@@ -169,6 +174,31 @@ export const createApi = (deps: Deps): Hono => {
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/dash', async (c) => {
+    try {
+      const username = (await deps.username()) ?? null;
+      const board = await dashBoard(
+        deps.store,
+        toDateKey(deps.now()),
+        username
+      );
+      return c.json<DashBoardResponse>({ type: 'dashBoard', board });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/dash', async (c) => {
+    try {
+      const body = await readJson<DashRequest>(c);
+      const res = await playDash(deps, body.round, body.moves);
+      await track(deps, body.journeyId, 'dash_played', String(res.score));
+      return c.json<DashResponse>({ type: 'dash', ...res });
     } catch (e) {
       return fail(c, e);
     }

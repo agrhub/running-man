@@ -47,6 +47,8 @@ export type Profile = {
   checkInDay: number;
   /** Claimed quests per period (a date for daily, `w<season>` for weekly). */
   questClaims: Record<string, string[]>;
+  /** Snack Dash today: rounds played and best score. */
+  dash: { date: string | null; plays: number; best: number };
 };
 
 export type RunnerTrack = {
@@ -183,6 +185,27 @@ export type ItemRequest = { itemId: string; journeyId?: string | null };
 export type PetRequest = { petId: PetId; journeyId?: string | null };
 export type CheerRequest = { username: string; journeyId?: string | null };
 export type VoteRequest = { cityId: string; journeyId?: string | null };
+export type DashRow = { rank: number; username: string; score: number };
+
+export type DashBoard = { rows: DashRow[]; mine: DashRow | null };
+
+export type DashRequest = {
+  round: number;
+  moves: unknown;
+  journeyId?: string | null;
+};
+
+export type DashResponse = {
+  type: 'dash';
+  score: number;
+  reward: number;
+  profile: Profile;
+  board: DashBoard;
+  quests: QuestState[];
+};
+
+export type DashBoardResponse = { type: 'dashBoard'; board: DashBoard };
+
 export type QuestClaimRequest = { questId: string; journeyId?: string | null };
 
 export type QuestsResponse = {

@@ -36,7 +36,9 @@ export type ItemKind =
   // Boosters: grab one and ride it for a big burst of speed.
   | 'skates'
   | 'skateboard'
-  | 'bike';
+  | 'bike'
+  // Triathlon swim: a marker buoy in your swim lane.
+  | 'buoy';
 
 export const BOOSTERS: ItemKind[] = ['skates', 'skateboard', 'bike'];
 
@@ -102,6 +104,7 @@ export const ITEM_SECONDS: Record<ItemKind, number> = {
   skates: -4,
   skateboard: -5,
   bike: -7,
+  buoy: 3,
 };
 
 export const ITEM_LABEL: Record<ItemKind, string> = {
@@ -127,6 +130,7 @@ export const ITEM_LABEL: Record<ItemKind, string> = {
   skates: 'Roller skates',
   skateboard: 'Skateboard',
   bike: 'Bicycle',
+  buoy: 'Buoy',
 };
 
 /** Who is out on the road depends on the place and the hour. */
@@ -183,8 +187,9 @@ export const courseItems = (
   dateKey: string,
   stage: Stage,
   weather: WeatherId,
-  where: { city?: CityId; time?: TimeOfDay } = {}
+  where: { city?: CityId; time?: TimeOfDay; triathlon?: boolean } = {}
 ): CourseItem[] => {
+  const tri = where.triathlon ?? false;
   const life = roadLifeBag(where.city, stage.terrain, where.time ?? 'morning');
   const rand = mulberry32(hashString(`course:${dateKey}:${stage.name}`));
   const items: CourseItem[] = [];
@@ -193,7 +198,11 @@ export const courseItems = (
   while (km < KM_PER_STAGE - 0.2) {
     const nearGantry = Math.abs(km - Math.round(km)) < 0.05;
     const nearWater = stage.waterAfterKm.some((w) => km > w && km - w < 0.15);
-    if (!nearGantry) {
+    if (tri && km < 1) {
+      // The swim: buoys only, one lane at a time.
+      if (!nearGantry && rand() < 0.75)
+        items.push({ kind: 'buoy', km: round3(km), lane: pickLane() });
+    } else if (!nearGantry) {
       const roll = rand();
       if (nearWater) {
         items.push({ kind: 'cups', km: round3(km), lane: pickLane() });
@@ -205,7 +214,7 @@ export const courseItems = (
         });
       } else if (roll < 0.42) {
         // Now and then a booster instead of a snack; a bicycle is the rarest.
-        const b = rand();
+        const b = tri ? 1 : rand();
         const kind =
           b < 0.07
             ? 'skates'

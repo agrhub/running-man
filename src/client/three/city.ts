@@ -28,6 +28,8 @@ const FH = 3;
 const BAY = 2;
 
 export const kmZ = (km: number) => -km * UNITS_PER_KM;
+/** Half a lane: where the lane ropes float between swim lanes. */
+const LANE_GAP = 1.15;
 
 type FacadeStyle = {
   wall: string;
@@ -306,7 +308,8 @@ export type CityBuild = {
 export const buildCity = (
   city: City,
   stage: Stage,
-  shadows: boolean
+  shadows: boolean,
+  triathlon = false
 ): CityBuild => {
   const group = new THREE.Group();
   const rand = mulberry32(hashString(`${city.id}:${stage.name}`));
@@ -1055,8 +1058,53 @@ export const buildCity = (
     g.position.z = z;
     group.add(g);
   };
-  gantry(0, 'START', null);
-  for (let km = 1; km < COURSE_KM; km++) gantry(kmZ(km), `${km} km`, null);
+  gantry(0, triathlon ? 'SWIM START' : 'START', null);
+  for (let km = 1; km < COURSE_KM; km++)
+    gantry(
+      kmZ(km),
+      triathlon && km === 1
+        ? 'T1 · BIKE'
+        : triathlon && km === 4
+          ? 'T2 · RUN'
+          : `${km} km`,
+      null
+    );
+  if (triathlon) {
+    // The swim: the first km of the avenue is flooded into a pool with lane ropes.
+    const pool = new THREE.Mesh(
+      new THREE.PlaneGeometry(ROAD_HALF * 2, UNITS_PER_KM + 6),
+      new THREE.MeshStandardMaterial({
+        color: '#2f9fd6',
+        roughness: 0.15,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.92,
+      })
+    );
+    pool.rotation.x = -Math.PI / 2;
+    pool.position.set(0, 0.035, kmZ(0.5) + 2);
+    group.add(pool);
+    const floats: THREE.BufferGeometry[] = [];
+    const ball = new THREE.SphereGeometry(0.11, 8, 6);
+    for (const x of [-LANE_GAP, LANE_GAP])
+      for (let z = 4; z > kmZ(1); z -= 0.5)
+        floats.push(
+          colorize(
+            ball.clone().translate(x, 0.08, z),
+            Math.round(z * 2) % 4 === 0 ? '#e63946' : '#ffffff'
+          )
+        );
+    ball.dispose();
+    const merged = mergeGeometries(floats, false);
+    floats.forEach((g) => g.dispose());
+    if (merged)
+      group.add(
+        new THREE.Mesh(
+          merged,
+          new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4 })
+        )
+      );
+  }
   gantry(kmZ(COURSE_KM), 'FINISH', checkerTexture());
 
   // Water stations: tables with cups on the right sidewalk

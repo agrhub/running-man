@@ -297,6 +297,8 @@ export type CityBuild = {
   landmark: THREE.Vector3;
   /** Animates traffic, crowds, birds and the finish party. `camZ` follows the player. */
   update(t: number, dt: number, camZ: number, finished: boolean): void;
+  /** Evening: lamps and shop windows glow (0 day .. 1 night). */
+  setNight(k: number): void;
 };
 
 export const buildCity = (
@@ -1134,6 +1136,14 @@ export const buildCity = (
       life?.update(t, dt, camZ);
       sky(t, dt, camZ);
       party(t, dt, camZ, finished);
+    },
+    setNight: (k: number) => {
+      glow.color.setScalar(1 + k * 1.5);
+      shopMat.emissiveIntensity = 0.25 + k * 1.1;
+      for (const m of facadeMats) {
+        m.emissive.set('#ffcf7a');
+        m.emissiveIntensity = k * 0.16;
+      }
     },
   };
 };

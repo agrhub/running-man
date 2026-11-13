@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { CrewProgress, DayRecap, Profile } from '../../shared/api';
-import { TERRAIN, type DayInfo } from '../../shared/content';
+import { TERRAIN, TIMES, type DayInfo } from '../../shared/content';
 import {
   PACES,
   PACE_LABEL,
@@ -65,8 +65,8 @@ export const PlanScreen = ({
   const [showTip, setShowTip] = useState(profile.totalRuns === 0);
 
   const projection = useMemo(
-    () => simulate(stage, weather.id, { paces, drinks }),
-    [stage, weather.id, paces, drinks]
+    () => simulate(stage, weather.id, { paces, drinks }, day.time),
+    [stage, weather.id, paces, drinks, day.time]
   );
   const last = projection.splits.at(-1);
   const verdict = legsVerdict(last?.stamina ?? 0, projection.walkedKm);
@@ -109,6 +109,13 @@ export const PlanScreen = ({
         <p className="text-[13px] leading-tight">
           <strong className="font-extrabold">{weather.label}.</strong>{' '}
           {weather.hint}
+          <span className="mt-0.5 block">
+            <strong className="font-extrabold">
+              {TIMES[day.time].icon} {TIMES[day.time].label},{' '}
+              {TIMES[day.time].clock}.
+            </strong>{' '}
+            {TIMES[day.time].hint}
+          </span>
         </p>
       </div>
 

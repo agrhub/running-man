@@ -88,7 +88,10 @@ export const courseItems = (
         const kind =
           PICKUP_BAG[Math.floor(rand() * PICKUP_BAG.length)] ?? 'candy';
         items.push({ kind, km: round3(km), lane: pickLane() });
-      } else if (weather === 'rain' && roll < 0.55) {
+      } else if (
+        (weather === 'rain' && roll < 0.55) ||
+        (weather === 'storm' && roll < 0.62)
+      ) {
         items.push({ kind: 'puddle', km: round3(km), lane: pickLane() });
       } else {
         const lane = pickLane();

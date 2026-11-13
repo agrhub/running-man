@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { City, Stage } from '../../shared/content';
+import type { City, Stage, TimeOfDay, WeatherId } from '../../shared/content';
 import type { CourseItem } from '../../shared/course';
 import type { Look } from '../../shared/economy';
 import { itemById } from '../../shared/economy';
@@ -17,7 +17,8 @@ import {
   type CityBuild,
   type ItemView,
 } from './city';
-import { WINTER_FOG, WINTER_SKY, buildFestive, type Festive } from './festive';
+import { buildFestive, type Festive } from './festive';
+import { buildAtmosphere, type Atmosphere } from './atmosphere';
 
 export { UNITS_PER_KM };
 
@@ -124,6 +125,10 @@ export type WorldOptions = {
   preview?: boolean;
   /** December dressing: snow, lights and trees ('christmas' snows harder). */
   festive?: 'season' | 'christmas' | null;
+  weather?: WeatherId;
+  time?: TimeOfDay;
+  /** Called a moment after each lightning flash. */
+  onThunder?: () => void;
 };
 
 export type Position = {
@@ -156,6 +161,9 @@ export class RunWorld {
   private readonly sun: THREE.DirectionalLight;
   private readonly city: CityBuild | null = null;
   private readonly festive: Festive | null = null;
+  private readonly atmosphere: Atmosphere | null = null;
+  private readonly hemi: THREE.HemisphereLight;
+  private thunderAt = -1;
   private readonly trail: THREE.Points | null = null;
   private readonly trailData: {
     x: number;
@@ -194,13 +202,12 @@ export class RunWorld {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const palette = opts.city.palette;
-    this.scene.add(
-      new THREE.HemisphereLight(
-        '#ffffff',
-        palette.ground,
-        opts.preview ? 2.2 : 1.5
-      )
+    this.hemi = new THREE.HemisphereLight(
+      '#ffffff',
+      palette.ground,
+      opts.preview ? 2.2 : 1.5
     );
+    this.scene.add(this.hemi);
     const sun = new THREE.DirectionalLight('#fff4e0', opts.preview ? 1.6 : 2.4);
     sun.position.set(10, 22, 8);
     sun.castShadow = !opts.preview;
@@ -221,9 +228,20 @@ export class RunWorld {
       if (opts.festive) {
         this.festive = buildFestive(opts.festive === 'christmas');
         this.scene.add(this.festive.group);
-        this.scene.background = new THREE.Color(WINTER_SKY);
-        this.scene.fog = new THREE.Fog(new THREE.Color(WINTER_FOG), 45, 170);
       }
+      const air = buildAtmosphere({
+        time: opts.time ?? 'morning',
+        weather: opts.weather ?? 'cool',
+        festive: Boolean(opts.festive),
+      });
+      this.atmosphere = air;
+      this.scene.add(air.group);
+      this.scene.background = air.background;
+      this.scene.fog = new THREE.Fog(air.fog, air.fogNear, air.fogFar);
+      sun.color.set(air.sun.color);
+      sun.intensity = air.sun.intensity;
+      this.hemi.intensity = air.hemi;
+      this.city.setNight(air.night);
       for (const item of opts.items ?? []) {
         const view = buildItem(item, LANE_WIDTH);
         this.scene.add(view.group);
@@ -526,10 +544,23 @@ export class RunWorld {
         this.camera.fov = fov;
         this.camera.updateProjectionMatrix();
       }
-      this.sun.position.set(10, 22, this.camZ + 8);
+      this.sun.position.set(
+        this.atmosphere?.sun.x ?? 10,
+        this.atmosphere?.sun.y ?? 22,
+        this.camZ + 8
+      );
       this.sun.target.position.set(0, 0, this.camZ - 6);
       this.city?.update(t, dt, this.camZ, finished);
       this.festive?.update(t, dt, this.camZ);
+      if (this.atmosphere) {
+        const air = this.atmosphere.update(t, dt, this.camZ);
+        this.hemi.intensity = this.atmosphere.hemi + air.flash * 2.4;
+        if (air.thunder) this.thunderAt = t + 0.6 + Math.random() * 0.8;
+        if (this.thunderAt > 0 && t >= this.thunderAt) {
+          this.thunderAt = -1;
+          this.opts.onThunder?.();
+        }
+      }
       // Far runners and items are lost in the fog anyway: skip drawing them.
       const camZ = this.camZ;
       for (const v of this.views.values()) {

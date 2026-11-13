@@ -209,7 +209,7 @@ describe('game API', () => {
       moves: middle,
       rivals: ['slowpoke'],
     });
-    const sim = simulate(info.stage, info.weather.id, plan);
+    const sim = simulate(info.stage, info.weather.id, plan, info.time);
     const race = replayRace(
       {
         base: checkpoints(sim.splits),

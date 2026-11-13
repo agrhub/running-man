@@ -57,7 +57,8 @@ finish line is something the whole subreddit reaches together.
 Every day at 00:00 UTC a new post opens one 6 km stage of a city marathon. Tokyo, Paris, Hanoi and Dubai take turns,
 one city a week, seven stages each. Stages run through different terrain: city avenues, parks, a forest, a zoo,
 hills, a beach and the desert. Each has its own hills, water stations, a landmark and the day's weather (cool, heat,
-rain, headwind or tailwind), and everyone gets exactly the same conditions.
+rain, a thunderstorm, headwind or tailwind) and its start time (morning, noon, afternoon or evening), and everyone
+gets exactly the same conditions. The seventh stage of every city is a Triathlon Finale: swim, bike, then run.
 
 The first time you open it you make your runner (skin, hair style and colour, shirt, a corgi to run with) and get a
 race bib number that is printed on your runner's back and stays yours. Your Reddit account is your login.
@@ -65,8 +66,11 @@ race bib number that is printed on your runner's back and stays yours. Your Redd
 You plan the race in about 30 seconds: tap each kilometre to choose Easy, Steady or Push and pick your water stops.
 A live stamina line shows where you would run out. In the start corral you see your bib, your start lane and who is on
 the road with you. Then you race it in 3D, from behind your runner, down a closed road with three lanes. Swipe or tap
-to change lanes: cones, puddles and dropped cups cost seconds; water bottles, soda, cake, candy and high fives from
-the crowd give a burst of speed. Tap the chat button to shout one of eight friendly lines ("Let's go! 🔥", "See you
+to change lanes: cones, puddles and dropped cups cost seconds, and so do the people, motorbikes, cyclos, taxis,
+ambulances, dogs, chickens and pigs that wander into your lane; water bottles, soda, cake, candy and high fives from
+the crowd give a burst of speed, and roller skates, a skateboard or a bicycle let you ride for a few seconds. Your
+first race comes with a coach that teaches each move when you need it. Rain falls in streaks, storms flash with
+lightning, leaves blow in the wind, and evening runs glow under the street lights. Tap the chat button to shout one of eight friendly lines ("Let's go! 🔥", "See you
 at the finish 🏁"); they float above your head and replay for everyone who runs the stage after you.
 
 The other runners on the road are today's real players, running exactly the lanes and pace they ran. You cannot run
@@ -95,7 +99,14 @@ everyone plays the same rounds and the server replays your moves to score them. 
 then run on your road first and get their own board, and start or join a running club with a 6-character code:
 clubmates share your road and clubs compete on weekly km. The **Shop** turns coins into 33 outfit items, 7 pets
 (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and gear for your pet: a bandana, a bow, a tiny crown. Every
-name in the game shows the player's own Reddit avatar. Nothing you buy changes race times.
+name in the game shows the player's own Reddit avatar. Nothing you buy changes race times. **Me** shows your run
+calendar, your best time in each city, fourteen achievements that pay coins, and comfort options (calm motion,
+bigger buttons, one-thumb steering).
+
+The subreddit runs itself: each day's stage is pinned at the top, the app posts a recap under yesterday's stage (the
+podium, the most crashes, the most shouted line), and a celebration post when the crew finishes a city. In December
+it snows on every stage, December runners earn Santa hats, and Christmas Day is the Christmas Run with double coins.
+Moderators can switch quick chat, road life, pinning, recaps and app posts off in the app settings.
 
 **How we built it**
 
@@ -116,7 +127,9 @@ name in the game shows the player's own Reddit avatar. Nothing you buy changes r
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 76 unit tests and a 41-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 91 unit tests and a 43-check Playwright run cover the full loop.
+- three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
+  lower resolution, then no shadows, when a phone's frame rate falls.
 
 **Challenges we ran into**
 
@@ -195,6 +208,12 @@ In `docs/screenshots/` (portrait, 2x):
 16. `16-snack-dash.png`: the Snack Dash mini game
 17. `17-friends-club.png`: friends and a running club
 18. `18-weekly-board.png`: this week's standings
+19. `19-triathlon-swim.png`: the swim leg of a Triathlon Finale
+20. `20-storm-evening.png`: a thunderstorm at dusk, with the first-race coach
+21. `21-christmas-run.png`: snow and lights on the Christmas Run
+22. `22-road-life-hanoi.png`: an ambulance and traffic on an evening in Hanoi
+23. `23-profile.png`: the profile with the run calendar and achievements
+24. `24-first-race-coach.png`: the first-race coach
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

@@ -5,6 +5,7 @@ import {
   TIMES,
   isTriathlon,
   KM_PER_STAGE,
+  STAGES_PER_CITY,
   addDays,
   dayInfo,
   toDateKey,
@@ -654,6 +655,38 @@ export const me = async (deps: Deps): Promise<MeResponse> => {
   };
 };
 
+export const celebrationText = (
+  day: DayInfo,
+  finisher: string,
+  runners: number
+): string => {
+  const next = dayInfo(addDays(EPOCH, (day.season + 1) * STAGES_PER_CITY));
+  return [
+    `The crew has run ten marathons in ${day.city.flag} **${day.city.name}**: ${Math.round(CREW_TARGET_METERS / 1000)} km together! 🎉`,
+    '',
+    `u/${finisher} ran the stage that crossed the line, with ${runners} ${runners === 1 ? 'runner' : 'runners'} in the crew this week.`,
+    '',
+    `Everyone who ran a ${day.city.name} stage this week gets ${CREW_FINISH_REWARD} coins and the city's hat next time they open the game.`,
+    '',
+    `Next week: ${next.city.flag} ${next.city.name}. See you at the start line!`,
+  ].join('\n');
+};
+
+/** Posts the city celebration once, the moment the crew crosses the line. */
+const celebrateCity = async (deps: Deps, day: DayInfo, finisher: string) => {
+  if (!deps.createTextPost) return;
+  const key = keys.celebration(day.season);
+  if (await deps.store.get(key)) return;
+  await deps.store.set(key, 'posting');
+  const raw = await deps.store.hGetAll(keys.week(day.season));
+  const runners = Object.keys(raw).length;
+  const postId = await deps.createTextPost(
+    `🎉 The crew finished ${day.city.name}!`,
+    celebrationText(day, finisher, runners)
+  );
+  await deps.store.set(key, postId);
+};
+
 /** Counts what happened on the road today, for the recap posted after the stage closes. */
 const recordDayStats = async (
   store: Store,
@@ -954,6 +987,9 @@ export const run = async (
     await store.hSet(keys.crew(day.season), {
       finishedOn: today,
       finishedBy: username,
+    });
+    await celebrateCity(deps, day, username).catch((error: unknown) => {
+      console.error('Could not post the city celebration', error);
     });
   }
 

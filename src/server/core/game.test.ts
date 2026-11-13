@@ -538,6 +538,15 @@ describe('game API', () => {
     expect(last?.profile.finishedCities).toContain('tokyo');
     expect(last?.profile.owned).toContain('hachimaki');
     expect(last?.profile.ownedPets).toContain('shiba');
+    // One celebration post for the city, from the app.
+    expect(h.texts).toHaveLength(1);
+    expect(h.texts[0]?.title).toBe('🎉 The crew finished Tokyo!');
+    expect(h.texts[0]?.text).toMatch(
+      /u\/r3 ran the stage that crossed the line/
+    );
+    expect(h.texts[0]?.text).toMatch(/Next week: .* Paris/);
+    await call(h.as('r4'), 'POST', '/run', { plan: planFor(date) });
+    expect(h.texts).toHaveLength(1);
 
     const early = await call<InitResponse>(h.as('r1'), 'GET', '/init');
     expect(early.json.profile.claimedSeasons).toEqual([0]);

@@ -14,6 +14,8 @@ export const keys = {
   dayStats: (dateKey: string) => `stats:${dateKey}`,
   /** Set once the day's recap comment is posted. */
   recap: (dateKey: string) => `recap:${dateKey}`,
+  /** The post celebrating a finished city, once per season. */
+  celebration: (season: number) => `celebrate:${season}`,
   /** The pinned how-to-play post, created once on install. */
   welcomePost: () => 'welcome:post',
   votes: (season: number) => `votes:${season}`,

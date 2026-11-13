@@ -559,6 +559,55 @@ describe('game API', () => {
     expect(bob.json.cheersReceived).toBe(1);
   });
 
+  it('checks in once a day and climbs a 7-day calendar', async () => {
+    const d0 = '2026-11-12';
+    expect((await call(h.as(undefined), 'POST', '/checkin', {})).status).toBe(
+      401
+    );
+    const first = await call<ProfileResponse>(
+      h.as('alice').at(d0),
+      'POST',
+      '/checkin',
+      {}
+    );
+    expect(first.json.profile).toMatchObject({
+      checkInDay: 1,
+      badges: 20,
+      checkInDate: d0,
+    });
+    expect((await call(h.at(d0), 'POST', '/checkin', {})).status).toBe(409);
+    let badges = 20;
+    for (let i = 1; i < 7; i++) {
+      const r = await call<ProfileResponse>(
+        h.at(addDays(d0, i)),
+        'POST',
+        '/checkin',
+        {}
+      );
+      expect(r.json.profile.checkInDay).toBe(i + 1);
+      badges = r.json.profile.badges;
+    }
+    expect(badges).toBe(20 + 30 + 40 + 50 + 60 + 80 + 150);
+    // After day 7 the calendar starts over.
+    const eighth = await call<ProfileResponse>(
+      h.at(addDays(d0, 7)),
+      'POST',
+      '/checkin',
+      {}
+    );
+    expect(eighth.json.profile.checkInDay).toBe(1);
+    // Missing a day also starts over.
+    await call(h.at(addDays(d0, 8)), 'POST', '/checkin', {});
+    const gap = await call<ProfileResponse>(
+      h.at(addDays(d0, 10)),
+      'POST',
+      '/checkin',
+      {}
+    );
+    expect(gap.json.profile.checkInDay).toBe(1);
+    expect(h.events).toContain('checked_in');
+  });
+
   it('lets runners vote once a week on the next city', async () => {
     const date = '2026-11-12';
     expect(

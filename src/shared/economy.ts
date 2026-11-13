@@ -585,6 +585,16 @@ export const FINISH_REWARD = 50;
 export const CREW_FINISH_REWARD = 200;
 export const CHEER_REWARD = 5;
 
+/** Daily check-in: coins for day 1..7 of a streak, then the calendar starts over. */
+export const CHECKIN_REWARDS = [20, 30, 40, 50, 60, 80, 150] as const;
+
+/** The calendar day today's check-in would land on (1..7). */
+export const nextCheckInDay = (
+  lastDate: string | null,
+  lastDay: number,
+  yesterday: string
+): number => (lastDate === yesterday ? (lastDay % 7) + 1 : 1);
+
 /** Percentile is 0 (first) .. 1 (last), computed among runners so far that day. */
 export const runReward = (
   percentile: number,

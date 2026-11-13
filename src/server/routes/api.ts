@@ -18,6 +18,7 @@ import {
   GameError,
   buyItem,
   castVote,
+  checkIn,
   carePet,
   cheer,
   choosePet,
@@ -161,6 +162,22 @@ export const createApi = (deps: Deps): Hono => {
       const body = await readJson<JourneyRequest>(c);
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
+      return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/checkin', async (c) => {
+    try {
+      const body = await readJson<JourneyRequest>(c);
+      const { profile, message } = await checkIn(deps);
+      await track(
+        deps,
+        body.journeyId,
+        'checked_in',
+        String(profile.checkInDay)
+      );
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
     } catch (e) {
       return fail(c, e);

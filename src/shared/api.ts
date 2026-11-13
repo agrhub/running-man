@@ -41,6 +41,9 @@ export type Profile = {
   top10: boolean;
   cheeredOn: string | null;
   totalRuns: number;
+  /** Last daily check-in (UTC date) and its place in the 7-day calendar (1..7). */
+  checkInDate: string | null;
+  checkInDay: number;
 };
 
 export type RunnerTrack = {

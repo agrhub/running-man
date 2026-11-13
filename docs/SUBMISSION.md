@@ -167,10 +167,11 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-A captioned 1:48 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
-order: feed card, runner, pace plan, corral, a first race in Hanoi (the coach, a chicken in the road, roller skates
-and a skateboard, the landmark, the finish), race bib, quests, the four mini games, friends and a club, the profile,
-the shop, a thunderstorm, the Triathlon Finale and a Christmas Run. The table below is the script for re-recording it
+A captioned 1:56 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
+order: feed card, runner, pace plan, the corral with a call-your-time guess, a first race in Hanoi (the coach, a chicken
+in the road, roller skates and a skateboard, the landmark, the finish), race bib, quests, the four mini games, friends,
+a club and its relay, the profile, the shop, a thunderstorm, the Triathlon Finale, the Amazon week and a Christmas Run.
+The table below is the script for re-recording it
 on Reddit once the demo subreddit is live.
 
 | Time | Show                                                | Say                                                                                         |

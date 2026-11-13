@@ -9,6 +9,8 @@ export const keys = {
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
   votes: (season: number) => `votes:${season}`,
+  /** Best Snack Dash score per runner that day (stored negative: lowest rank is best). */
+  dashBoard: (dateKey: string) => `dashlb:${dateKey}`,
   /** Stages run and total seconds this week, per runner. */
   week: (season: number) => `week:${season}`,
   /** This week's standings: more stages first, then less total time. */

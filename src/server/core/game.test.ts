@@ -15,12 +15,15 @@ import type {
   ShareResponse,
   VoteResponse,
   QuestsResponse,
+  DashResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
 import { noTelemetry, type Deps, type NewPost } from './deps';
 import { createMemoryStore } from './store';
 import { keys } from './keys';
+import { dashCourse, dashReward, replayDash } from '../../shared/dash';
+import { botMoves } from '../../shared/dashBot';
 
 type Harness = {
   deps: Deps;
@@ -629,6 +632,82 @@ describe('game API', () => {
     });
     expect(next.json.quests.find((q) => q.id === 'vote')?.claimed).toBe(true);
     expect((await call(h.as(undefined), 'GET', '/quests')).status).toBe(401);
+  });
+
+  it('scores Snack Dash on the server, round by round', async () => {
+    const date = '2026-11-12';
+    h.as('alice').at(date);
+    const moves = botMoves(date, 0);
+    const expected = replayDash(dashCourse(date, 0), moves).score;
+    expect(
+      (await call(h.as(undefined), 'POST', '/dash', { round: 0, moves })).status
+    ).toBe(401);
+    expect(
+      (await call(h.as('alice'), 'POST', '/dash', { round: 1, moves })).status
+    ).toBe(409);
+    expect(
+      (await call(h, 'POST', '/dash', { round: 0, moves: 'x' })).status
+    ).toBe(400);
+    const first = await call<DashResponse>(h, 'POST', '/dash', {
+      round: 0,
+      moves,
+      journeyId: 'journey-1',
+    });
+    expect(first.json.score).toBe(expected);
+    expect(first.json.reward).toBe(dashReward(expected, 0));
+    expect(first.json.profile.badges).toBe(first.json.reward);
+    expect(first.json.profile.dash).toMatchObject({
+      date,
+      plays: 1,
+      best: expected,
+    });
+    expect(first.json.board.rows[0]).toMatchObject({
+      rank: 1,
+      username: 'alice',
+      score: expected,
+    });
+    expect(first.json.quests.find((q) => q.id === 'dash')?.progress ?? 1).toBe(
+      1
+    );
+    expect(h.events).toContain('dash_played');
+    // The same round cannot be played twice.
+    expect((await call(h, 'POST', '/dash', { round: 0, moves })).status).toBe(
+      409
+    );
+    // Rounds 2 and 3 pay, round 4 does not.
+    for (let r = 1; r < 3; r++)
+      expect(
+        (
+          await call<DashResponse>(h, 'POST', '/dash', {
+            round: r,
+            moves: botMoves(date, r),
+          })
+        ).json.reward
+      ).toBeGreaterThan(0);
+    const fourth = await call<DashResponse>(h, 'POST', '/dash', {
+      round: 3,
+      moves: botMoves(date, 3),
+    });
+    expect(fourth.json.reward).toBe(0);
+    for (let r = 4; r < 10; r++)
+      await call(h, 'POST', '/dash', { round: r, moves: [] });
+    expect(
+      (await call(h, 'POST', '/dash', { round: 10, moves: [] })).status
+    ).toBe(409);
+    // bob scores less and ranks second; his own row comes back as mine.
+    const bob = await call<DashResponse>(h.as('bob'), 'POST', '/dash', {
+      round: 0,
+      moves: [],
+    });
+    expect(bob.json.board.mine).toMatchObject({ rank: 2, username: 'bob' });
+    // A new day starts over.
+    const next = await call<DashResponse>(
+      h.as('alice').at(addDays(date, 1)),
+      'POST',
+      '/dash',
+      { round: 0, moves: [] }
+    );
+    expect(next.status).toBe(200);
   });
 
   it('checks in once a day and climbs a 7-day calendar', async () => {

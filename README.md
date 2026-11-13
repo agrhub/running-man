@@ -20,6 +20,10 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ------------------------------------------ |
 | ![Quests](docs/screenshots/15-checkin-quests.png) | ![Snack Dash](docs/screenshots/16-snack-dash.png) | ![Friends](docs/screenshots/17-friends-club.png) | ![Shop](docs/screenshots/07-shop-pets.png) |
 
+| Triathlon Finale                                     | Thunderstorm at dusk                            | Christmas Run                                       | Profile                                     |
+| ---------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------- | ------------------------------------------- |
+| ![Triathlon](docs/screenshots/19-triathlon-swim.png) | ![Storm](docs/screenshots/20-storm-evening.png) | ![Christmas](docs/screenshots/21-christmas-run.png) | ![Profile](docs/screenshots/23-profile.png) |
+
 ## How to play
 
 1. **Make your runner.** The first time you open the game you pick skin, hair style and colour, a shirt and a running
@@ -37,16 +41,23 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 5. **Share and come back.** Your result is a race bib with your rank. Share it to the comments, cheer another runner,
    keep your streak, and help the crew finish the city.
 6. **Between races.** The tab bar at the bottom has the rest of the game: **Quests** (daily check-in and quests),
-   **Play** (Snack Dash, a 20-second mini game), **Friends** (friends and running clubs) and the **Shop** (outfits,
-   pets and pet gear). Everything pays in coins 🪙.
+   **Play** (Snack Dash, a 20-second mini game), **Friends** (friends and running clubs), the **Shop** (outfits,
+   pets and pet gear) and **Me** (your profile, achievements and options). Everything pays in coins 🪙.
 
 One counted run per person per day. A new stage opens at 00:00 UTC.
 
 ## Features
 
 - **Daily stages:** 4 cities (Tokyo, Paris, Hanoi, Dubai) x 7 stages, rotating weekly, across 7 terrains (city,
-  park, forest, zoo, hills, beach, desert), with 5 weather types picked by a date-seeded random so everyone gets the
-  same conditions.
+  park, forest, zoo, hills, beach, desert), with 6 weather types (sunny, heat, rain, thunderstorm, headwind,
+  tailwind) and 4 start times (morning, noon, afternoon, evening) picked by a date-seeded random so everyone gets the
+  same conditions. You see them on the road: sun and sky follow the clock, rain falls, storms flash, leaves blow.
+- **Triathlon Finale:** stage 7 of every city is swim, bike, run: a pool with lane ropes and buoys for the first km,
+  bikes from T1 to T2, then the run, each leg with its own pace model.
+- **Life on the road:** people crossing, cyclists, motorbikes, cyclos, taxis, ambulances and fire engines, dogs,
+  cats, chickens and pigs, depending on the city, terrain and hour; and boosters to ride (roller skates, a
+  skateboard, a bicycle).
+- **First race coach:** four tips during your first race, each when it is useful.
 - **Runner and race bib:** a short character creator on first launch (skin, 4 hair styles, hair colour, shirt, pet),
   a bib number that is yours for good and printed on your runner's back, and a start corral before each race.
 - **Strategy first, then steering:** a deterministic stamina model (pace, grade, weather, water) decides most of your
@@ -93,6 +104,13 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   a 6-character code. Clubmates share your road with purple tags, and clubs compete on weekly km.
 - **Reddit avatars:** each player's own Reddit avatar appears next to their name, looked up by the server and cached
   for a day, with a coloured initial when there is none.
+- **Profile and achievements:** a Me tab with your run calendar, bests per city, fourteen achievements that pay
+  coins, and comfort options (calm motion, bigger buttons, one-thumb steering, vibration).
+- **Holiday season:** snow, lights and trees on every December stage, Santa hats for December runners, and a
+  Christmas Run with double coins on the 25th.
+- **Daily recap and celebrations:** the app comments a recap under each closed stage and posts when the crew
+  finishes a city; the plan screen shows yesterday's podium.
+- **Moderator settings:** quick chat, road life, pinning, recaps and app posts can each be switched off.
 - **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
   strategy thread, a how-to-play post pinned on install, result sharing as a
   comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.
@@ -121,7 +139,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 76 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 91 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -131,8 +149,9 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (41 checks: register, check-in, corral, steering, sound, chat, result, vote, weekly and
-friends boards, quests, Snack Dash, friends, clubs, shop, replay; needs Playwright for Python):
+Browser end-to-end check (43 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+vote, weekly and friends boards, quests, Snack Dash, friends, clubs, profile and options, shop, replay; needs
+Playwright for Python):
 
 ```bash
 npm run dev:local

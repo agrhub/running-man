@@ -75,6 +75,8 @@ The game is about running with other redditors, so judges should see a busy road
 - Start the demo subreddit at least 5 days before the deadline so there are several daily posts in a row.
 - Invite 8 to 15 friends (the subreddit must stay under 200 members). Ask each to run the stage on several days, use
   the quick chat, and share their result to the comments.
+- Optional: in the subreddit's app settings, moderators can switch off quick chat, people/traffic/animals on the
+  road, pinning, the daily recap, or the how-to-play and celebration posts. Everything is on by default.
 - Check that the how-to-play post and today's stage are pinned. If the app account lacks moderator rights, pin them
   by hand from the post menu.
 - Open the post on a phone (Reddit app) and in a desktop browser, logged in and logged out, and check that nothing

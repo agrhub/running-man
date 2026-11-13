@@ -35,7 +35,8 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 
 ### Plan (about 30 seconds)
 
-- See the 6 km elevation profile, the water stations, the terrain and today's weather.
+- See the 6 km elevation profile, the water stations, the terrain, today's weather and the start time.
+- Yesterday's podium sits under the start button: the same recap the app posts in the comments.
 - Tap each kilometre to switch between Easy, Steady and Push, and choose where to drink. The default is all Steady,
   so a new player can run straight away.
 - A gold stamina line shows where you would run out. Run out and you walk.
@@ -52,6 +53,15 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 - Cones (4 s), puddles (3 s) and dropped cups (2 s) slow you down. High fives from fans (−2 s), water bottles (−2 s),
   soda (−3 s), cake (−2 s) and candy (−1 s) speed you up. Items are placed from the date, so everyone faces the same
   road.
+- **Life on the road:** people crossing (3 s), cyclists, motorbikes and Hanoi's cyclos (4 s), taxis (5 s),
+  ambulances and fire engines with flashing lights (6 s, you stop to make way), and dogs, cats, chickens and pigs
+  (2 to 4 s). Who turns up depends on the city, the terrain and the hour: motorbikes and cyclos in Hanoi, taxis in
+  Dubai, farm animals in the hills, more people out in the evening. Each moves, reacts when you meet it and answers
+  with its own horn, siren, bark or cluck.
+- **Boosters:** roller skates (−4 s), a skateboard (−5 s) and, rarest, a bicycle (−7 s) wait in a glowing ring. Run
+  through one and your runner rides it for a few seconds.
+- **First race coach:** a new player's first race shows four short tips, each when it is useful: change lanes, steer
+  into the next snack, pass a real runner in your lane, shout with quick chat. The control each tip is about pulses.
 - **No ghosts.** The other runners look and act like real people: today's players, in their outfits and bibs, running
   exactly the lanes and pace they ran. Run into one, or let one run into you, and **both fall and lose 4 seconds**.
   The crash is written into both official times. Rules that keep it fair: no crashes in the first 500 m, nobody
@@ -66,6 +76,17 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
   for a cone, a splash for a puddle, chimes for snacks and high fives, a bell at each km gate and a finish fanfare.
   Phones buzz on a crash. The 🔊 button mutes it all, remembered on that device.
 - **Finish without steering** skips to the end with your plan alone.
+- **Comfort options** (Me tab, kept in the browser): calm motion (no lightning flashes, a quarter of the rain, snow
+  and leaves, a steady camera; on by default when the phone asks for reduced motion), bigger steering buttons,
+  vibration, and both arrows on the left or the right for one-thumb play.
+
+### Triathlon Finale (stage 7 of every city)
+
+- Swim the first km, bike km 2 to 4, run the last two, with 30 s at each change (T1, T2).
+- Every leg has its own speeds: swimming drains stamina fast, the bike lets the legs recover a little, hills count
+  for half on the bike and not at all in the water.
+- On the road, the first km is a pool with lane ropes and marker buoys (3 s); everyone swims, then everyone rides a
+  bike from the T1 gate to T2.
 
 ### Result (one screen)
 
@@ -88,6 +109,13 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 - **The comments are the strategy room:** each stage post pins a "Today's strategy?" comment, and sharing a result
   posts a compact result card as a comment.
 - **Cheers:** one free cheer a day for another runner (+5 coins to you).
+- **Daily recap:** when a new stage opens, the app comments under the closed day's post: the podium, how far the
+  field ran together, snacks, high fives and crashes, the most crashes, the most shouted line, the crew's progress
+  and what is next.
+- **Pinned posts:** each day's stage is pinned at the top of the subreddit (it replaces yesterday's), and a
+  how-to-play guide is posted and pinned once on install.
+- **City celebration:** when the crew crosses ten marathons, the app posts a celebration once: who crossed the line,
+  how many ran, the reward and next week's city.
 - **Next-city vote:** on the result screen, everyone who ran a stage that week gets one vote for the next city to
   build: London, New York, Seoul or Rio. Votes are counted on the server, one per runner per week, with live
   percentages and the city in the lead.
@@ -103,7 +131,7 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 
 ## Between races: the tab bar
 
-The game view has a bottom tab bar: **Race** (plan or result), **Quests**, **Play**, **Friends** and **Shop**. The
+The game view has a bottom tab bar: **Race** (plan or result), **Quests**, **Play**, **Friends**, **Shop** and **Me**. The
 race itself, registration and the corral stay full screen. A dot on Quests means a check-in or a finished quest is
 waiting.
 
@@ -127,6 +155,21 @@ a puddle breaks the combo. Five snacks in a row double the points, ten triple th
 combo. Each round's course comes from the date and the round number, so everyone plays the same rounds in the same
 order, and the server replays the lane changes to score them. The first three rounds a day pay up to 50 coins
 (score ÷ 6); up to ten rounds a day in all, for the daily top five.
+
+### Me: profile and achievements
+
+- Your numbers (stages, km, best streak, best place), the last four weeks as a run calendar, and your best time in
+  each city.
+- Fourteen achievements with progress bars (First Steps, Marathoner, Week Warrior, Globetrotter, On the Podium, High
+  Five Hero, Snack Attack, Bumper Car, Chatterbox, Dash Master, Team Player, Social Runner, Snow Runner…). Each pays
+  50 to 150 coins once, the moment the server sees it done; the result screen lists the ones a run earned.
+
+## Holiday season (December)
+
+- Every December stage has falling snow under a winter sky, string lights on the km gates and decorated trees.
+- Running any December stage earns a Santa hat and a pet Santa hat; reindeer antlers and a snowflake trail are in
+  the shop.
+- Christmas Day is the **Christmas Run**: the post title says so and finishers get double coins.
 
 ## Runner, outfits and pets
 
@@ -208,7 +251,8 @@ outside Reddit, no ads, no real logos.
 
 ## Content: cities, terrains, weather
 
-Four cities with seven stages each, one city a week. Weather changes by day, so the same stage plays differently.
+Four cities with seven stages each, one city a week; the seventh is the Triathlon Finale. Weather and the start
+time change by day, so the same stage plays differently.
 
 | City  | Palette                  | Stylised landmarks                                        | Character                     |
 | ----- | ------------------------ | --------------------------------------------------------- | ----------------------------- |
@@ -243,13 +287,20 @@ The desert uses date palms, shrubs, tents and camels rather than cacti: cacti be
 
 Picked by a random generator seeded with the date, so everyone gets the same weather.
 
-| Weather  | Effect                                    |
-| -------- | ----------------------------------------- |
-| Cool     | No penalty, a fast day                    |
-| Heat     | Stamina drains faster, water matters more |
-| Rain     | Slippery: pushing downhill costs time     |
-| Headwind | Slower on straights and bridges           |
-| Tailwind | Faster on straights                       |
+| Weather      | Effect                                                       | On the road                     |
+| ------------ | ------------------------------------------------------------ | ------------------------------- |
+| Sunny, cool  | Stamina lasts longer, a fast day                             | Clear sky                       |
+| Heat         | Stamina drains faster, water matters more                    | Hazy, warm light                |
+| Rain         | Slippery: pushing downhill costs time; puddles               | Rain streaks, grey sky          |
+| Thunderstorm | Slower everywhere, more puddles, wet downhills punish a push | Dark sky, lightning and thunder |
+| Headwind     | Slower on straights and bridges                              | Leaves blowing at you           |
+| Tailwind     | Faster on straights                                          | Leaves blowing with you         |
+
+### Start time
+
+Also picked by the date: **morning** (6:30 am), **noon** (stamina drains 12% faster), **afternoon** (5% faster,
+more traffic) or **evening** (6% slower drain, lamps and shop windows glow under a dusk sky). The sky, the sun and
+the soundscape follow the clock.
 
 We brute-forced every pace plan for each stage and weather to make sure the best plan changes from day to day.
 
@@ -260,36 +311,49 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 - **Server (Devvit Web, Hono):** receives the pace plan, the lane changes and the chat lines, replays the whole race
   step by step with the same items and the same runners, and records the time it computes, including the time
   added to anyone you crashed into. The client only displays; it never decides a score.
-- **Scheduler:** every day at 00:01 UTC, posts the new stage with a pinned strategy comment.
+- **Scheduler:** every day at 00:01 UTC, posts and pins the new stage with a pinned strategy comment, and posts the
+  recap of the day before.
+- **Moderator settings** (Devvit subreddit settings, all on by default): quick chat, people/traffic/animals on the
+  road, pinning each day's stage, the daily recap, and the how-to-play and celebration posts. The server applies
+  them to every run and post.
+- **Loading:** three.js and the procedural city load as their own chunk, fetched in idle time, so the first screen
+  needs about 100 KB gzipped. In a race the world watches the frame rate and drops to a lower resolution, then no
+  shadows, on slow phones.
 - **Devvit Journeys:** start, plan, finish and every interaction are tracked.
 - **Reddit API:** the Finisher user flair and result comments.
 
 ### Redis keys
 
-| Key                 | Type       | Contents                                                            |
-| ------------------- | ---------- | ------------------------------------------------------------------- |
-| `user:{name}`       | string     | Profile: badges, streak, look, items, pet, bib                      |
-| `lb:{date}`         | sorted set | Everyone's official time that day                                   |
-| `tracks:{date}`     | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
-| `run:{date}:…`      | string     | Each runner's full record, including crashes                        |
-| `crew:{season}`     | hash       | Crew kilometres and finish state for that city's week               |
-| `cheers:{date}`     | hash       | Cheers each runner received that day                                |
-| `post:{postId}`     | string     | Which day a post belongs to                                         |
-| `bibs`              | counter    | The next bib number                                                 |
-| `day:{date}:post`   | string     | The stage post for that day                                         |
-| `votes:{season}`    | hash       | Next-city vote counts for that week                                 |
-| `voters:{season}`   | hash       | Who voted for which city that week (one vote each)                  |
-| `week:{season}`     | hash       | Stages and total seconds this week per runner                       |
-| `weeklb:{season}`   | sorted set | This week's standings                                               |
-| `dashlb:{date}`     | sorted set | Best Snack Dash score per runner that day                           |
-| `club:{code}`       | string     | A running club: name, owner, members                                |
-| `clubweek:{season}` | sorted set | Clubs ranked by stages this week                                    |
-| `avatars`           | hash       | Reddit avatar URLs, refreshed once a day                            |
+| Key                  | Type       | Contents                                                            |
+| -------------------- | ---------- | ------------------------------------------------------------------- |
+| `user:{name}`        | string     | Profile: badges, streak, look, items, pet, bib                      |
+| `lb:{date}`          | sorted set | Everyone's official time that day                                   |
+| `tracks:{date}`      | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
+| `run:{date}:…`       | string     | Each runner's full record, including crashes                        |
+| `crew:{season}`      | hash       | Crew kilometres and finish state for that city's week               |
+| `cheers:{date}`      | hash       | Cheers each runner received that day                                |
+| `post:{postId}`      | string     | Which day a post belongs to                                         |
+| `bibs`               | counter    | The next bib number                                                 |
+| `day:{date}:post`    | string     | The stage post for that day                                         |
+| `votes:{season}`     | hash       | Next-city vote counts for that week                                 |
+| `voters:{season}`    | hash       | Who voted for which city that week (one vote each)                  |
+| `week:{season}`      | hash       | Stages and total seconds this week per runner                       |
+| `weeklb:{season}`    | sorted set | This week's standings                                               |
+| `dashlb:{date}`      | sorted set | Best Snack Dash score per runner that day                           |
+| `club:{code}`        | string     | A running club: name, owner, members                                |
+| `clubweek:{season}`  | sorted set | Clubs ranked by stages this week                                    |
+| `avatars`            | hash       | Reddit avatar URLs, refreshed once a day                            |
+| `history:{name}`     | hash       | A runner's past stages: time, place, field size                     |
+| `stats:{date}`       | hash       | The day's counters for the recap: crashes, snacks, chat lines       |
+| `recap:{date}`       | string     | The recap comment, once posted                                      |
+| `welcome:post`       | string     | The pinned how-to-play post                                         |
+| `celebrate:{season}` | string     | The city celebration post                                           |
 
 ### Stage simulation (deterministic, runs on client and server)
 
 - Six one-kilometre segments, each Easy, Steady or Push.
-- Stamina drains by pace, grade and weather; drinking at a station restores some.
+- Stamina drains by pace, grade, weather and start time; drinking at a station restores some.
+- On a Triathlon Finale each km has its leg (swim, bike, run) with its own speeds and drain, plus 30 s at T1 and T2.
 - At zero stamina the runner walks and loses a lot of time.
 - On top of that, a fixed-step race engine (0.5 s steps) handles lanes, items and collisions.
 - The same plan, lane changes and seed always give the same time, so the server can check it.

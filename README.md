@@ -1,4 +1,4 @@
-# Chibi City Marathon
+# Running Man
 
 A daily running game for Reddit. Every day the subreddit gets one new 6 km stage through the streets of a famous
 city. You plan your pace, then steer your chibi runner down a busy 3D avenue: dodge cones and puddles, high-five fans,

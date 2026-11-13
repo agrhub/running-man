@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { RunnerTrack, Profile } from '../../shared/api';
-import type { DayInfo } from '../../shared/content';
+import {
+  LEG_LABEL,
+  isTriathlon,
+  legAt,
+  type DayInfo,
+} from '../../shared/content';
 import {
   ITEM_LABEL,
   courseItems,
@@ -177,6 +182,12 @@ const eventToast = (e: RaceEvent): Toast => {
       tone: 'bad',
     };
   }
+  if (e.kind === 'buoy')
+    return {
+      title: '🛟 Buoy!',
+      body: `You swim into it. +${e.seconds}s`,
+      tone: 'bad',
+    };
   const icon = e.kind === 'cone' ? '🚧' : e.kind === 'puddle' ? '💦' : '🥤';
   return {
     title: `${icon} ${ITEM_LABEL[e.kind]}!`,
@@ -200,6 +211,7 @@ export const RunScreen = ({
 }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const live = mode === 'live';
+  const tri = isTriathlon(day);
   const [hud, setHud] = useState<Hud>({
     t: 0,
     km: 0,
@@ -271,7 +283,13 @@ export const RunScreen = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const sim = simulate(day.stage, day.weather.id, plan, day.time);
+    const sim = simulate(
+      day.stage,
+      day.weather.id,
+      plan,
+      day.time,
+      isTriathlon(day)
+    );
     const rivalList: Rival[] = rivals.map((g) => ({
       username: g.username,
       marks: g.marks,
@@ -282,6 +300,7 @@ export const RunScreen = ({
       items: courseItems(day.dateKey, day.stage, day.weather.id, {
         city: day.city.id,
         time: day.time,
+        triathlon: isTriathlon(day),
       }),
       rivals: rivalList,
       startLane: startLane(profile.username),
@@ -321,6 +340,7 @@ export const RunScreen = ({
       items: setup.items,
       weather: day.weather.id,
       time: day.time,
+      triathlon: tri,
       onThunder: () => {
         if (!skipRef.current) sfx.thunder();
       },
@@ -397,7 +417,7 @@ export const RunScreen = ({
           world.hitItem(e.item);
           if (e.kind === 'fan') sfx.highFive();
           else if (isRoadLife(e.kind)) sfx.roadLife(e.kind);
-          else if (e.kind === 'puddle') sfx.splash();
+          else if (e.kind === 'puddle' || e.kind === 'buoy') sfx.splash();
           else if (e.kind === 'cone' || e.kind === 'cups') sfx.stumble();
           else if (isBooster(e.kind)) {
             riding = e.kind as RideKind;
@@ -640,6 +660,7 @@ export const RunScreen = ({
     live,
     replayMoves,
     replayChat,
+    tri,
   ]);
 
   // Swipe to change lanes
@@ -675,6 +696,7 @@ export const RunScreen = ({
             {formatTime(hud.t)}
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft tabular">
+            {tri ? `${LEG_LABEL[legAt(true, hud.km)].icon} ` : ''}
             {hud.km.toFixed(2)} of 6 km
           </p>
         </div>

@@ -410,6 +410,25 @@ export const buildObstacle = (
       };
       break;
     }
+    case 'buoy': {
+      part(body, ball(0.4), '#ff7b00', 0, 0.25, 0);
+      part(
+        body,
+        new THREE.CylinderGeometry(0.42, 0.42, 0.08, 16),
+        '#ffffff',
+        0,
+        0.3,
+        0
+      );
+      idle = (t) => {
+        body.position.y = Math.sin(t * 2 + seed * 6) * 0.06;
+        body.rotation.z = Math.sin(t * 1.5 + seed) * 0.1;
+      };
+      react = (k) => {
+        body.position.x = Math.sin(k * Math.PI) * 0.6;
+      };
+      break;
+    }
     default:
       return null;
   }

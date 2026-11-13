@@ -132,6 +132,8 @@ export type WorldOptions = {
   time?: TimeOfDay;
   /** Called a moment after each lightning flash. */
   onThunder?: () => void;
+  /** Triathlon finale: swim the first km, bike to km 4, then run. */
+  triathlon?: boolean;
 };
 
 export type Position = {
@@ -228,7 +230,12 @@ export class RunWorld {
 
     if (!opts.preview) {
       this.scene.fog = new THREE.Fog(new THREE.Color(palette.skyLow), 60, 190);
-      this.city = buildCity(opts.city, opts.stage, true);
+      this.city = buildCity(
+        opts.city,
+        opts.stage,
+        true,
+        opts.triathlon ?? false
+      );
       this.scene.add(this.city.group);
       if (opts.festive) {
         this.festive = buildFestive(opts.festive === 'christmas');
@@ -454,34 +461,53 @@ export class RunWorld {
         tilt = k * 1.25;
         drop = k * 0.25;
       }
+      const leg = this.opts.triathlon
+        ? p.km < 1
+          ? 'swim'
+          : p.km < 4
+            ? 'bike'
+            : 'run'
+        : 'run';
+      const swimming = leg === 'swim' && !this.opts.preview;
       if (!this.opts.preview) {
-        view.holder.position.set(view.x, -drop, z);
-        view.holder.rotation.x = -tilt;
+        view.holder.position.set(
+          view.x,
+          swimming ? 0.12 + Math.sin(t * 5 + z) * 0.04 : -drop,
+          z
+        );
+        view.holder.rotation.x = swimming ? -1.3 : -tilt;
         if (p.limp && since >= 1.2)
           view.holder.rotation.z = Math.sin(t * 9) * 0.12;
         else view.holder.rotation.z = 0;
       }
-      // Boosters: the runner rides skates, a skateboard or a bike while the burst lasts.
+      // Boosters (and the triathlon bike leg): the runner rides while it lasts.
+      const ride = leg === 'bike' ? 'bike' : leg === 'swim' ? null : p.ride;
       for (const [k, g] of Object.entries(view.rides))
-        if (g) g.visible = k === p.ride;
-      if (p.ride) {
-        let g = view.rides[p.ride];
+        if (g) g.visible = k === ride;
+      if (ride) {
+        let g = view.rides[ride];
         if (!g) {
-          g = buildRide(p.ride);
+          g = buildRide(ride);
           view.holder.add(g);
-          view.rides[p.ride] = g;
+          view.rides[ride] = g;
         }
         g.visible = true;
-        view.chibi.group.position.y = RIDE_LIFT[p.ride];
+        view.chibi.group.position.y = RIDE_LIFT[ride];
       } else view.chibi.group.position.y = 0;
-      view.chibi.update(t, since < 1.2 ? 0 : p.ride === 'bike' ? 0.3 : p.speed);
+      view.chibi.update(
+        t,
+        since < 1.2 ? 0 : ride === 'bike' ? 0.3 : swimming ? 1 : p.speed
+      );
       if (view.pet) {
+        // Pets wait on the side during the swim.
+        view.pet.group.visible = !swimming;
         if (!this.opts.preview)
           view.pet.group.position.set(view.x + 0.75, 0, z + 0.6);
         view.pet.update(t, p.speed);
       }
       // Just above the head (hair buns and hats included), so the tag reads as this runner's even up close.
-      if (view.label) view.label.position.set(view.x, 1.74 - drop, z);
+      if (view.label)
+        view.label.position.set(view.x, swimming ? 0.9 : 1.74 - drop, z);
     }
 
     for (const it of this.items) it.update(t);

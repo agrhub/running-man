@@ -3,6 +3,7 @@ import {
   EPOCH,
   FINISHER_STAGES,
   TIMES,
+  isTriathlon,
   KM_PER_STAGE,
   addDays,
   dayInfo,
@@ -832,13 +833,20 @@ export const run = async (
 
   // The server replays the whole race: pace plan, lane changes, the day's course and every collision.
   // Nobody can post a time they did not run.
-  const sim = simulate(day.stage, day.weather.id, plan, day.time);
+  const sim = simulate(
+    day.stage,
+    day.weather.id,
+    plan,
+    day.time,
+    isTriathlon(day)
+  );
   const race = replayRace(
     {
       base: checkpoints(sim.splits),
       items: courseItems(dateKey, day.stage, day.weather.id, {
         city: day.city.id,
         time: day.time,
+        triathlon: isTriathlon(day),
       }),
       rivals: rivalRuns,
       startLane: startLane(username),
@@ -1670,7 +1678,7 @@ export const share = async (
 };
 
 export const postTitle = (day: DayInfo): string =>
-  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
+  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
 
 /** Creates the post for a day once; later calls return the same post. */
 export const ensureDailyPost = async (

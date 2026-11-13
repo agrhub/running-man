@@ -647,5 +647,24 @@ export const dayInfo = (dateKey: string): DayInfo => {
   };
 };
 
+/**
+ * The last stage of every city week is the Triathlon Finale: swim the first
+ * km, bike the next three, run the last two.
+ */
+export type Leg = 'swim' | 'bike' | 'run';
+
+export const isTriathlon = (day: Pick<DayInfo, 'stageIndex'>): boolean =>
+  day.stageIndex === STAGES_PER_CITY - 1;
+
+/** The leg for km index 0..5 (the km being run), or for a distance in km. */
+export const legAt = (tri: boolean, km: number): Leg =>
+  !tri ? 'run' : km < 1 ? 'swim' : km < 4 ? 'bike' : 'run';
+
+export const LEG_LABEL: Record<Leg, { icon: string; label: string }> = {
+  swim: { icon: '🏊', label: 'Swim' },
+  bike: { icon: '🚴', label: 'Bike' },
+  run: { icon: '🏃', label: 'Run' },
+};
+
 export const cityById = (id: string): City | undefined =>
   CITIES.find((c) => c.id === id);

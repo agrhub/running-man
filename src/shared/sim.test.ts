@@ -228,4 +228,15 @@ describe('next-city vote', () => {
       simulate(climb, 'rain', plan).totalSeconds
     );
   });
+  it('runs the triathlon finale as swim, bike and run, with two changes', () => {
+    const plan = defaultPlan(flat);
+    const tri = simulate(flat, 'cool', plan, 'morning', true);
+    const run = simulate(flat, 'cool', plan, 'morning', false);
+    const [swim, bike1, , , run1] = tri.splits;
+    expect(swim!.seconds).toBeGreaterThan(run.splits[0]!.seconds);
+    expect(bike1!.seconds).toBeLessThan(run.splits[1]!.seconds);
+    expect(run1!.seconds).toBeGreaterThan(run.splits[4]!.seconds - 1);
+    // Swimming drains more than running the same km.
+    expect(swim!.stamina).toBeLessThan(run.splits[0]!.stamina);
+  });
 });

@@ -108,3 +108,21 @@ describe('boosters', () => {
         expect(ITEM_SECONDS[k]).toBeLessThan(ITEM_SECONDS[p]);
   });
 });
+
+describe('triathlon course', () => {
+  it('has only buoys in the swim and no boosters anywhere', () => {
+    for (let i = 0; i < 10; i++) {
+      const d = dayInfo(addDays('2026-11-15', i * 7));
+      const items = courseItems(d.dateKey, d.stage, d.weather.id, {
+        city: d.city.id,
+        triathlon: true,
+      });
+      for (const it of items) {
+        if (it.km < 1) expect(it.kind).toBe('buoy');
+        else expect(it.kind).not.toBe('buoy');
+        expect(isBooster(it.kind)).toBe(false);
+      }
+      expect(items.some((it) => it.kind === 'buoy')).toBe(true);
+    }
+  });
+});

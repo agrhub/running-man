@@ -60,6 +60,10 @@ const KIND_WORD: Record<string, [string, string]> = {
   cat: ['cat', 'cats'],
   chicken: ['chicken', 'chickens'],
   pig: ['pig', 'pigs'],
+  skates: ['pair of skates', 'pairs of skates'],
+  skateboard: ['skateboard', 'skateboards'],
+  bike: ['bike ride', 'bike rides'],
+  buoy: ['buoy', 'buoys'],
 };
 
 const countKinds = (kinds: string[]) => {

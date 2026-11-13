@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 import type { CrewProgress, DayRecap, Profile } from '../../shared/api';
-import { TERRAIN, TIMES, type DayInfo } from '../../shared/content';
+import {
+  LEG_LABEL,
+  TERRAIN,
+  TIMES,
+  isTriathlon,
+  legAt,
+  type DayInfo,
+} from '../../shared/content';
 import {
   PACES,
   PACE_LABEL,
@@ -58,6 +65,7 @@ export const PlanScreen = ({
   onLocker,
 }: Props) => {
   const { stage, weather, city } = day;
+  const tri = isTriathlon(day);
   const [paces, setPaces] = useState<Pace[]>(() =>
     stage.grades.map(() => 'steady')
   );
@@ -65,8 +73,15 @@ export const PlanScreen = ({
   const [showTip, setShowTip] = useState(profile.totalRuns === 0);
 
   const projection = useMemo(
-    () => simulate(stage, weather.id, { paces, drinks }, day.time),
-    [stage, weather.id, paces, drinks, day.time]
+    () =>
+      simulate(
+        stage,
+        weather.id,
+        { paces, drinks },
+        day.time,
+        isTriathlon(day)
+      ),
+    [stage, weather.id, paces, drinks, day]
   );
   const last = projection.splits.at(-1);
   const verdict = legsVerdict(last?.stamina ?? 0, projection.walkedKm);
@@ -119,6 +134,22 @@ export const PlanScreen = ({
         </p>
       </div>
 
+      {tri && (
+        <section
+          className="rounded-2xl border-2 border-ink bg-[#e3f6ff] px-3 py-2"
+          aria-label="Triathlon finale"
+        >
+          <p className="font-display text-[18px] font-extrabold leading-tight">
+            🏊 🚴 🏃 Triathlon Finale
+          </p>
+          <p className="text-[13px] leading-snug">
+            The last stage of the week: swim the first km, bike the next three,
+            run the last two. Each change costs 30 seconds. Swimming drains
+            stamina fast; your legs recover a little on the bike.
+          </p>
+        </section>
+      )}
+
       {holidayBanner(day.dateKey) && (
         <p className="rounded-2xl border-2 border-ink bg-[#e9f6ff] px-3 py-2 text-[13px] font-bold">
           {holidayBanner(day.dateKey)}
@@ -145,7 +176,7 @@ export const PlanScreen = ({
               aria-label={`Km ${i + 1}: ${PACE_LABEL[p]}. Tap to change.`}
             >
               <span className="text-[10px] font-extrabold opacity-90">
-                km {i + 1}
+                {tri ? `${LEG_LABEL[legAt(true, i)].icon} ` : ''}km {i + 1}
               </span>
               <span className="font-display text-[14px] font-extrabold leading-none">
                 {PACE_LABEL[p]}

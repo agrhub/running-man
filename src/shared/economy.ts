@@ -1,7 +1,8 @@
 import type { CityId, WeatherId } from './content';
 
-export type Slot = 'top' | 'hat' | 'shoes' | 'accessory' | 'trail';
+export type Slot = 'top' | 'hat' | 'shoes' | 'accessory' | 'trail' | 'petGear';
 
+/** Slots the runner wears; pet gear is chosen in the pet section. */
 export const SLOTS: Slot[] = ['top', 'hat', 'shoes', 'accessory', 'trail'];
 
 export const SLOT_LABEL: Record<Slot, string> = {
@@ -10,7 +11,11 @@ export const SLOT_LABEL: Record<Slot, string> = {
   shoes: 'Shoes',
   accessory: 'Extra',
   trail: 'Trail',
+  petGear: 'Pet gear',
 };
+
+/** The game's one currency. Stored as `badges` in profiles for compatibility. */
+export const COIN = '🪙';
 
 export type Unlock =
   | { kind: 'free' }
@@ -40,7 +45,15 @@ export type ItemShape =
   | 'scarf'
   | 'sakura'
   | 'leaves'
-  | 'sparkle';
+  | 'sparkle'
+  | 'crown'
+  | 'ears'
+  | 'petBandana'
+  | 'petBow'
+  | 'petCap'
+  | 'petShades'
+  | 'petCrown'
+  | 'petCollar';
 
 export type Item = {
   id: string;
@@ -244,9 +257,165 @@ export const ITEMS: Item[] = [
     color: '#fff3a3',
     unlock: { kind: 'badges', cost: 900 },
   },
+
+  // ---- more to buy with coins
+  {
+    id: 'tee-lime',
+    name: 'Lime Racing Tee',
+    slot: 'top',
+    shape: 'tee',
+    color: '#b8f04a',
+    unlock: { kind: 'badges', cost: 150 },
+  },
+  {
+    id: 'tee-night',
+    name: 'Midnight Tee',
+    slot: 'top',
+    shape: 'tee',
+    color: '#2f3b6b',
+    unlock: { kind: 'badges', cost: 200 },
+  },
+  {
+    id: 'tee-flamingo',
+    name: 'Flamingo Tee',
+    slot: 'top',
+    shape: 'tee',
+    color: '#ff8fb8',
+    unlock: { kind: 'badges', cost: 250 },
+  },
+  {
+    id: 'cap-navy',
+    name: 'Navy Cap',
+    slot: 'hat',
+    shape: 'cap',
+    color: '#26355d',
+    unlock: { kind: 'badges', cost: 300 },
+  },
+  {
+    id: 'bunny-ears',
+    name: 'Bunny Ears',
+    slot: 'hat',
+    shape: 'ears',
+    color: '#fff4f8',
+    unlock: { kind: 'badges', cost: 550 },
+  },
+  {
+    id: 'crown',
+    name: 'Party Crown',
+    slot: 'hat',
+    shape: 'crown',
+    color: '#ffc83d',
+    unlock: { kind: 'badges', cost: 1200 },
+  },
+  {
+    id: 'runners-coral',
+    name: 'Coral Runners',
+    slot: 'shoes',
+    shape: 'runners',
+    color: '#ff7a6b',
+    unlock: { kind: 'badges', cost: 250 },
+  },
+  {
+    id: 'runners-night',
+    name: 'Night Runners',
+    slot: 'shoes',
+    shape: 'runners',
+    color: '#26355d',
+    unlock: { kind: 'badges', cost: 250 },
+  },
+  {
+    id: 'shades-rose',
+    name: 'Rose Shades',
+    slot: 'accessory',
+    shape: 'shades',
+    color: '#ff4f81',
+    unlock: { kind: 'badges', cost: 350 },
+  },
+  {
+    id: 'scarf-mint',
+    name: 'Mint Scarf',
+    slot: 'accessory',
+    shape: 'scarf',
+    color: '#5fd3b0',
+    unlock: { kind: 'badges', cost: 450 },
+  },
+  {
+    id: 'trail-mint',
+    name: 'Mint Bubbles',
+    slot: 'trail',
+    shape: 'sparkle',
+    color: '#9ff5dc',
+    unlock: { kind: 'badges', cost: 700 },
+  },
+  {
+    id: 'trail-hearts',
+    name: 'Pink Puffs',
+    slot: 'trail',
+    shape: 'sakura',
+    color: '#ff9fc6',
+    unlock: { kind: 'badges', cost: 800 },
+  },
+  // ---- pet gear: worn by whichever pet runs with you
+  {
+    id: 'pet-none',
+    name: 'Nothing',
+    slot: 'petGear',
+    shape: 'none',
+    color: '#000000',
+    unlock: { kind: 'free' },
+  },
+  {
+    id: 'pet-collar',
+    name: 'Bell Collar',
+    slot: 'petGear',
+    shape: 'petCollar',
+    color: '#e63946',
+    unlock: { kind: 'badges', cost: 100 },
+  },
+  {
+    id: 'pet-bandana',
+    name: 'Bandana',
+    slot: 'petGear',
+    shape: 'petBandana',
+    color: '#ff4f81',
+    unlock: { kind: 'badges', cost: 150 },
+  },
+  {
+    id: 'pet-bow',
+    name: 'Big Bow',
+    slot: 'petGear',
+    shape: 'petBow',
+    color: '#a78bfa',
+    unlock: { kind: 'badges', cost: 200 },
+  },
+  {
+    id: 'pet-cap',
+    name: 'Tiny Cap',
+    slot: 'petGear',
+    shape: 'petCap',
+    color: '#ffc83d',
+    unlock: { kind: 'badges', cost: 300 },
+  },
+  {
+    id: 'pet-shades',
+    name: 'Pet Shades',
+    slot: 'petGear',
+    shape: 'petShades',
+    color: '#1b1b2f',
+    unlock: { kind: 'badges', cost: 350 },
+  },
+  {
+    id: 'pet-crown',
+    name: 'Tiny Crown',
+    slot: 'petGear',
+    shape: 'petCrown',
+    color: '#ffc83d',
+    unlock: { kind: 'badges', cost: 900 },
+  },
 ];
 
-export type PetId = 'corgi' | 'cat' | 'shiba' | 'penguin';
+export type PetId =
+  'corgi' | 'cat' | 'shiba' | 'penguin' | 'bunny' | 'fox' | 'panda';
 
 export type Pet = {
   id: PetId;
@@ -280,6 +449,24 @@ export const PETS: Pet[] = [
     quirk: 'Waddles uphill, belly-slides downhill.',
     unlock: { kind: 'streak', days: 14 },
   },
+  {
+    id: 'bunny',
+    name: 'Bunny',
+    quirk: 'Hops instead of running. Ears flop on every bounce.',
+    unlock: { kind: 'badges', cost: 600 },
+  },
+  {
+    id: 'fox',
+    name: 'Fox',
+    quirk: 'Sly sprinter with a big fluffy tail.',
+    unlock: { kind: 'badges', cost: 1000 },
+  },
+  {
+    id: 'panda',
+    name: 'Panda',
+    quirk: 'Rolls along, in no hurry at all.',
+    unlock: { kind: 'badges', cost: 1500 },
+  },
 ];
 
 export type Look = {
@@ -288,6 +475,8 @@ export type Look = {
   shoes: string;
   accessory: string;
   trail: string;
+  /** What the pet wears. Older profiles have none. */
+  petGear: string;
   pet: PetId;
   /** Indexes into SKIN_TONES and HAIR_TONES, chosen at registration. */
   skin: number;
@@ -329,6 +518,7 @@ export const defaultLook = (seed: number): Look => {
     shoes: 'runners-basic',
     accessory: 'no-extra',
     trail: 'no-trail',
+    petGear: 'pet-none',
     pet: 'corgi',
     skin: seed % SKIN_TONES.length,
     hair: Math.floor(seed / 7) % HAIR_TONES.length,
@@ -369,7 +559,7 @@ export const unlockLabel = (unlock: Unlock): string => {
     case 'free':
       return 'Free';
     case 'badges':
-      return `${unlock.cost} badges`;
+      return `${unlock.cost} ${COIN}`;
     case 'streak':
       return `${unlock.days}-day streak`;
     case 'cityFinish':

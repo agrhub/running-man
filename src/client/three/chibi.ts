@@ -252,6 +252,58 @@ export const buildChibi = (
 
   // Hats
   switch (hat?.shape) {
+    case 'crown': {
+      const gold = paint(hat.color, { emissive: '#7a5600' });
+      const ring = mesh(
+        new THREE.CylinderGeometry(0.2, 0.22, 0.12, 16, 1, true),
+        gold,
+        0,
+        0.38,
+        0
+      );
+      head.add(ring);
+      const spike = new THREE.ConeGeometry(0.045, 0.12, 6);
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2;
+        head.add(
+          mesh(spike, gold, Math.cos(a) * 0.19, 0.49, Math.sin(a) * 0.19)
+        );
+      }
+      head.add(
+        mesh(
+          new THREE.SphereGeometry(0.035, 8, 6),
+          paint('#ff4f81'),
+          0.21,
+          0.38,
+          0
+        )
+      );
+      break;
+    }
+    case 'ears': {
+      const fur = paint(hat.color);
+      const inner = paint('#ffb3c7');
+      const earGeo = new THREE.CapsuleGeometry(0.06, 0.26, 4, 10);
+      const innerGeo = new THREE.CapsuleGeometry(0.035, 0.2, 4, 8);
+      for (const side of [1, -1]) {
+        const ear = new THREE.Group();
+        ear.position.set(-0.03, 0.42, side * 0.13);
+        ear.rotation.x = side * -0.22;
+        ear.add(mesh(earGeo, fur, 0, 0.15, 0));
+        ear.add(mesh(innerGeo, inner, 0.03, 0.15, 0));
+        head.add(ear);
+      }
+      head.add(
+        mesh(
+          new THREE.TorusGeometry(0.34, 0.025, 6, 24, Math.PI),
+          fur,
+          -0.02,
+          0.12,
+          0
+        ).rotateY(Math.PI / 2)
+      );
+      break;
+    }
     case 'cap': {
       const mat = paint(hat.color);
       head.add(
@@ -489,10 +541,162 @@ const PET_COLORS: Record<
   cat: { main: '#b9b2a8', belly: '#f4efe6', accent: '#e9a052' },
   shiba: { main: '#e07b39', belly: '#fff1dc', accent: '#2a2340' },
   penguin: { main: '#2f2f48', belly: '#ffffff', accent: '#ffa62b' },
+  bunny: { main: '#f6f1fb', belly: '#ffffff', accent: '#ffb3c7' },
+  fox: { main: '#f0843a', belly: '#fff6ec', accent: '#2a2340' },
+  panda: { main: '#ffffff', belly: '#ffffff', accent: '#2a2340' },
+};
+
+/** Where gear sits on a pet: on top of the head, around the neck, and over the eyes (pet faces +x). */
+type PetAnchors = {
+  headTop: THREE.Vector3;
+  neck: THREE.Vector3;
+  eyes: THREE.Vector3;
+  headR: number;
+};
+
+const addPetGear = (
+  parent: THREE.Object3D,
+  gearId: string | undefined,
+  a: PetAnchors,
+  paint: Painter
+) => {
+  const gear = gearId ? itemById(gearId) : undefined;
+  if (!gear || gear.shape === 'none') return;
+  const k = a.headR / 0.15;
+  const at = (v: THREE.Vector3, o: THREE.Object3D) => {
+    o.position.add(v);
+    parent.add(o);
+  };
+  switch (gear.shape) {
+    case 'petCollar': {
+      const ring = mesh(
+        new THREE.TorusGeometry(0.1 * k, 0.022, 6, 16),
+        paint(gear.color),
+        0,
+        0,
+        0
+      ).rotateY(Math.PI / 2);
+      ring.rotation.z = 0.5;
+      at(a.neck, ring);
+      at(
+        a.neck.clone().add(new THREE.Vector3(0.09 * k, -0.06 * k, 0)),
+        mesh(
+          new THREE.SphereGeometry(0.03, 8, 6),
+          paint('#ffc83d', { emissive: '#7a5600' })
+        )
+      );
+      break;
+    }
+    case 'petBandana': {
+      const cloth = paint(gear.color);
+      const ring = mesh(
+        new THREE.TorusGeometry(0.1 * k, 0.025, 6, 16),
+        cloth
+      ).rotateY(Math.PI / 2);
+      ring.rotation.z = 0.5;
+      at(a.neck, ring);
+      const tri = mesh(new THREE.ConeGeometry(0.08 * k, 0.13 * k, 3), cloth);
+      tri.rotation.z = Math.PI * 0.82;
+      at(a.neck.clone().add(new THREE.Vector3(0.08 * k, -0.06 * k, 0)), tri);
+      break;
+    }
+    case 'petBow': {
+      const ribbon = paint(gear.color);
+      const bow = new THREE.Group();
+      const loop = new THREE.ConeGeometry(0.05 * k, 0.09 * k, 8);
+      for (const side of [1, -1]) {
+        const c = mesh(loop, ribbon, 0, 0, side * 0.05 * k);
+        c.rotation.x = (side * Math.PI) / 2;
+        bow.add(c);
+      }
+      bow.add(mesh(new THREE.SphereGeometry(0.025 * k, 8, 6), ribbon));
+      bow.rotation.y = 0.5;
+      at(a.headTop.clone().add(new THREE.Vector3(-0.02, -0.01, 0.07 * k)), bow);
+      break;
+    }
+    case 'petCap': {
+      const mat = paint(gear.color);
+      const dome = mesh(
+        new THREE.SphereGeometry(
+          a.headR * 0.78,
+          14,
+          8,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI / 2
+        ),
+        mat
+      );
+      at(a.headTop.clone().add(new THREE.Vector3(0, -a.headR * 0.32, 0)), dome);
+      const brim = mesh(
+        new THREE.CylinderGeometry(0.09 * k, 0.09 * k, 0.02, 14),
+        mat
+      );
+      brim.scale.set(1.3, 1, 1.1);
+      at(
+        a.headTop
+          .clone()
+          .add(new THREE.Vector3(a.headR * 0.62, -a.headR * 0.3, 0)),
+        brim
+      );
+      break;
+    }
+    case 'petShades': {
+      const dark = paint(gear.color);
+      const lens = new THREE.BoxGeometry(0.03, 0.05 * k, 0.07 * k);
+      for (const side of [1, -1])
+        at(
+          a.eyes.clone().add(new THREE.Vector3(0.015, 0, side * 0.07 * k)),
+          mesh(lens, dark)
+        );
+      at(
+        a.eyes.clone().add(new THREE.Vector3(0.015, 0.01, 0)),
+        mesh(new THREE.BoxGeometry(0.02, 0.015, 0.06 * k), dark)
+      );
+      break;
+    }
+    case 'petCrown': {
+      const gold = paint(gear.color, { emissive: '#7a5600' });
+      const crown = new THREE.Group();
+      crown.add(
+        mesh(
+          new THREE.CylinderGeometry(
+            0.07 * k,
+            0.075 * k,
+            0.05 * k,
+            12,
+            1,
+            true
+          ),
+          gold
+        )
+      );
+      const spike = new THREE.ConeGeometry(0.018 * k, 0.05 * k, 5);
+      for (let i = 0; i < 5; i++) {
+        const ang = (i / 5) * Math.PI * 2;
+        crown.add(
+          mesh(
+            spike,
+            gold,
+            Math.cos(ang) * 0.065 * k,
+            0.045 * k,
+            Math.sin(ang) * 0.065 * k
+          )
+        );
+      }
+      at(a.headTop.clone().add(new THREE.Vector3(0, 0.01, 0)), crown);
+      break;
+    }
+  }
 };
 
 /** Pets run beside the chibi. They are decoration only and never change race time. */
-export const buildPet = (id: PetId, paint: Painter): Animated => {
+export const buildPet = (
+  id: PetId,
+  paint: Painter,
+  gearId?: string
+): Animated => {
   const group = new THREE.Group();
   const c = PET_COLORS[id];
   const main = paint(c.main);
@@ -500,6 +704,7 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
   const ink = paint('#2a2340');
   const eyeGeo = new THREE.SphereGeometry(0.03, 8, 6);
   const legs: THREE.Object3D[] = [];
+  const bunnyEars: THREE.Object3D[] = [];
   const bodyPivot = new THREE.Group();
   group.add(bodyPivot);
   group.add(blobShadow(0.7));
@@ -530,6 +735,17 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
       mesh(eyeGeo, ink, 0.17, 0.52, 0.07),
       mesh(eyeGeo, ink, 0.17, 0.52, -0.07)
     );
+    addPetGear(
+      bodyPivot,
+      gearId,
+      {
+        headTop: new THREE.Vector3(0.06, 0.575, 0),
+        neck: new THREE.Vector3(0.1, 0.42, 0),
+        eyes: new THREE.Vector3(0.19, 0.52, 0),
+        headR: 0.17,
+      },
+      paint
+    );
     const footGeo = new THREE.BoxGeometry(0.12, 0.03, 0.08);
     for (const side of [1, -1]) {
       const foot = mesh(footGeo, paint(c.accent), 0.04, 0.02, side * 0.09);
@@ -538,8 +754,23 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
     }
   } else {
     const isCat = id === 'cat';
-    const length = id === 'corgi' ? 0.3 : 0.22;
-    const legLen = id === 'corgi' ? 0.06 : id === 'shiba' ? 0.14 : 0.12;
+    const length =
+      id === 'corgi'
+        ? 0.3
+        : id === 'panda'
+          ? 0.28
+          : id === 'bunny'
+            ? 0.16
+            : 0.22;
+    const legLen =
+      id === 'corgi' || id === 'bunny'
+        ? 0.06
+        : id === 'shiba'
+          ? 0.14
+          : id === 'panda'
+            ? 0.08
+            : 0.12;
+    const accent = paint(c.accent);
     const body = mesh(
       new THREE.CapsuleGeometry(0.13, length, 4, 12),
       main,
@@ -562,19 +793,73 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
     head.add(mesh(new THREE.SphereGeometry(0.15, 16, 12), main));
     head.add(mesh(new THREE.SphereGeometry(0.08, 10, 8), belly, 0.1, -0.04, 0));
     head.add(mesh(new THREE.SphereGeometry(0.03, 8, 6), ink, 0.18, -0.02, 0));
-    head.add(
-      mesh(eyeGeo, ink, 0.12, 0.05, 0.07),
-      mesh(eyeGeo, ink, 0.12, 0.05, -0.07)
+    if (id === 'panda') {
+      // Black eye patches, then the eyes on top.
+      for (const side of [1, -1]) {
+        const patch = mesh(
+          new THREE.SphereGeometry(0.045, 10, 8),
+          accent,
+          0.11,
+          0.04,
+          side * 0.07
+        );
+        patch.scale.set(0.6, 1.2, 1);
+        head.add(patch);
+      }
+      const shine = paint('#ffffff');
+      head.add(
+        mesh(new THREE.SphereGeometry(0.016, 6, 5), shine, 0.145, 0.05, 0.07),
+        mesh(new THREE.SphereGeometry(0.016, 6, 5), shine, 0.145, 0.05, -0.07)
+      );
+    } else {
+      head.add(
+        mesh(eyeGeo, ink, 0.12, 0.05, 0.07),
+        mesh(eyeGeo, ink, 0.12, 0.05, -0.07)
+      );
+    }
+    if (id === 'bunny') {
+      // Long ears that flop with every hop.
+      const earGeo = new THREE.CapsuleGeometry(0.035, 0.2, 4, 8);
+      const innerGeo = new THREE.CapsuleGeometry(0.018, 0.15, 4, 6);
+      for (const side of [1, -1]) {
+        const ear = new THREE.Group();
+        ear.position.set(-0.03, 0.12, side * 0.05);
+        ear.rotation.x = side * -0.18;
+        ear.add(mesh(earGeo, main, 0, 0.13, 0));
+        ear.add(mesh(innerGeo, accent, 0.02, 0.13, 0));
+        head.add(ear);
+        bunnyEars.push(ear);
+      }
+    } else if (id === 'panda') {
+      const earGeo = new THREE.SphereGeometry(0.05, 10, 8);
+      head.add(
+        mesh(earGeo, accent, -0.03, 0.13, 0.1),
+        mesh(earGeo, accent, -0.03, 0.13, -0.1)
+      );
+    } else {
+      const big = id === 'fox';
+      const earGeo = new THREE.ConeGeometry(
+        isCat ? 0.05 : big ? 0.07 : 0.065,
+        isCat ? 0.1 : big ? 0.18 : 0.15,
+        4
+      );
+      head.add(
+        mesh(earGeo, main, -0.02, 0.15, 0.08),
+        mesh(earGeo, main, -0.02, 0.15, -0.08)
+      );
+    }
+    addPetGear(
+      bodyPivot,
+      gearId,
+      {
+        headTop: head.position.clone().add(new THREE.Vector3(-0.01, 0.14, 0)),
+        neck: head.position.clone().add(new THREE.Vector3(-0.08, -0.1, 0)),
+        eyes: head.position.clone().add(new THREE.Vector3(0.13, 0.05, 0)),
+        headR: 0.15,
+      },
+      paint
     );
-    const earGeo = new THREE.ConeGeometry(
-      isCat ? 0.05 : 0.065,
-      isCat ? 0.1 : 0.15,
-      4
-    );
-    head.add(
-      mesh(earGeo, main, -0.02, 0.15, 0.08),
-      mesh(earGeo, main, -0.02, 0.15, -0.08)
-    );
+    const legMat = id === 'panda' ? accent : main;
     const legGeo = new THREE.CylinderGeometry(0.035, 0.035, legLen + 0.06, 6);
     for (const [x, side] of [
       [length / 2, 1],
@@ -582,7 +867,7 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
       [-length / 2, 1],
       [-length / 2, -1],
     ] as const) {
-      const leg = mesh(legGeo, main, x, (legLen + 0.06) / 2, side * 0.07);
+      const leg = mesh(legGeo, legMat, x, (legLen + 0.06) / 2, side * 0.07);
       legs.push(leg);
       group.add(leg);
     }
@@ -593,6 +878,35 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
           belly,
           -length / 2 - 0.06,
           legLen + 0.32,
+          0
+        )
+      );
+    } else if (id === 'fox') {
+      const tail = mesh(
+        new THREE.CapsuleGeometry(0.07, 0.18, 4, 10),
+        main,
+        -length / 2 - 0.15,
+        legLen + 0.26,
+        0
+      );
+      tail.rotation.z = Math.PI * 0.32;
+      bodyPivot.add(tail);
+      bodyPivot.add(
+        mesh(
+          new THREE.SphereGeometry(0.06, 10, 8),
+          belly,
+          -length / 2 - 0.25,
+          legLen + 0.33,
+          0
+        )
+      );
+    } else if (id === 'bunny' || id === 'panda') {
+      bodyPivot.add(
+        mesh(
+          new THREE.SphereGeometry(id === 'bunny' ? 0.06 : 0.045, 8, 6),
+          id === 'bunny' ? belly : accent,
+          -length / 2 - 0.12,
+          legLen + 0.22,
           0
         )
       );
@@ -632,6 +946,14 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
         );
         return;
       }
+      if (id === 'bunny') {
+        // Hops: up and down with the ears flopping behind.
+        const hop = Math.abs(Math.sin(t * cadence * 0.5));
+        bodyPivot.position.y = hop * (0.1 + speed * 0.06);
+        legs.forEach((l) => (l.rotation.z = (hop - 0.5) * 0.8));
+        bunnyEars.forEach((e) => (e.rotation.z = -0.2 - hop * 0.35));
+        return;
+      }
       // The cat sprints, pauses, sprints: a little personality.
       const pause = id === 'cat' ? Math.max(0, Math.sin(t * 0.9)) : 1;
       const stride =
@@ -639,7 +961,7 @@ export const buildPet = (id: PetId, paint: Painter): Animated => {
       legs.forEach((l, i) => (l.rotation.z = i % 2 === 0 ? stride : -stride));
       bodyPivot.position.y =
         Math.abs(Math.sin(t * cadence)) *
-        (id === 'corgi' ? 0.06 : 0.035) *
+        (id === 'corgi' ? 0.06 : id === 'panda' ? 0.02 : 0.035) *
         pause;
     },
   };

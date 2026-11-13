@@ -6,6 +6,7 @@ import {
   PETS,
   SLOTS,
   SLOT_LABEL,
+  COIN,
   unlockLabel,
   type Item,
   type Pet,
@@ -118,7 +119,7 @@ export const LockerScreen = (p: Props) => {
           ← Back
         </button>
         <p className="font-display text-[20px] font-extrabold">
-          🏅 {profile.badges} badges
+          {COIN} {profile.badges} coins
         </p>
       </div>
       <div className="h-[34%] min-h-[170px]">
@@ -207,8 +208,24 @@ export const LockerScreen = (p: Props) => {
                 );
               })}
             </ul>
+            <h3 className="mt-3 mb-1 font-display text-[16px] font-extrabold">
+              Pet gear
+            </h3>
+            <ul className="flex flex-col gap-1.5" aria-label="Pet gear">
+              {ITEMS.filter((i) => i.slot === 'petGear').map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  profile={profile}
+                  busy={p.busy}
+                  onEquip={() => p.onEquip(item.id)}
+                  onBuy={() => p.onBuy(item.id)}
+                />
+              ))}
+            </ul>
             <p className="mt-2 text-[12px] text-ink-soft">
-              Pets are just for fun. They never change your race time.
+              Pets and their gear are just for fun. They never change your race
+              time.
             </p>
           </>
         ) : (

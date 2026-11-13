@@ -13,6 +13,7 @@ import type {
   VoteResponse,
 } from '../../shared/api';
 import type { Deps } from '../core/deps';
+import { petById } from '../../shared/economy';
 import {
   GameError,
   buyItem,
@@ -144,15 +145,9 @@ export const createApi = (deps: Deps): Hono => {
   api.post('/pet/choose', async (c) => {
     try {
       const body = await readJson<PetRequest>(c);
-      const petId = body.petId;
-      if (
-        petId !== 'corgi' &&
-        petId !== 'cat' &&
-        petId !== 'shiba' &&
-        petId !== 'penguin'
-      ) {
-        throw new GameError('That pet does not exist.', 404);
-      }
+      const pet = petById(String(body.petId ?? ''));
+      if (!pet) throw new GameError('That pet does not exist.', 404);
+      const petId = pet.id;
       const profile = await choosePet(deps, petId);
       await track(deps, body.journeyId, 'pet_chosen', petId);
       return c.json<ProfileResponse>({ type: 'profile', profile });

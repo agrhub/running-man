@@ -455,7 +455,7 @@ describe('game API', () => {
     expect(init.json.profile.owned).toContain('finisher-tee');
   });
 
-  it('sells items for badges and equips them', async () => {
+  it('sells items for coins and equips them', async () => {
     const poor = await call(h, 'POST', '/shop/buy', { itemId: 'shades' });
     expect(poor.status).toBe(400);
 
@@ -479,6 +479,46 @@ describe('game API', () => {
     expect(locked.status).toBe(400);
     const earned = await call(h, 'POST', '/shop/buy', { itemId: 'hachimaki' });
     expect(earned.status).toBe(400);
+  });
+
+  it('dresses the pet with gear, and gives older profiles a pet-gear slot', async () => {
+    // A profile saved before pet gear existed: its look has no petGear.
+    await h.deps.store.set(
+      keys.user('alice'),
+      JSON.stringify({
+        badges: 2000,
+        look: {
+          top: 'tee-sky',
+          hat: 'no-hat',
+          shoes: 'runners-basic',
+          accessory: 'no-extra',
+          trail: 'no-trail',
+          pet: 'corgi',
+          skin: 1,
+          hair: 1,
+        },
+      })
+    );
+    const init = await call<InitResponse>(h, 'GET', '/init');
+    expect(init.json.profile.look.petGear).toBe('pet-none');
+    expect(init.json.profile.look.top).toBe('tee-sky');
+    const bow = await call<ProfileResponse>(h, 'POST', '/shop/buy', {
+      itemId: 'pet-bow',
+    });
+    expect(bow.json.profile.look.petGear).toBe('pet-bow');
+    expect(bow.json.profile.badges).toBe(1800);
+    const bunny = await call<ProfileResponse>(h, 'POST', '/pet/choose', {
+      petId: 'bunny',
+    });
+    expect(bunny.json.profile.look).toMatchObject({
+      pet: 'bunny',
+      petGear: 'pet-bow',
+    });
+    expect(bunny.json.profile.badges).toBe(1200);
+    const off = await call<ProfileResponse>(h, 'POST', '/shop/equip', {
+      itemId: 'pet-none',
+    });
+    expect(off.json.profile.look.petGear).toBe('pet-none');
   });
 
   it('buys and cares for pets once a day', async () => {

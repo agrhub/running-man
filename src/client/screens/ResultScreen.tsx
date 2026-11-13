@@ -142,7 +142,7 @@ export const ResultScreen = (p: Props) => {
               .map(([label, n]) => (
                 <li key={label} className="flex justify-between">
                   <span>{label}</span>
-                  <span className="font-extrabold tabular">+{n} 🏅</span>
+                  <span className="font-extrabold tabular">+{n} 🪙</span>
                 </li>
               ))}
           </ul>
@@ -212,7 +212,7 @@ export const ResultScreen = (p: Props) => {
           onClick={p.onLocker}
           className="chunky rounded-2xl bg-white py-2.5 font-display text-[17px] font-extrabold"
         >
-          Locker 🏅 {profile.badges}
+          Shop 🪙 {profile.badges}
         </button>
       </div>
 
@@ -245,7 +245,7 @@ export const ResultScreen = (p: Props) => {
           <>
             <p className="px-2 text-[12px] text-ink-soft">
               {canCheer
-                ? 'Send one cheer a day to another runner for +5 badges.'
+                ? 'Send one cheer a day to another runner for +5 coins.'
                 : 'Cheer sent today. Thanks for being a good sport!'}
               {p.cheersReceived > 0 &&
                 ` 👏 ${p.cheersReceived} ${p.cheersReceived === 1 ? 'cheer' : 'cheers'} for you.`}

@@ -121,6 +121,89 @@ const buzz = (ms: number | number[]) => {
 const NOTE = { C5: 523.25, E5: 659.25, G5: 783.99, C6: 1046.5, E6: 1318.5 };
 
 export const sfx = {
+  /** Whoever you ran into answers back: a horn, a siren, a bark, a cluck. */
+  roadLife: (kind: string) => {
+    buzz(60);
+    switch (kind) {
+      case 'taxi':
+      case 'scooter':
+      case 'cyclo':
+        tone({ freq: 420, dur: 0.16, gain: 0.12, type: 'square' });
+        tone({ freq: 420, start: 0.2, dur: 0.22, gain: 0.12, type: 'square' });
+        break;
+      case 'ambulance':
+      case 'firetruck':
+        for (let i = 0; i < 3; i++) {
+          tone({
+            freq: 700,
+            to: 980,
+            start: i * 0.5,
+            dur: 0.25,
+            gain: 0.08,
+            type: 'sawtooth',
+          });
+          tone({
+            freq: 980,
+            to: 700,
+            start: i * 0.5 + 0.25,
+            dur: 0.25,
+            gain: 0.08,
+            type: 'sawtooth',
+          });
+        }
+        break;
+      case 'cyclist':
+        tone({ freq: 2400, dur: 0.08, gain: 0.08 });
+        tone({ freq: 2400, start: 0.12, dur: 0.12, gain: 0.08 });
+        break;
+      case 'dog':
+        burst({ filter: 'bandpass', freq: 600, q: 2, dur: 0.12, gain: 0.25 });
+        burst({
+          filter: 'bandpass',
+          freq: 550,
+          q: 2,
+          start: 0.18,
+          dur: 0.12,
+          gain: 0.22,
+        });
+        break;
+      case 'cat':
+        tone({ freq: 700, to: 1100, dur: 0.18, gain: 0.08, type: 'triangle' });
+        tone({
+          freq: 1100,
+          to: 600,
+          start: 0.18,
+          dur: 0.25,
+          gain: 0.08,
+          type: 'triangle',
+        });
+        break;
+      case 'chicken':
+        for (let i = 0; i < 4; i++)
+          tone({
+            freq: 900 + i * 60,
+            to: 1300,
+            start: i * 0.09,
+            dur: 0.07,
+            gain: 0.07,
+            type: 'square',
+          });
+        break;
+      case 'pig':
+        burst({ filter: 'lowpass', freq: 380, q: 6, dur: 0.22, gain: 0.3 });
+        burst({
+          filter: 'lowpass',
+          freq: 340,
+          q: 6,
+          start: 0.26,
+          dur: 0.18,
+          gain: 0.25,
+        });
+        break;
+      default:
+        tone({ freq: 300, to: 200, dur: 0.15, gain: 0.1, type: 'triangle' });
+    }
+  },
   /** A rolling rumble after lightning. */
   thunder: () => {
     burst({

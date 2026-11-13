@@ -49,6 +49,17 @@ const KIND_WORD: Record<string, [string, string]> = {
   soda: ['soda', 'sodas'],
   cake: ['cake', 'cakes'],
   candy: ['candy', 'candies'],
+  walker: ['stop for someone crossing', 'stops for people crossing'],
+  cyclist: ['cyclist', 'cyclists'],
+  scooter: ['motorbike', 'motorbikes'],
+  cyclo: ['cyclo', 'cyclos'],
+  taxi: ['taxi', 'taxis'],
+  ambulance: ['ambulance', 'ambulances'],
+  firetruck: ['fire engine', 'fire engines'],
+  dog: ['dog', 'dogs'],
+  cat: ['cat', 'cats'],
+  chicken: ['chicken', 'chickens'],
+  pig: ['pig', 'pigs'],
 };
 
 const countKinds = (kinds: string[]) => {

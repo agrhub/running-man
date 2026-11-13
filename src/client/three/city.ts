@@ -4,6 +4,7 @@ import { Batch, box, canvasTex, colorize, type Rand } from './geo';
 import { TERRAIN_GROUND, buildTerrain } from './terrain';
 import type { City, CityId, Landmark, Stage } from '../../shared/content';
 import { isPickup, type CourseItem } from '../../shared/course';
+import { buildObstacle } from './obstacles';
 import { hashString, mulberry32 } from '../../shared/rng';
 
 /*
@@ -1815,6 +1816,8 @@ export type ItemView = {
 let hiFiveTex: THREE.Texture | null = null;
 
 export const buildItem = (item: CourseItem, laneWidth: number): ItemView => {
+  const life = buildObstacle(item, laneWidth);
+  if (life) return life;
   const g = new THREE.Group();
   const x = item.lane * laneWidth;
   g.position.set(x, 0, kmZ(item.km));

@@ -625,6 +625,8 @@ export type RewardBreakdown = {
   holiday?: number;
   /** Coins for calling your finish time. */
   guess?: number;
+  /** Coins for completing today's club relay. */
+  relay?: number;
   total: number;
 };
 

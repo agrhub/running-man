@@ -25,6 +25,7 @@ import type {
   FriendsResponse,
   ClubResponse,
   ClubRow,
+  RelayRow,
   MeResponse,
   ArcadeResponse,
   ArcadeBoardResponse,
@@ -136,6 +137,7 @@ export const App = () => {
   const [guess, setGuess] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [topClubs, setTopClubs] = useState<ClubRow[]>([]);
+  const [topRelays, setTopRelays] = useState<RelayRow[]>([]);
   const [meData, setMeData] = useState<MeResponse | null>(null);
 
   const load = useCallback(
@@ -376,6 +378,7 @@ export const App = () => {
   const applyClub = (r: ClubResponse) => {
     patch({ club: r.club, profile: r.profile });
     setTopClubs(r.top);
+    setTopRelays(r.relays);
     if (r.message) showToast(r.message);
   };
 
@@ -704,6 +707,7 @@ export const App = () => {
               profile={data.profile}
               club={data.club}
               top={topClubs}
+              relays={topRelays}
               busy={busy}
               onCreate={(adjective, noun) =>
                 void clubCall('/club/create', { adjective, noun })

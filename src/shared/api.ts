@@ -163,6 +163,8 @@ export type RunRecord = {
   crewFinishedNow: boolean;
   finisherNow: boolean;
   shared: boolean;
+  /** This run's leg in the club relay (and whether it completed the relay). */
+  relay?: { leg: number; done: boolean; coins: number } | null;
   /** Achievements this run completed. */
   achieved?: string[];
   /** The finish-time guess and how far off it was. */
@@ -305,6 +307,25 @@ export type ClubView = {
   members: ClubMember[];
   /** Stages the club ran this week (6 km each). */
   weekStages: number;
+  /** Today's relay: the first three clubmates to run are its legs. */
+  relay: ClubRelay;
+};
+
+export type RelayLeg = { username: string; seconds: number };
+
+export type ClubRelay = {
+  legs: RelayLeg[];
+  /** Total of the three legs, once all three have run. */
+  total: number | null;
+  /** Place among today's finished relays. */
+  rank: number | null;
+};
+
+export type RelayRow = {
+  rank: number;
+  code: string;
+  name: string;
+  total: number;
 };
 
 export type ClubRow = {
@@ -325,6 +346,8 @@ export type ClubResponse = {
   type: 'club';
   club: ClubView | null;
   top: ClubRow[];
+  /** Today's fastest finished club relays. */
+  relays: RelayRow[];
   profile: Profile;
   message?: string;
 };

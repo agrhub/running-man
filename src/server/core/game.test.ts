@@ -1000,6 +1000,57 @@ describe('game API', () => {
     expect((await call(h.as(undefined), 'GET', '/friends')).status).toBe(401);
   });
 
+  it('runs a daily club relay with the first three clubmates', async () => {
+    const date = '2026-11-12';
+    h.at(date);
+    const reg = (u: string) =>
+      call(h.as(u), 'POST', '/register', {
+        skin: 0,
+        hair: 0,
+        hairStyle: 0,
+        top: 'tee-coral',
+      });
+    for (const u of ['ann', 'ben', 'cat', 'dan']) await reg(u);
+    const made = await call<ClubResponse>(h.as('ann'), 'POST', '/club/create', {
+      adjective: 0,
+      noun: 0,
+    });
+    const code = made.json.club?.code ?? '';
+    for (const u of ['ben', 'cat', 'dan'])
+      await call(h.as(u), 'POST', '/club/join', { code });
+
+    const runs: RunResponse[] = [];
+    for (const u of ['ann', 'ben', 'cat', 'dan'])
+      runs.push(
+        (
+          await call<RunResponse>(h.as(u), 'POST', '/run', {
+            plan: planFor(date),
+          })
+        ).json
+      );
+    expect(runs.map((r) => r.run.relay)).toEqual([
+      { leg: 1, done: false, coins: 0 },
+      { leg: 2, done: false, coins: 0 },
+      { leg: 3, done: true, coins: 25 },
+      null,
+    ]);
+    expect(runs[2]?.run.reward.relay).toBe(25);
+
+    const view = await call<ClubResponse>(h.as('ann'), 'GET', '/club');
+    const relay = view.json.club?.relay;
+    expect(relay?.legs.map((l) => l.username)).toEqual(['ann', 'ben', 'cat']);
+    const sum =
+      Math.round(runs.slice(0, 3).reduce((t, r) => t + r.run.seconds, 0) * 10) /
+      10;
+    expect(relay?.total).toBeCloseTo(sum, 0);
+    expect(relay?.rank).toBe(1);
+    expect(view.json.relays[0]).toMatchObject({ rank: 1, code });
+    // ann's leg paid out when cat finished the relay.
+    expect(view.json.profile.badges).toBeGreaterThanOrEqual(
+      runs[0]!.profile.badges + 25
+    );
+  });
+
   it('runs clubs: create, join by code, weekly total, shared road, leave', async () => {
     const date = '2026-11-12';
     h.at(date);

@@ -93,7 +93,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   a 6-character code. Clubmates share your road with purple tags, and clubs compete on weekly km.
 - **Reddit avatars:** each player's own Reddit avatar appears next to their name, looked up by the server and cached
   for a day, with a coloured initial when there is none.
-- **Reddit-native:** one post per day created by the scheduler with a pinned strategy thread, result sharing as a
+- **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
+  strategy thread, a how-to-play post pinned on install, result sharing as a
   comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.
 
 ## Tech
@@ -120,7 +121,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 73 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 76 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

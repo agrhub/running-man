@@ -64,6 +64,14 @@ const deps: Deps = {
     posts.push({ ...post, id });
     return id;
   },
+  createTextPost: async (title, text) => {
+    const id = `t3_devtext${posts.length + 1}`;
+    posts.push({ title, fallbackText: text, pinnedComment: '', id });
+    return id;
+  },
+  pin: async (postId, slot) => {
+    console.log(`pinned ${postId} in slot ${slot}`);
+  },
   comment: async (postId, text) => {
     comments.push({ postId, text, user: state().user });
     return true;

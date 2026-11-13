@@ -34,6 +34,8 @@ type Harness = {
   at(dateKey: string): Harness;
   on(postId: string | undefined): Harness;
   posts: NewPost[];
+  texts: { title: string; text: string }[];
+  pins: { postId: string; slot: number }[];
   comments: { postId: string; text: string }[];
   flairs: { username: string; text: string }[];
   events: string[];
@@ -46,6 +48,8 @@ const makeHarness = (): Harness => {
   let post: string | undefined;
   const h: Harness = {
     posts: [],
+    texts: [],
+    pins: [],
     comments: [],
     flairs: [],
     events: [],
@@ -57,6 +61,13 @@ const makeHarness = (): Harness => {
       createPost: async (p) => {
         h.posts.push(p);
         return `t3_post${h.posts.length}`;
+      },
+      createTextPost: async (title, text) => {
+        h.texts.push({ title, text });
+        return `t3_text${h.texts.length}`;
+      },
+      pin: async (postId, slot) => {
+        h.pins.push({ postId, slot });
       },
       comment: async (postId, text) => {
         h.comments.push({ postId, text });
@@ -1036,5 +1047,48 @@ describe('daily posts', () => {
       plan: planFor('2026-11-12'),
     });
     expect(closed.status).toBe(409);
+  });
+
+  it('pins each new stage at the top, once', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    await internal.request('/menu/post-today', { method: 'POST' });
+    h.at('2026-11-13');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.pins).toEqual([
+      { postId: 't3_post1', slot: 1 },
+      { postId: 't3_post2', slot: 1 },
+    ]);
+  });
+
+  it('posts and pins the how-to-play guide once on install', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const first = await internal.request('/triggers/on-app-install', {
+      method: 'POST',
+    });
+    await internal.request('/triggers/on-app-install', { method: 'POST' });
+    expect(first.status).toBe(200);
+    expect(h.posts).toHaveLength(1);
+    expect(h.texts).toHaveLength(1);
+    expect(h.texts[0]?.title).toMatch(/How to play Running Man/);
+    expect(h.texts[0]?.text).toMatch(/6 km stage/);
+    expect(h.pins).toContainEqual({ postId: 't3_text1', slot: 2 });
+    expect(await h.deps.store.get(keys.welcomePost())).toBe('t3_text1');
+  });
+
+  it('still creates the stage when pinning fails', async () => {
+    const h = makeHarness();
+    h.deps.pin = async () => {
+      throw new Error('no mod rights');
+    };
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const res = await internal.request('/triggers/on-app-install', {
+      method: 'POST',
+    });
+    expect(res.status).toBe(200);
+    expect(h.posts).toHaveLength(1);
+    expect(h.texts).toHaveLength(1);
   });
 });

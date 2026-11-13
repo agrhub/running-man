@@ -61,8 +61,9 @@ The first upload asks you to confirm the app name and creates the app page at
 npx devvit install r/RunningManGame running-man
 ```
 
-Installing runs the `onAppInstall` trigger, which creates today's stage post. From then on the `daily-stage`
-scheduler task creates a new post every day at 00:01 UTC. If a post is ever missing, a moderator can use the mod menu
+Installing runs the `onAppInstall` trigger, which creates today's stage post and pins it to the top of the
+subreddit, then posts a **How to play Running Man** guide in the second pinned slot (only once). From then on the
+`daily-stage` scheduler task creates a new post every day at 00:01 UTC and pins it in place of yesterday's. If a post is ever missing, a moderator can use the mod menu
 item **Post today's marathon stage** (it never creates a second post for the same day).
 
 To install a newer upload later, run the same command again; it installs the latest version.
@@ -74,8 +75,8 @@ The game is about running with other redditors, so judges should see a busy road
 - Start the demo subreddit at least 5 days before the deadline so there are several daily posts in a row.
 - Invite 8 to 15 friends (the subreddit must stay under 200 members). Ask each to run the stage on several days, use
   the quick chat, and share their result to the comments.
-- Pin a short welcome post: "One new 6 km stage every day. Plan your pace, steer past cones and other runners, help
-  the crew run ten marathons in each city."
+- Check that the how-to-play post and today's stage are pinned. If the app account lacks moderator rights, pin them
+  by hand from the post menu.
 - Open the post on a phone (Reddit app) and in a desktop browser, logged in and logged out, and check that nothing
   scrolls sideways.
 

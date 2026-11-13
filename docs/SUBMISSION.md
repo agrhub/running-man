@@ -14,7 +14,8 @@ Everything needed to submit Running Man to
       scheduler has created posts for a few days in a row so judges see the daily loop.
 - [ ] Ask 8 to 15 friends to run the stage on several days, so the leaderboard, the road and the crew bar are busy.
       Ask them to share their results in the comments too.
-- [ ] Pin the subreddit's welcome post with one line on how to play and a link to today's stage.
+- [ ] Check that installing pinned the **How to play Running Man** post and today's stage at the top of the
+      subreddit (the app does both; pin them by hand if the app account is not a moderator).
 - [ ] Open the demo post on a phone and in a desktop browser, logged in and logged out. Everything should fit in
       the post without scrolling sideways.
 - [ ] Record the demo video (script below) and upload it to YouTube (unlisted is fine).
@@ -111,10 +112,11 @@ name in the game shows the player's own Reddit avatar. Nothing you buy changes r
   it gets, so nobody can post a fake result, and it writes each crash into the other runner's record.
 - Hono API on Devvit's serverless runtime with Redis: daily leaderboards in sorted sets, every runner's track (time at
   each km and lane changes), crew progress, profiles, streaks and cheers.
-- The Devvit scheduler posts each day's stage with a pinned strategy comment. Results are shared as comments,
+- The Devvit scheduler posts each day's stage, pins it to the top of the subreddit and starts a pinned strategy
+  comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 73 unit tests and a 41-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 76 unit tests and a 41-check Playwright run cover the full loop.
 
 **Challenges we ran into**
 

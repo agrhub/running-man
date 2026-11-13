@@ -49,6 +49,8 @@ export type Profile = {
   questClaims: Record<string, string[]>;
   /** Snack Dash today: rounds played and best score. */
   dash: { date: string | null; plays: number; best: number };
+  /** Runners this player follows as friends (usernames). */
+  friends: string[];
 };
 
 export type RunnerTrack = {
@@ -141,6 +143,8 @@ export type InitResponse = {
   /** This week's standings across every stage of the city. */
   weekly: WeeklyBoard;
   quests: QuestState[];
+  /** Your friends and how their day went. */
+  friends: FriendRow[];
   journeyId: string | null;
 };
 
@@ -185,6 +189,26 @@ export type ItemRequest = { itemId: string; journeyId?: string | null };
 export type PetRequest = { petId: PetId; journeyId?: string | null };
 export type CheerRequest = { username: string; journeyId?: string | null };
 export type VoteRequest = { cityId: string; journeyId?: string | null };
+export type FriendRow = {
+  username: string;
+  bib: number | null;
+  streak: number;
+  /** Today's official time and rank, when they have run. */
+  seconds: number | null;
+  rank: number | null;
+};
+
+export type FriendRequest = { username: string; journeyId?: string | null };
+
+export type FriendsResponse = {
+  type: 'friends';
+  friends: FriendRow[];
+  /** Today's runners you might add. */
+  suggestions: string[];
+  profile: Profile;
+  message?: string;
+};
+
 export type DashRow = { rank: number; username: string; score: number };
 
 export type DashBoard = { rows: DashRow[]; mine: DashRow | null };

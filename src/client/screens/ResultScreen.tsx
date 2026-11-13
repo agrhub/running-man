@@ -4,6 +4,7 @@ import type {
   Profile,
   RunRecord,
   WeeklyBoard,
+  FriendRow,
 } from '../../shared/api';
 import type { DayInfo } from '../../shared/content';
 import { itemById, petById } from '../../shared/economy';
@@ -31,6 +32,7 @@ type Props = {
   onReplay: () => void;
   onCheer: (username: string) => void;
   weekly: WeeklyBoard;
+  friends: FriendRow[];
   vote: CityVote;
   voting: boolean;
   onVote: (cityId: NextCityId) => void;
@@ -61,7 +63,16 @@ const unlockedName = (id: string) =>
 export const ResultScreen = (p: Props) => {
   const { day, profile, run } = p;
   const canCheer = profile.cheeredOn !== p.today;
-  const [board, setBoard] = useState<'today' | 'week'>('today');
+  // Friends who ran today and you, ranked by time.
+  const friendBoard = [
+    ...p.friends.flatMap((f) =>
+      f.seconds === null ? [] : [{ username: f.username, seconds: f.seconds }]
+    ),
+    { username: profile.username, seconds: run.seconds },
+  ]
+    .sort((a, b) => a.seconds - b.seconds)
+    .map((r, i) => ({ ...r, rank: i + 1 }));
+  const [board, setBoard] = useState<'today' | 'week' | 'friends'>('today');
   const rank = p.myRank ?? run.rank;
   const rewards: [string, number][] = [
     ['Finished the stage', run.reward.finish],
@@ -221,14 +232,16 @@ export const ResultScreen = (p: Props) => {
           <h2 className="font-display text-[19px] font-extrabold">
             {board === 'today'
               ? 'Today’s top 10'
-              : `This week in ${day.city.name}`}
+              : board === 'week'
+                ? `This week in ${day.city.name}`
+                : 'You and your friends'}
           </h2>
           <div
             className="flex shrink-0 rounded-full border-2 border-ink p-0.5 text-[12px] font-extrabold"
             role="group"
             aria-label="Leaderboard"
           >
-            {(['today', 'week'] as const).map((b) => (
+            {(['today', 'week', 'friends'] as const).map((b) => (
               <button
                 key={b}
                 type="button"
@@ -236,7 +249,7 @@ export const ResultScreen = (p: Props) => {
                 aria-pressed={board === b}
                 className={`rounded-full px-2.5 py-0.5 ${board === b ? 'bg-ink text-white' : ''}`}
               >
-                {b === 'today' ? 'Today' : 'This week'}
+                {b === 'today' ? 'Today' : b === 'week' ? 'Week' : 'Friends'}
               </button>
             ))}
           </div>
@@ -260,6 +273,22 @@ export const ResultScreen = (p: Props) => {
               />
             </div>
           </>
+        ) : board === 'friends' ? (
+          <div className="mt-1">
+            {p.friends.length === 0 ? (
+              <p className="px-2 text-[13px] text-ink-soft">
+                Add friends in the Friends tab to race them here.
+              </p>
+            ) : (
+              <Leaderboard
+                rows={friendBoard}
+                me={profile.username}
+                myRank={null}
+                canCheer={canCheer}
+                onCheer={p.onCheer}
+              />
+            )}
+          </div>
         ) : (
           <>
             <p className="px-2 text-[12px] text-ink-soft">

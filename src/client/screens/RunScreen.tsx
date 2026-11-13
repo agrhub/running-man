@@ -226,7 +226,11 @@ export const RunScreen = ({
         bib: g.bib ?? null,
         other: true,
         offset: OFFSETS[i % OFFSETS.length] ?? 0,
-        labelled: i < 5,
+        // Friends always carry a tag; others only the first few.
+        labelled: i < 5 || profile.friends.includes(g.username),
+        ...(profile.friends.includes(g.username)
+          ? { tag: 'friend' as const }
+          : {}),
       })),
       {
         name: '__me',
@@ -503,6 +507,7 @@ export const RunScreen = ({
     profile.look,
     profile.bib,
     profile.username,
+    profile.friends,
     plan,
     rivals,
     live,

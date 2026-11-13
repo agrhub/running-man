@@ -16,6 +16,7 @@ import type {
   VoteResponse,
   QuestsResponse,
   DashResponse,
+  FriendsResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -708,6 +709,82 @@ describe('game API', () => {
       { round: 0, moves: [] }
     );
     expect(next.status).toBe(200);
+  });
+
+  it('adds friends, shows their day, and puts them first on the road', async () => {
+    const date = '2026-11-12';
+    h.at(date);
+    await call(h.as('bob'), 'POST', '/run', { plan: planFor(date) });
+    await call(h.as('newbie'), 'POST', '/register', {
+      skin: 0,
+      hair: 0,
+      hairStyle: 0,
+      top: 'tee-coral',
+    });
+    expect(
+      (await call(h.as('alice'), 'POST', '/friends/add', { username: 'ghost' }))
+        .status
+    ).toBe(404);
+    expect(
+      (await call(h.as('alice'), 'POST', '/friends/add', { username: 'alice' }))
+        .status
+    ).toBe(400);
+    const added = await call<FriendsResponse>(
+      h.as('alice'),
+      'POST',
+      '/friends/add',
+      { username: 'u/bob', journeyId: 'journey-1' }
+    );
+    expect(added.status).toBe(200);
+    expect(added.json.profile.friends).toEqual(['bob']);
+    expect(added.json.friends[0]).toMatchObject({ username: 'bob', rank: 1 });
+    expect(added.json.friends[0]?.seconds).toBeGreaterThan(0);
+    expect(h.events).toContain('friend_added');
+    expect(
+      (await call(h.as('alice'), 'POST', '/friends/add', { username: 'bob' }))
+        .status
+    ).toBe(409);
+    // Registered but has not run yet: still a valid friend, with no time today.
+    const both = await call<FriendsResponse>(
+      h.as('alice'),
+      'POST',
+      '/friends/add',
+      { username: 'newbie' }
+    );
+    expect(
+      both.json.friends.find((f) => f.username === 'newbie')
+    ).toMatchObject({ seconds: null, rank: null });
+    expect(both.json.suggestions).not.toContain('bob');
+
+    // Fill the road with fast strangers; bob is slower than all of them.
+    for (let i = 0; i < 14; i++) {
+      const name = `fast${i}`;
+      await h.deps.store.zAdd(keys.leaderboard(date), {
+        member: name,
+        score: 600 + i,
+      });
+      await h.deps.store.hSet(keys.tracks(date), {
+        [name]: JSON.stringify({
+          username: name,
+          look: {},
+          marks: [0, 100, 200, 300, 400, 500, 600 + i],
+          seconds: 600 + i,
+        }),
+      });
+    }
+    const road = await call<InitResponse>(h.as('alice'), 'GET', '/init');
+    expect(road.json.runners[0]?.username).toBe('bob');
+    const stranger = await call<InitResponse>(h.as('carol'), 'GET', '/init');
+    expect(stranger.json.runners.map((r) => r.username)).not.toContain('bob');
+
+    const removed = await call<FriendsResponse>(
+      h.as('alice'),
+      'POST',
+      '/friends/remove',
+      { username: 'bob' }
+    );
+    expect(removed.json.profile.friends).toEqual(['newbie']);
+    expect((await call(h.as(undefined), 'GET', '/friends')).status).toBe(401);
   });
 
   it('checks in once a day and climbs a 7-day calendar', async () => {

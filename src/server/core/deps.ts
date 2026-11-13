@@ -37,6 +37,8 @@ export type Deps = {
   pin?(postId: string, slot: 1 | 2): Promise<void>;
   /** Posts a comment, preferably as the player. Returns false when it could not post. */
   comment(postId: string, text: string): Promise<boolean>;
+  /** Posts a comment as the app (the daily recap). Returns the comment id. */
+  appComment?(postId: string, text: string): Promise<string>;
   setFlair(username: string, text: string): Promise<void>;
   /** The player's own Reddit avatar image, when they have one. */
   avatarUrl?(username: string): Promise<string | null>;

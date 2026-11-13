@@ -8,6 +8,10 @@ export const keys = {
   cheers: (dateKey: string) => `cheers:${dateKey}`,
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
+  /** Counters for the day's recap: crashes per runner, snacks, high fives, chat lines. */
+  dayStats: (dateKey: string) => `stats:${dateKey}`,
+  /** Set once the day's recap comment is posted. */
+  recap: (dateKey: string) => `recap:${dateKey}`,
   /** The pinned how-to-play post, created once on install. */
   welcomePost: () => 'welcome:post',
   votes: (season: number) => `votes:${season}`,

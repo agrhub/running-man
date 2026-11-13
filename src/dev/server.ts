@@ -69,6 +69,10 @@ const deps: Deps = {
     posts.push({ title, fallbackText: text, pinnedComment: '', id });
     return id;
   },
+  appComment: async (postId, text) => {
+    comments.push({ postId, text, user: 'running-man-app' });
+    return `t1_dev${comments.length}`;
+  },
   pin: async (postId, slot) => {
     console.log(`pinned ${postId} in slot ${slot}`);
   },

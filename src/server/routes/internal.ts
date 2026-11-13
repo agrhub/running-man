@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import type { Deps } from '../core/deps';
-import { ensureDailyPost, ensureWelcomePost } from '../core/game';
+import { toDateKey, addDays } from '../../shared/content';
+import { ensureDailyPost, ensureWelcomePost, postRecap } from '../core/game';
 
 export const createInternal = (
   deps: Deps,
@@ -26,6 +27,10 @@ export const createInternal = (
     try {
       const postId = await ensureDailyPost(deps);
       console.log(`Daily stage post ready: ${postId}`);
+      const yesterday = addDays(toDateKey(deps.now()), -1);
+      await postRecap(deps, yesterday).catch((error: unknown) => {
+        console.error('Could not post the recap', error);
+      });
       return c.json({ status: 'ok', postId }, 200);
     } catch (error) {
       console.error('Daily stage job failed', error);

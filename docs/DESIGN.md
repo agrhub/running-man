@@ -156,6 +156,21 @@ combo. Each round's course comes from the date and the round number, so everyone
 order, and the server replays the lane changes to score them. The first three rounds a day pay up to 50 coins
 (score ÷ 6); up to ten rounds a day in all, for the daily top five.
 
+### Three more mini games
+
+The Play tab is a hub of four games. The three newer ones work the same way as Snack Dash: the course comes from the
+date and the round, the client sends only its tap times, the server replays them, the first three rounds a day pay up
+to 40 coins (score ÷ 8), and each game has its own daily top five.
+
+- **Hurdle Hop:** a side view of the track. Tap to jump; a jump lasts 0.6 s and clears a hurdle only from 90 to
+  510 ms after take-off, so jumping too early or too late trips you. Hurdles come from every 1.4 s down to every
+  0.75 s, with quick pairs late on. 10 points a hurdle, doubled after five in a row, tripled after ten.
+- **Rhythm Steps:** footprints fall to a line on a beat that rises from 96 to 140 bpm, with rests and double steps.
+  Within 60 ms is perfect (20), within 130 ms good (10); stray taps cost 5 and break the combo.
+- **Pet Fetch:** five throws. A power bar sweeps up and down, faster each throw; tap to throw, and your pet runs to
+  the ball and brings it back. Wind adds or takes off metres. Up to 100 points a throw, by how close the ball lands
+  to the ring.
+
 ### Me: profile and achievements
 
 - Your numbers (stages, km, best streak, best place), the last four weeks as a run calendar, and your best time in
@@ -230,17 +245,18 @@ Cap 300, Pet Shades 350, Tiny Crown 900 coins.
 
 One currency, coins 🪙, earned only by playing. (Profiles store it under the older name `badges`.)
 
-| Action                               | Coins                           |
-| ------------------------------------ | ------------------------------- |
-| Finish a stage                       | 50                              |
-| Rank: top 10% / top 50%              | +50 / +20                       |
-| Streak                               | +10 per streak day, at most +70 |
-| Crew finishes the city (each runner) | 200                             |
-| Cheer another runner                 | 5                               |
-| Daily check-in (day 1 to 7)          | 20, 30, 40, 50, 60, 80, 150     |
-| Daily quests                         | 20 to 60 each                   |
-| Weekly quests                        | 50 to 300 each                  |
-| Snack Dash (first 3 rounds a day)    | up to 50 each                   |
+| Action                                                          | Coins                           |
+| --------------------------------------------------------------- | ------------------------------- |
+| Finish a stage                                                  | 50                              |
+| Rank: top 10% / top 50%                                         | +50 / +20                       |
+| Streak                                                          | +10 per streak day, at most +70 |
+| Crew finishes the city (each runner)                            | 200                             |
+| Cheer another runner                                            | 5                               |
+| Daily check-in (day 1 to 7)                                     | 20, 30, 40, 50, 60, 80, 150     |
+| Daily quests                                                    | 20 to 60 each                   |
+| Weekly quests                                                   | 50 to 300 each                  |
+| Snack Dash (first 3 rounds a day)                               | up to 50 each                   |
+| Hurdle Hop, Rhythm Steps, Pet Fetch (first 3 rounds a day each) | up to 40 each                   |
 
 A regular player who runs, checks in and does the quests earns about 250 to 400 coins a day and can buy a
 mid-priced item every day or two; the crown and the panda take about a week.
@@ -324,30 +340,31 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 
 ### Redis keys
 
-| Key                  | Type       | Contents                                                            |
-| -------------------- | ---------- | ------------------------------------------------------------------- |
-| `user:{name}`        | string     | Profile: badges, streak, look, items, pet, bib                      |
-| `lb:{date}`          | sorted set | Everyone's official time that day                                   |
-| `tracks:{date}`      | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
-| `run:{date}:…`       | string     | Each runner's full record, including crashes                        |
-| `crew:{season}`      | hash       | Crew kilometres and finish state for that city's week               |
-| `cheers:{date}`      | hash       | Cheers each runner received that day                                |
-| `post:{postId}`      | string     | Which day a post belongs to                                         |
-| `bibs`               | counter    | The next bib number                                                 |
-| `day:{date}:post`    | string     | The stage post for that day                                         |
-| `votes:{season}`     | hash       | Next-city vote counts for that week                                 |
-| `voters:{season}`    | hash       | Who voted for which city that week (one vote each)                  |
-| `week:{season}`      | hash       | Stages and total seconds this week per runner                       |
-| `weeklb:{season}`    | sorted set | This week's standings                                               |
-| `dashlb:{date}`      | sorted set | Best Snack Dash score per runner that day                           |
-| `club:{code}`        | string     | A running club: name, owner, members                                |
-| `clubweek:{season}`  | sorted set | Clubs ranked by stages this week                                    |
-| `avatars`            | hash       | Reddit avatar URLs, refreshed once a day                            |
-| `history:{name}`     | hash       | A runner's past stages: time, place, field size                     |
-| `stats:{date}`       | hash       | The day's counters for the recap: crashes, snacks, chat lines       |
-| `recap:{date}`       | string     | The recap comment, once posted                                      |
-| `welcome:post`       | string     | The pinned how-to-play post                                         |
-| `celebrate:{season}` | string     | The city celebration post                                           |
+| Key                      | Type       | Contents                                                            |
+| ------------------------ | ---------- | ------------------------------------------------------------------- |
+| `user:{name}`            | string     | Profile: badges, streak, look, items, pet, bib                      |
+| `lb:{date}`              | sorted set | Everyone's official time that day                                   |
+| `tracks:{date}`          | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
+| `run:{date}:…`           | string     | Each runner's full record, including crashes                        |
+| `crew:{season}`          | hash       | Crew kilometres and finish state for that city's week               |
+| `cheers:{date}`          | hash       | Cheers each runner received that day                                |
+| `post:{postId}`          | string     | Which day a post belongs to                                         |
+| `bibs`                   | counter    | The next bib number                                                 |
+| `day:{date}:post`        | string     | The stage post for that day                                         |
+| `votes:{season}`         | hash       | Next-city vote counts for that week                                 |
+| `voters:{season}`        | hash       | Who voted for which city that week (one vote each)                  |
+| `week:{season}`          | hash       | Stages and total seconds this week per runner                       |
+| `weeklb:{season}`        | sorted set | This week's standings                                               |
+| `dashlb:{date}`          | sorted set | Best Snack Dash score per runner that day                           |
+| `arcadelb:{game}:{date}` | sorted set | Best Hurdle Hop, Rhythm Steps or Pet Fetch score that day           |
+| `club:{code}`            | string     | A running club: name, owner, members                                |
+| `clubweek:{season}`      | sorted set | Clubs ranked by stages this week                                    |
+| `avatars`                | hash       | Reddit avatar URLs, refreshed once a day                            |
+| `history:{name}`         | hash       | A runner's past stages: time, place, field size                     |
+| `stats:{date}`           | hash       | The day's counters for the recap: crashes, snacks, chat lines       |
+| `recap:{date}`           | string     | The recap comment, once posted                                      |
+| `welcome:post`           | string     | The pinned how-to-play post                                         |
+| `celebrate:{season}`     | string     | The city celebration post                                           |
 
 ### Stage simulation (deterministic, runs on client and server)
 

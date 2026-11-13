@@ -9,7 +9,7 @@ Everything needed to submit Running Man to
 - [ ] `npm run test:unit`, `npm run test:types`, `npm run lint` and `npm run build` all pass.
 - [ ] `npx devvit upload` done (see [DEPLOY.md](DEPLOY.md)); the app page exists at `https://developers.reddit.com/apps/running-man`.
       Do **not** run `devvit publish`: the hackathon asks for unpublished apps.
-- [ ] A public demo subreddit (for example r/ChibiCityMarathon) with the app installed.
+- [ ] A public demo subreddit (for example r/RunningManGame) with the app installed.
 - [ ] Today's stage post exists (install trigger, or the mod menu item **Post today's marathon stage**), and the
       scheduler has created posts for a few days in a row so judges see the daily loop.
 - [ ] Ask 8 to 15 friends to run the stage on several days, so the leaderboard, the road and the crew bar are busy.
@@ -149,6 +149,11 @@ Building the cities the crew votes for (London, New York, Seoul, Rio), mountain 
 sub-communities racing as clubs, and premium cosmetics through Reddit's payments once eligible.
 
 ## 3. Demo video script (about 2 minutes)
+
+A captioned 1:40 cut with sound, recorded from the local harness, follows this order: feed card, runner, pace plan,
+corral, race (steering, a crash, the landmark, quick chat, finish), race bib and weekly board, city vote, check-in and
+quests, Snack Dash, friends and a club, pets and pet gear, then the beach and desert stages. Narrate over it with the
+lines below, or re-record on Reddit once the demo subreddit is live.
 
 | Time | Show                                                | Say                                                                                         |
 | ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |

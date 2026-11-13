@@ -83,6 +83,9 @@ type Props = {
   firstRun: boolean;
   /** Clubmates get their own tag colour. */
   clubmates?: string[];
+  /** Moderator settings for this subreddit. */
+  quickChat?: boolean;
+  roadLife?: boolean;
   saving?: boolean;
   onFinish: (outcome: RaceOutcome) => void;
 };
@@ -206,6 +209,8 @@ export const RunScreen = ({
   replayChat,
   firstRun,
   clubmates,
+  quickChat = true,
+  roadLife = true,
   saving,
   onFinish,
 }: Props) => {
@@ -227,7 +232,7 @@ export const RunScreen = ({
   const coachRef = useRef<CoachState | null>(
     live && firstRun ? startCoach() : null
   );
-  const chatOpenedRef = useRef(false);
+  const chatOpenedRef = useRef(!quickChat);
   const fastRef = useRef(false);
   const laneRef = useRef<Lane>(startLane(profile.username));
   const skipRef = useRef(false);
@@ -301,6 +306,7 @@ export const RunScreen = ({
         city: day.city.id,
         time: day.time,
         triathlon: isTriathlon(day),
+        life: roadLife,
       }),
       rivals: rivalList,
       startLane: startLane(profile.username),
@@ -661,6 +667,7 @@ export const RunScreen = ({
     replayMoves,
     replayChat,
     tri,
+    roadLife,
   ]);
 
   // Swipe to change lanes
@@ -811,20 +818,22 @@ export const RunScreen = ({
               ◀
             </button>
             <div className="flex flex-col items-center gap-2">
-              <button
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => {
-                  chatOpenedRef.current = true;
-                  setChatOpen((o) => !o);
-                }}
-                className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
-                aria-label="Quick chat"
-                aria-expanded={chatOpen}
-                disabled={finished || hud.countdown > 0}
-              >
-                💬
-              </button>
+              {quickChat && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => {
+                    chatOpenedRef.current = true;
+                    setChatOpen((o) => !o);
+                  }}
+                  className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
+                  aria-label="Quick chat"
+                  aria-expanded={chatOpen}
+                  disabled={finished || hud.countdown > 0}
+                >
+                  💬
+                </button>
+              )}
               <button
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}

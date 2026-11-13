@@ -574,6 +574,8 @@ export const App = () => {
               mode="live"
               firstRun={data.profile.totalRuns === 0}
               clubmates={data.club?.members.map((m) => m.username) ?? []}
+              quickChat={data.settings.quickChat}
+              roadLife={data.settings.roadLife}
               saving={busy}
               onFinish={(outcome) => void submitRun(livePlan, outcome)}
             />
@@ -589,6 +591,7 @@ export const App = () => {
             replayMoves={data.myRun.moves}
             {...(data.myRun.chat ? { replayChat: data.myRun.chat } : {})}
             firstRun={false}
+            roadLife={data.settings.roadLife}
             onFinish={() => setScreen('result')}
           />
         ) : null;

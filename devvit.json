@@ -25,6 +25,40 @@
       "scope": "user"
     }
   },
+  "settings": {
+    "subreddit": {
+      "quickChat": {
+        "type": "boolean",
+        "label": "Quick chat in races",
+        "helpText": "Preset lines runners can shout during a race (no free text).",
+        "defaultValue": true
+      },
+      "roadLife": {
+        "type": "boolean",
+        "label": "People, traffic and animals on the road",
+        "helpText": "Turn off for a calmer course with cones and puddles only.",
+        "defaultValue": true
+      },
+      "pinPosts": {
+        "type": "boolean",
+        "label": "Pin each day's stage",
+        "helpText": "Pins the new stage post at the top of the subreddit every day.",
+        "defaultValue": true
+      },
+      "dailyRecap": {
+        "type": "boolean",
+        "label": "Daily race recap",
+        "helpText": "The app comments a recap (podium, crashes, most shouted line) under each closed stage.",
+        "defaultValue": true
+      },
+      "appPosts": {
+        "type": "boolean",
+        "label": "How-to-play and celebration posts",
+        "helpText": "The app posts a pinned how-to-play guide on install and a post when the crew finishes a city.",
+        "defaultValue": true
+      }
+    }
+  },
   "menu": {
     "items": [
       {

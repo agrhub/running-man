@@ -1,3 +1,4 @@
+import type { GameSettings } from '../../shared/api';
 import type { Store } from './store';
 
 export type GameResult = { win: boolean; score: number };
@@ -40,6 +41,8 @@ export type Deps = {
   /** Posts a comment as the app (the daily recap). Returns the comment id. */
   appComment?(postId: string, text: string): Promise<string>;
   setFlair(username: string, text: string): Promise<void>;
+  /** The subreddit's moderator settings; missing values mean the default. */
+  settings?(): Promise<Partial<GameSettings>>;
   /** The player's own Reddit avatar image, when they have one. */
   avatarUrl?(username: string): Promise<string | null>;
   telemetry: Telemetry;

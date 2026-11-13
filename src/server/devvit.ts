@@ -1,4 +1,4 @@
-import { context, reddit, redis } from '@devvit/web/server';
+import { context, reddit, redis, settings } from '@devvit/web/server';
 import { telemetry as journeys } from '@devvit/analytics/server/reddit';
 import type { Deps, Telemetry } from './core/deps';
 
@@ -94,6 +94,18 @@ export const devvitDeps: Deps = {
       backgroundColor: '#ffd36e',
       textColor: 'dark',
     });
+  },
+  settings: async () => {
+    const all = await settings.getAll<Record<string, unknown>>();
+    const flag = (k: string) =>
+      typeof all[k] === 'boolean' ? { [k]: all[k] as boolean } : {};
+    return {
+      ...flag('quickChat'),
+      ...flag('roadLife'),
+      ...flag('pinPosts'),
+      ...flag('dailyRecap'),
+      ...flag('appPosts'),
+    };
   },
   avatarUrl: async (username) => {
     try {

@@ -187,7 +187,13 @@ export const courseItems = (
   dateKey: string,
   stage: Stage,
   weather: WeatherId,
-  where: { city?: CityId; time?: TimeOfDay; triathlon?: boolean } = {}
+  where: {
+    city?: CityId;
+    time?: TimeOfDay;
+    triathlon?: boolean;
+    /** People, traffic and animals; moderators can switch them off. */
+    life?: boolean;
+  } = {}
 ): CourseItem[] => {
   const tri = where.triathlon ?? false;
   const life = roadLifeBag(where.city, stage.terrain, where.time ?? 'morning');
@@ -230,7 +236,7 @@ export const courseItems = (
         (weather === 'storm' && roll < 0.62)
       ) {
         items.push({ kind: 'puddle', km: round3(km), lane: pickLane() });
-      } else if (roll < 0.74) {
+      } else if (roll < 0.74 && where.life !== false) {
         // Someone or something in your lane: never on more than one lane at once.
         const kind = life[Math.floor(rand() * life.length)] ?? 'walker';
         items.push({ kind, km: round3(km), lane: pickLane() });

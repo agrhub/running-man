@@ -9,7 +9,7 @@ The hackathon wants an **uploaded** app, not a published one: never run `devvit 
 - A Reddit account that will own the app. The app name `running-man` is claimed by the first account that
   uploads it; if it is already taken, change `name` in `devvit.json` (lowercase letters, numbers and dashes).
 - A subreddit you moderate with **fewer than 200 members**. Uploaded (unpublished) apps can only be installed on small
-  subreddits. Create a new one for the demo, for example r/ChibiCityMarathon.
+  subreddits. Create a new one for the demo, for example r/RunningManGame.
 
 ## 1. Check the build
 
@@ -58,7 +58,7 @@ The first upload asks you to confirm the app name and creates the app page at
 ## 5. Install it on the demo subreddit
 
 ```bash
-npx devvit install r/ChibiCityMarathon running-man
+npx devvit install r/RunningManGame running-man
 ```
 
 Installing runs the `onAppInstall` trigger, which creates today's stage post. From then on the `daily-stage`
@@ -82,7 +82,7 @@ The game is about running with other redditors, so judges should see a busy road
 ## 7. Watch it
 
 ```bash
-npx devvit logs r/ChibiCityMarathon
+npx devvit logs r/RunningManGame
 ```
 
 shows server logs and errors. Journeys (start, plan, finish and every interaction) appear in the app's analytics on

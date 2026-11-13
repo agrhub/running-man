@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { DayInfo } from '../../shared/content';
 import type { Look } from '../../shared/economy';
-import { RunWorld } from '../three/world';
+import { loadWorld } from '../three/load';
 
 type Props = {
   day: DayInfo;
@@ -17,28 +17,36 @@ export const RunnerPreview = ({ day, look, bib, showBack = false }: Props) => {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const world = new RunWorld({
-      canvas,
-      city: day.city,
-      stage: day.stage,
-      runners: [{ name: 'me', look, bib, other: false }],
-      preview: true,
-    });
-    const reduce = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
+    // three.js loads on demand, so screens without 3D open faster.
+    let cancelled = false;
     let raf = 0;
-    const start = performance.now();
-    const loop = (now: number) => {
-      const t = (now - start) / 1000;
-      world.sway(t, reduce, showBack);
-      world.frame(t, [{ name: 'me', km: 0, speed: 0.15 }], 'me');
+    let dispose = () => undefined as void;
+    void loadWorld().then(({ RunWorld }) => {
+      if (cancelled) return;
+      const world = new RunWorld({
+        canvas,
+        city: day.city,
+        stage: day.stage,
+        runners: [{ name: 'me', look, bib, other: false }],
+        preview: true,
+      });
+      const reduce = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+      const start = performance.now();
+      const loop = (now: number) => {
+        const t = (now - start) / 1000;
+        world.sway(t, reduce, showBack);
+        world.frame(t, [{ name: 'me', km: 0, speed: 0.15 }], 'me');
+        raf = requestAnimationFrame(loop);
+      };
       raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
+      dispose = () => world.dispose();
+    });
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
-      world.dispose();
+      dispose();
     };
   }, [day, look, bib, showBack]);
   return (

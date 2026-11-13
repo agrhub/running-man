@@ -76,7 +76,7 @@ traffic queues at the marshals and turns round, crowds wave, a TV motorbike film
 the finish. On the beach there are boats and umbrellas, in the desert a camel caravan, and at the zoo the animals
 watch you go by.
 
-The result is a race bib: your rank among today's runners, your time and splits, your streak and the badges you
+The result is a race bib: your rank among today's runners, your time and splits, your streak and the coins you
 earned. One tap shares it to the comments, where the pinned strategy thread is already arguing about where to push.
 You can send one cheer a day to another runner, and once a week you vote on which city the crew should get next.
 
@@ -85,9 +85,16 @@ beach, wind in the desert, a bonk for a cone, a chime for cake, a thud when two 
 finish. Phones buzz on a crash.
 
 Every finished stage adds 6 km to the crew's goal of ten marathons in the city. When the crew finishes, everyone who
-ran that week gets badges and the city's hat (a hachimaki, a beret, a leaf hat or a sun visor). Badges, streaks and weather unlock
-21 outfit pieces and 4 pets that run beside you: a corgi, a tabby cat that keeps stopping, a shiba and a penguin.
-Pets and outfits never change race times.
+ran that week gets coins and the city's hat (a hachimaki, a beret, a leaf hat or a sun visor).
+
+Between races, a tab bar holds the rest of the game. **Quests** has a 7-day check-in calendar and three daily quests
+that are the same for everyone (grab 3 snacks, high-five 2 fans, finish without a crash…) plus weekly ones, all
+checked on the server. **Play** is Snack Dash, a 20-second lane-dodging mini game whose course comes from the date, so
+everyone plays the same rounds and the server replays your moves to score them. **Friends** lets you add friends, who
+then run on your road first and get their own board, and start or join a running club with a 6-character code:
+clubmates share your road and clubs compete on weekly km. The **Shop** turns coins into 33 outfit items, 7 pets
+(corgi, tabby cat, shiba, penguin, bunny, fox, panda) and gear for your pet: a bandana, a bow, a tiny crown. Every
+name in the game shows the player's own Reddit avatar. Nothing you buy changes race times.
 
 **How we built it**
 
@@ -107,7 +114,7 @@ Pets and outfits never change race times.
 - The Devvit scheduler posts each day's stage with a pinned strategy comment. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 61 unit tests and a 30-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 73 unit tests and a 41-check Playwright run cover the full loop.
 
 **Challenges we ran into**
 
@@ -143,21 +150,21 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-| Time | Show                                                | Say                                                                                        |
-| ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 0:00 | The feed card in the subreddit                      | "Every day, one new stage of a city marathon, right in your Reddit feed."                  |
-| 0:05 | Make your runner, get bib #0019                     | "Make your chibi, pick a buddy, get your race bib."                                        |
-| 0:10 | The plan screen                                     | "Each stage has hills, water stops and the day's weather. Same for everyone."              |
-| 0:20 | Tap km buttons, gold line drops, "walking!" appears | "Push is fast but drains stamina. Push too much and you walk."                             |
-| 0:35 | Countdown, steering past cones, a high five         | "Then you run it. Swipe to change lanes, dodge cones, high-five the crowd."                |
-| 0:45 | Crash into another runner, both fall                | "These are today's real runners. Crash into one and you both fall, and both times change." |
-| 0:50 | Tap 💬, "Let's go! 🔥" bubble, grab a soda          | "Shout to the field, grab a snack for a burst of speed."                                   |
-| 0:55 | The landmark moment and the km gantries             | "Each stage passes a landmark: today, the Forest Shrine in Tokyo."                         |
-| 1:10 | Finish, the race bib                                | "Your result is a race bib: rank, time, splits, streak."                                   |
-| 1:20 | Share to comments, the comment thread               | "Share it, compare plans in the strategy thread, cheer another runner."                    |
-| 1:35 | Crew bar                                            | "Every run adds 6 km to the subreddit's goal: ten marathons in each city, every week."     |
-| 1:45 | Locker: outfits and pets                            | "Streaks and city finishes unlock outfits and pets. They never change your time."          |
-| 1:55 | Beach and desert stages in Dubai                    | "Parks, zoos, beaches, desert: Paris, Hanoi, Dubai. See you at the start line tomorrow."   |
+| Time | Show                                                | Say                                                                                         |
+| ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 0:00 | The feed card in the subreddit                      | "Every day, one new stage of a city marathon, right in your Reddit feed."                   |
+| 0:05 | Make your runner, get bib #0019                     | "Make your chibi, pick a buddy, get your race bib."                                         |
+| 0:10 | The plan screen                                     | "Each stage has hills, water stops and the day's weather. Same for everyone."               |
+| 0:20 | Tap km buttons, gold line drops, "walking!" appears | "Push is fast but drains stamina. Push too much and you walk."                              |
+| 0:35 | Countdown, steering past cones, a high five         | "Then you run it. Swipe to change lanes, dodge cones, high-five the crowd."                 |
+| 0:45 | Crash into another runner, both fall                | "These are today's real runners. Crash into one and you both fall, and both times change."  |
+| 0:50 | Tap 💬, "Let's go! 🔥" bubble, grab a soda          | "Shout to the field, grab a snack for a burst of speed."                                    |
+| 0:55 | The landmark moment and the km gantries             | "Each stage passes a landmark: today, the Forest Shrine in Tokyo."                          |
+| 1:10 | Finish, the race bib                                | "Your result is a race bib: rank, time, splits, streak."                                    |
+| 1:20 | Share to comments, the comment thread               | "Share it, compare plans in the strategy thread, cheer another runner."                     |
+| 1:35 | Crew bar                                            | "Every run adds 6 km to the subreddit's goal: ten marathons in each city, every week."      |
+| 1:45 | Quests, Snack Dash, friends, club, shop             | "Check in, finish quests, play Snack Dash, run with friends and your club, dress your pet." |
+| 1:55 | Beach and desert stages in Dubai                    | "Parks, zoos, beaches, desert: Paris, Hanoi, Dubai. See you at the start line tomorrow."    |
 
 ## 4. Screenshots for the gallery
 
@@ -169,7 +176,7 @@ In `docs/screenshots/` (portrait, 2x):
 4. `04-landmark-hanoi.png`: the landmark moment in Hanoi
 5. `05-race-hanoi-obstacles.png`: cones, a high-five fan and the TV motorbike in Hanoi
 6. `06-result-bib.png`: the race bib result with the race report
-7. `07-locker-pets.png`: pets in the locker
+7. `07-locker-pets.png`: pets in the shop
 8. `08-register.png`: making your runner
 9. `09-start-corral.png`: the start corral with your bib and today's field
 10. `10-quick-chat.png`: quick-chat bubbles in a crowded race

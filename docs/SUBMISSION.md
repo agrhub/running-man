@@ -98,7 +98,8 @@ checked on the server. **Play** has four mini games: Hurdle Hop (tap to jump), R
 Fetch (throw for your pet) and Snack Dash, a 20-second lane-dodging game. Every course comes from the date, so
 everyone plays the same rounds and the server replays your moves to score them. **Friends** lets you add friends, who
 then run on your road first and get their own board, and start or join a running club with a 6-character code:
-clubmates share your road and clubs compete on weekly km. The **Shop** turns coins into 33 outfit items, 7 pets
+clubmates share your road, clubs compete on weekly km, and the first three clubmates to run each day form the club's
+relay. In the start corral you can call your finish time for bonus coins. The **Shop** turns coins into 33 outfit items, 7 pets
 (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and gear for your pet: a bandana, a bow, a tiny crown. Every
 name in the game shows the player's own Reddit avatar. Nothing you buy changes race times. **Me** shows your run
 calendar, your best time in each city, fourteen achievements that pay coins, and comfort options (calm motion,
@@ -128,7 +129,7 @@ Moderators can switch quick chat, road life, pinning, recaps and app posts off i
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   City Finishers get a user flair, and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 98 unit tests and a 45-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 100 unit tests and a 45-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
   lower resolution, then no shadows, when a phone's frame rate falls.
 

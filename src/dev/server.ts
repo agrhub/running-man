@@ -262,9 +262,7 @@ if (process.env.SEED !== '0') {
 }
 
 serve({ fetch: app.fetch, port: PORT }, () => {
-  console.log(
-    `Running Man harness on http://localhost:${PORT}/splash.html`
-  );
+  console.log(`Running Man harness on http://localhost:${PORT}/splash.html`);
   console.log(
     `Cities: ${CITIES.map((c) => c.name).join(', ')}. Posts seeded: ${posts.length}.`
   );

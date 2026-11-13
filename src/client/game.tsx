@@ -25,9 +25,24 @@ import { RunScreen, type RaceOutcome } from './screens/RunScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { CorralScreen } from './screens/CorralScreen';
 import { sfx } from './lib/sound';
+import { TabBar, type Tab } from './components/TabBar';
+import { QuestsScreen } from './screens/QuestsScreen';
 
 type Screen =
-  'register' | 'plan' | 'corral' | 'run' | 'result' | 'locker' | 'closed';
+  | 'register'
+  | 'plan'
+  | 'corral'
+  | 'run'
+  | 'result'
+  | 'locker'
+  | 'quests'
+  | 'closed';
+
+/** Screens shown with the tab bar; the race itself and registration stay full screen. */
+const HUB: Screen[] = ['plan', 'result', 'locker', 'quests'];
+const SHIPPED_TABS: Tab[] = ['race', 'quests', 'shop'];
+const tabOf = (s: Screen): Tab =>
+  s === 'locker' ? 'shop' : s === 'quests' ? 'quests' : 'race';
 
 const isPostId = (id: string | null): id is `t3_${string}` =>
   id !== null && id.startsWith('t3_');
@@ -177,7 +192,8 @@ export const App = () => {
       });
       patch({ profile: res.profile });
       if (res.message) showToast(res.message);
-      if (path === '/shop/buy' || path === '/pet/choose') sfx.snack();
+      if (path === '/shop/buy' || path === '/pet/choose' || path === '/checkin')
+        sfx.snack();
       else if (path === '/pet/care' || path === '/cheer') sfx.highFive();
       else sfx.chat();
     } catch (e) {
@@ -260,137 +276,169 @@ export const App = () => {
     setScreen('locker');
   };
 
-  switch (screen) {
-    case 'closed':
-      return (
-        <div className="flex h-full flex-col gap-3 px-4 py-4 max-w-[440px] mx-auto">
-          <p className="text-[13px] font-extrabold text-ink-soft">
-            {day.city.flag} {day.city.name}, stage {day.stageIndex + 1}
-          </p>
-          <h1 className="font-display text-[28px] font-extrabold leading-tight">
-            {day.stage.name} has closed.
-          </h1>
-          <p className="text-[14px]">
-            These were the fastest runners that day. Today’s stage is open now.
-          </p>
-          {isPostId(data.todayPostId) && (
-            <button
-              type="button"
-              onClick={() =>
-                isPostId(data.todayPostId) && navigateToPost(data.todayPostId)
-              }
-              className="chunky rounded-2xl bg-[var(--accent)] py-3 font-display text-[20px] font-extrabold text-white"
-            >
-              Go to today’s stage
-            </button>
-          )}
-          <section className="rounded-2xl border-2 border-ink bg-white/80 p-2">
-            <Leaderboard
-              rows={data.leaderboard}
-              me={data.profile.username}
-              myRank={data.myRank}
-              canCheer={false}
-            />
-          </section>
-        </div>
-      );
-    case 'register':
-      return (
-        <RegisterScreen
-          day={day}
-          profile={data.profile}
-          busy={busy}
-          onRegister={(c) => void registerRunner(c)}
-        />
-      );
-    case 'corral':
-      return (
-        <CorralScreen
-          day={day}
-          profile={data.profile}
-          runners={data.runners}
-          onGo={() => setScreen('run')}
-          onBack={() => setScreen('plan')}
-        />
-      );
-    case 'run':
-      if (livePlan) {
+  const goTab = (tab: Tab) => {
+    if (tab === 'race') setScreen(data.myRun ? 'result' : 'plan');
+    else if (tab === 'shop') openLocker();
+    else if (tab === 'quests') setScreen('quests');
+  };
+
+  const view = (() => {
+    switch (screen) {
+      case 'closed':
         return (
+          <div className="flex h-full flex-col gap-3 px-4 py-4 max-w-[440px] mx-auto">
+            <p className="text-[13px] font-extrabold text-ink-soft">
+              {day.city.flag} {day.city.name}, stage {day.stageIndex + 1}
+            </p>
+            <h1 className="font-display text-[28px] font-extrabold leading-tight">
+              {day.stage.name} has closed.
+            </h1>
+            <p className="text-[14px]">
+              These were the fastest runners that day. Today’s stage is open
+              now.
+            </p>
+            {isPostId(data.todayPostId) && (
+              <button
+                type="button"
+                onClick={() =>
+                  isPostId(data.todayPostId) && navigateToPost(data.todayPostId)
+                }
+                className="chunky rounded-2xl bg-[var(--accent)] py-3 font-display text-[20px] font-extrabold text-white"
+              >
+                Go to today’s stage
+              </button>
+            )}
+            <section className="rounded-2xl border-2 border-ink bg-white/80 p-2">
+              <Leaderboard
+                rows={data.leaderboard}
+                me={data.profile.username}
+                myRank={data.myRank}
+                canCheer={false}
+              />
+            </section>
+          </div>
+        );
+      case 'register':
+        return (
+          <RegisterScreen
+            day={day}
+            profile={data.profile}
+            busy={busy}
+            onRegister={(c) => void registerRunner(c)}
+          />
+        );
+      case 'corral':
+        return (
+          <CorralScreen
+            day={day}
+            profile={data.profile}
+            runners={data.runners}
+            onGo={() => setScreen('run')}
+            onBack={() => setScreen('plan')}
+          />
+        );
+      case 'run':
+        if (livePlan) {
+          return (
+            <RunScreen
+              day={day}
+              profile={data.profile}
+              plan={livePlan}
+              rivals={data.runners}
+              mode="live"
+              firstRun={data.profile.totalRuns === 0}
+              saving={busy}
+              onFinish={(outcome) => void submitRun(livePlan, outcome)}
+            />
+          );
+        }
+        return data.myRun ? (
           <RunScreen
             day={day}
             profile={data.profile}
-            plan={livePlan}
-            rivals={data.runners}
-            mode="live"
-            firstRun={data.profile.totalRuns === 0}
-            saving={busy}
-            onFinish={(outcome) => void submitRun(livePlan, outcome)}
+            plan={data.myRun.plan}
+            rivals={replayRivals}
+            mode="replay"
+            replayMoves={data.myRun.moves}
+            {...(data.myRun.chat ? { replayChat: data.myRun.chat } : {})}
+            firstRun={false}
+            onFinish={() => setScreen('result')}
+          />
+        ) : null;
+      case 'result':
+        return data.myRun ? (
+          <ResultScreen
+            day={day}
+            today={data.today}
+            profile={data.profile}
+            run={data.myRun}
+            leaderboard={data.leaderboard}
+            myRank={data.myRank}
+            crew={data.crew}
+            cheersReceived={data.cheersReceived}
+            justFinished={justFinished}
+            sharing={busy}
+            onShare={() => void share()}
+            onLocker={openLocker}
+            onReplay={() => setScreen('run')}
+            onCheer={(username) => void profileCall('/cheer', { username })}
+            weekly={data.weekly}
+            vote={data.vote}
+            voting={busy}
+            onVote={(cityId) => void vote(cityId)}
+          />
+        ) : null;
+      case 'locker':
+        return (
+          <LockerScreen
+            day={day}
+            today={data.today}
+            profile={data.profile}
+            busy={busy}
+            onBack={() => setScreen(back === 'locker' ? 'plan' : back)}
+            onEquip={(itemId) => void profileCall('/shop/equip', { itemId })}
+            onBuy={(itemId) => void profileCall('/shop/buy', { itemId })}
+            onPet={(petId: PetId) => void profileCall('/pet/choose', { petId })}
+            onCare={() => void profileCall('/pet/care', {})}
           />
         );
-      }
-      return data.myRun ? (
-        <RunScreen
-          day={day}
-          profile={data.profile}
-          plan={data.myRun.plan}
-          rivals={replayRivals}
-          mode="replay"
-          replayMoves={data.myRun.moves}
-          {...(data.myRun.chat ? { replayChat: data.myRun.chat } : {})}
-          firstRun={false}
-          onFinish={() => setScreen('result')}
-        />
-      ) : null;
-    case 'result':
-      return data.myRun ? (
-        <ResultScreen
-          day={day}
-          today={data.today}
-          profile={data.profile}
-          run={data.myRun}
-          leaderboard={data.leaderboard}
-          myRank={data.myRank}
-          crew={data.crew}
-          cheersReceived={data.cheersReceived}
-          justFinished={justFinished}
-          sharing={busy}
-          onShare={() => void share()}
-          onLocker={openLocker}
-          onReplay={() => setScreen('run')}
-          onCheer={(username) => void profileCall('/cheer', { username })}
-          weekly={data.weekly}
-          vote={data.vote}
-          voting={busy}
-          onVote={(cityId) => void vote(cityId)}
-        />
-      ) : null;
-    case 'locker':
-      return (
-        <LockerScreen
-          day={day}
-          today={data.today}
-          profile={data.profile}
-          busy={busy}
-          onBack={() => setScreen(back === 'locker' ? 'plan' : back)}
-          onEquip={(itemId) => void profileCall('/shop/equip', { itemId })}
-          onBuy={(itemId) => void profileCall('/shop/buy', { itemId })}
-          onPet={(petId: PetId) => void profileCall('/pet/choose', { petId })}
-          onCare={() => void profileCall('/pet/care', {})}
-        />
-      );
-    case 'plan':
-      return (
-        <PlanScreen
-          day={day}
-          profile={data.profile}
-          crew={data.crew}
-          totalRunners={data.totalRunners}
-          starting={busy}
-          onStart={startRun}
-          onLocker={openLocker}
-        />
-      );
-  }
+      case 'quests':
+        return (
+          <QuestsScreen
+            today={data.today}
+            profile={data.profile}
+            busy={busy}
+            onCheckIn={() => void profileCall('/checkin', {})}
+          />
+        );
+      case 'plan':
+        return (
+          <PlanScreen
+            day={day}
+            profile={data.profile}
+            crew={data.crew}
+            totalRunners={data.totalRunners}
+            starting={busy}
+            onStart={startRun}
+            onLocker={openLocker}
+          />
+        );
+    }
+  })();
+
+  if (!HUB.includes(screen)) return view;
+  const guest = data.profile.username === 'guest';
+  return (
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto">{view}</div>
+      <TabBar
+        active={tabOf(screen)}
+        tabs={SHIPPED_TABS}
+        dots={{ quests: !guest && data.profile.checkInDate !== data.today }}
+        onTab={goTab}
+      />
+    </div>
+  );
 };
 
 createRoot(document.getElementById('root')!).render(

@@ -15,6 +15,8 @@ import {
   type CityVote,
 } from '../../shared/vote';
 import {
+  CHECKIN_REWARDS,
+  nextCheckInDay,
   CHEER_REWARD,
   HAIR_STYLES,
   HAIR_TONES,
@@ -109,6 +111,8 @@ export const freshProfile = (username: string): Profile => ({
   top10: false,
   cheeredOn: null,
   totalRuns: 0,
+  checkInDate: null,
+  checkInDay: 0,
 });
 
 export const loadProfile = async (
@@ -847,6 +851,28 @@ export const castVote = async (
     message:
       `Vote counted for ${city?.name ?? cityId} ${city?.flag ?? ''}`.trim(),
   };
+};
+
+/** Once a UTC day; consecutive days climb the 7-day calendar. */
+export const checkIn = async (
+  deps: Deps
+): Promise<{ profile: Profile; message: string }> => {
+  const username = await requireUser(deps);
+  const today = toDateKey(deps.now());
+  const profile = await loadProfile(deps.store, username);
+  if (profile.checkInDate === today)
+    throw new GameError('You already checked in today.', 409);
+  const day = nextCheckInDay(
+    profile.checkInDate,
+    profile.checkInDay,
+    addDays(today, -1)
+  );
+  const reward = CHECKIN_REWARDS[day - 1] ?? CHECKIN_REWARDS[0];
+  profile.checkInDate = today;
+  profile.checkInDay = day;
+  profile.badges += reward;
+  await saveProfile(deps.store, profile);
+  return { profile, message: `Day ${day} check-in: +${reward} coins` };
 };
 
 export const shareText = (day: DayInfo, record: RunRecord): string => {

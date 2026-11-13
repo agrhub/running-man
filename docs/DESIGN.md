@@ -114,6 +114,11 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
   and what is next.
 - **Pinned posts:** each day's stage is pinned at the top of the subreddit (it replaces yesterday's), and a
   how-to-play guide is posted and pinned once on install.
+- **Club relay:** the first three clubmates to run each day are the club's relay legs (times as they finished). When
+  the third leg finishes, the total goes on today's relay board and all three get 25 coins.
+- **Call your time:** in the start corral, guess your finish (within three minutes of the plan's projection). Within
+  10 seconds pays 30 coins, within 3 seconds 60, and the first call within 3 seconds earns the Called It
+  achievement.
 - **City celebration:** when the crew crosses ten marathons, the app posts a celebration once: who crossed the line,
   how many ran, the reward and next week's city.
 - **Next-city vote:** on the result screen, everyone who ran a stage that week gets one vote for the next city to

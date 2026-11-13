@@ -103,6 +103,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   coins for the first rounds and a daily top five.
 - **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
   who ran today join your road first with their own tag colour.
+- **Call your time:** guess your finish in the start corral; within 10 seconds pays 30 coins, within 3 pays 60.
+- **Club relay:** the first three clubmates to run each day form a relay, ranked on a daily relay board.
 - **Running clubs (group runs):** start a club (named from word lists, so nothing to moderate) and invite others with
   a 6-character code. Clubmates share your road with purple tags, and clubs compete on weekly km.
 - **Reddit avatars:** each player's own Reddit avatar appears next to their name, looked up by the server and cached
@@ -142,7 +144,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 98 unit tests: simulation, race replay, collisions, rules, API, daily posts
+npm run test:unit      # 100 unit tests: simulation, race replay, collisions, rules, API, daily posts
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

@@ -262,6 +262,9 @@ export class RunWorld {
       this.scene.add(air.group);
       this.scene.background = air.background;
       this.scene.fog = new THREE.Fog(air.fog, air.fogNear, air.fogFar);
+      // Past the fog nothing shows, so nothing past it is drawn either.
+      this.camera.far = air.fogFar + 10;
+      this.camera.updateProjectionMatrix();
       sun.color.set(air.sun.color);
       sun.intensity = air.sun.intensity;
       this.hemi.intensity = air.hemi;

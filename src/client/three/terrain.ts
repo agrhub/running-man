@@ -538,7 +538,8 @@ export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
       });
 
       // A rainforest tree: tall pale trunk, wide layered crowns, the odd vine.
-      const rainTree = (x: number, z: number, s: number) => {
+      // Only the front row is seen up close: the rows behind get plainer crowns.
+      const rainTree = (x: number, z: number, s: number, back = false) => {
         batch.push(
           mats.greens,
           g(
@@ -555,7 +556,7 @@ export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
           batch.push(
             mats.greens,
             g(
-              new THREE.IcosahedronGeometry((1.9 - k * 0.35) * s, 1)
+              new THREE.IcosahedronGeometry((1.9 - k * 0.35) * s, back ? 0 : 1)
                 .scale(1.3, 0.55, 1.3)
                 .translate(
                   x + range(-0.8, 0.8) * s,
@@ -618,7 +619,13 @@ export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
             if (rand() < 0.2) continue;
             const x = side * (frontX + 2 + row * range(3, 5) + rand() * 1.5);
             if (rand() < 0.22) palm(x, z + range(-1, 1), range(0.9, 1.3));
-            else rainTree(x, z + range(-1, 1), range(1, 1.6) + row * 0.1);
+            else
+              rainTree(
+                x,
+                z + range(-1, 1),
+                range(1, 1.6) + row * 0.1,
+                row >= 1
+              );
           }
           if (rand() < 0.55)
             banana(

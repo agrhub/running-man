@@ -53,6 +53,8 @@ import {
   itemById,
   petById,
   runReward,
+  guessReward,
+  isValidGuess,
   type Item,
   type Pet,
   type PetId,
@@ -637,6 +639,7 @@ export const summaryOf = (
   friends: profile.friends.length,
   holidayRun: profile.holidayRun,
   dashBest: profile.stats.dashBest,
+  calledIt: profile.stats.calledIt ?? 0,
 });
 
 /** Pays every newly completed achievement once. Returns the new ids. */
@@ -835,7 +838,8 @@ export const run = async (
   journeyId: string | null,
   movesInput: unknown = [],
   rivalsInput: unknown = [],
-  chatInput: unknown = []
+  chatInput: unknown = [],
+  guessInput: unknown = null
 ): Promise<RunResponse> => {
   const { store } = deps;
   const username = await requireUser(deps);
@@ -1016,6 +1020,22 @@ export const run = async (
 
   const crewPaid = await claimCrewRewards(store, profile);
   const reward = runReward(percentile, profile.streak, false);
+  // Call your time: a guess within 3 minutes of the plan's projection can pay out.
+  const guess = isValidGuess(guessInput, sim.totalSeconds)
+    ? {
+        seconds: guessInput,
+        off: Math.round(Math.abs(result.totalSeconds - guessInput) * 10) / 10,
+      }
+    : null;
+  if (guess) {
+    const bonus = guessReward(guess.seconds, result.totalSeconds);
+    if (bonus > 0) {
+      reward.guess = bonus;
+      reward.total += bonus;
+    }
+    if (guess.off <= 3)
+      profile.stats.calledIt = (profile.stats.calledIt ?? 0) + 1;
+  }
   const holiday = (holidayMultiplier(today) - 1) * reward.total;
   if (holiday > 0) {
     reward.holiday = holiday;
@@ -1051,6 +1071,7 @@ export const run = async (
     finisherNow,
     shared: false,
     ...(achieved.length ? { achieved } : {}),
+    guess,
   };
 
   await Promise.all([

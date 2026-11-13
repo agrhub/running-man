@@ -97,6 +97,10 @@ export const ResultScreen = (p: Props) => {
     [`${run.streak}-day streak`, run.reward.streak],
     ['Crew finished the city', run.reward.crew],
     ['🎄 Christmas Run bonus', run.reward.holiday ?? 0],
+    [
+      `🔮 Called your time (${run.guess?.off ?? 0}s off)`,
+      run.reward.guess ?? 0,
+    ],
     ...(run.achieved ?? []).map((id): [string, number] => {
       const a = achievementById(id);
       return [`🏆 ${a?.name ?? id}`, a?.reward ?? 0];
@@ -180,6 +184,12 @@ export const ResultScreen = (p: Props) => {
                 </li>
               ))}
           </ul>
+          {run.guess && !run.reward.guess && (
+            <p className="mt-1 text-[13px] text-ink-soft">
+              🔮 You guessed {formatTime(run.guess.seconds)}: {run.guess.off}s
+              off. Within 10 s pays next time!
+            </p>
+          )}
           {run.unlocked.length > 0 && (
             <p className="mt-1 text-[13px] font-bold">
               New in the shop for you:{' '}

@@ -133,7 +133,8 @@ export const createApi = (deps: Deps): Hono => {
           body.journeyId ?? null,
           body.moves ?? [],
           body.rivals ?? [],
-          body.chat ?? []
+          body.chat ?? [],
+          body.guess ?? null
         )
       );
     } catch (e) {

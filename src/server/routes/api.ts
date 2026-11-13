@@ -11,6 +11,7 @@ import type {
   ShareResponse,
   VoteRequest,
   QuestClaimRequest,
+  AvatarsResponse,
   ClubRequest,
   ClubResponse,
   FriendRequest,
@@ -30,6 +31,7 @@ import {
   castVote,
   checkIn,
   claimQuest,
+  avatarsFor,
   createClub,
   joinClub,
   leaveClub,
@@ -185,6 +187,21 @@ export const createApi = (deps: Deps): Hono => {
       const { profile, message } = await carePet(deps);
       await track(deps, body.journeyId, 'pet_cared');
       return c.json<ProfileResponse>({ type: 'profile', profile, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/avatars', async (c) => {
+    try {
+      const names = (c.req.query('u') ?? '')
+        .split(',')
+        .map((n) => n.trim())
+        .filter((n) => /^[\w-]{1,32}$/.test(n));
+      return c.json<AvatarsResponse>({
+        type: 'avatars',
+        avatars: await avatarsFor(deps, names),
+      });
     } catch (e) {
       return fail(c, e);
     }

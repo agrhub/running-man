@@ -1,4 +1,5 @@
 import type { LeaderRow, WeeklyBoard } from '../../shared/api';
+import { Avatar } from './Avatar';
 import { formatTime } from '../../shared/sim';
 
 type Props = {
@@ -29,6 +30,7 @@ export const Leaderboard = ({ rows, me, myRank, canCheer, onCheer }: Props) => {
           <span className="w-7 text-center font-display font-extrabold tabular">
             {medal(r.rank)}
           </span>
+          <Avatar name={r.username} size={24} />
           <span className="flex-1 truncate">u/{r.username}</span>
           <span className="tabular font-display font-semibold">
             {formatTime(r.seconds)}
@@ -78,6 +80,7 @@ export const WeeklyStandings = ({
           <span className="w-7 text-center font-display font-extrabold tabular">
             {medal(r.rank)}
           </span>
+          <Avatar name={r.username} size={24} />
           <span className="flex-1 truncate">u/{r.username}</span>
           <span className="text-[12px] font-extrabold text-ink-soft tabular">
             {r.stages} {r.stages === 1 ? 'stage' : 'stages'}

@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { Avatar } from '../components/Avatar';
 import type { FriendRow, Profile } from '../../shared/api';
 import { formatTime } from '../../shared/sim';
 
@@ -77,6 +78,7 @@ export const FriendsScreen = (p: Props) => {
                 key={f.username}
                 className="flex items-center gap-2 rounded-xl border-2 border-ink/20 bg-white px-2 py-1.5"
               >
+                <Avatar name={f.username} size={34} ring />
                 <span className="rounded-md border-2 border-ink bg-white px-1 font-display text-[11px] font-extrabold tabular">
                   {f.bib === null ? '----' : String(f.bib).padStart(4, '0')}
                 </span>
@@ -118,10 +120,10 @@ export const FriendsScreen = (p: Props) => {
                   type="button"
                   disabled={p.busy || guest}
                   onClick={() => p.onAdd(s)}
-                  className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
+                  className="chunky flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[13px] font-extrabold"
                   aria-label={`Add u/${s} as a friend`}
                 >
-                  + u/{s}
+                  <Avatar name={s} size={22} />+ u/{s}
                 </button>
               </li>
             ))}

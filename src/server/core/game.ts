@@ -1312,6 +1312,40 @@ export const leaveClub = async (deps: Deps) => {
   );
 };
 
+export const MAX_AVATAR_NAMES = 50;
+
+/** Reddit avatar URLs for a set of players, looked up at most once a day each. */
+export const avatarsFor = async (
+  deps: Deps,
+  names: string[]
+): Promise<Record<string, string | null>> => {
+  const unique = [...new Set(names)].slice(0, MAX_AVATAR_NAMES);
+  if (unique.length === 0) return {};
+  const today = toDateKey(deps.now());
+  const cached = await deps.store.hMGet(keys.avatars(), unique);
+  const out: Record<string, string | null> = {};
+  const fresh: Record<string, string> = {};
+  await Promise.all(
+    unique.map(async (name, i) => {
+      const hit = parse<{ url: string | null; day: string }>(
+        cached[i] ?? undefined
+      );
+      if (hit && hit.day === today) {
+        out[name] = hit.url;
+        return;
+      }
+      const url = deps.avatarUrl
+        ? await deps.avatarUrl(name).catch(() => null)
+        : null;
+      out[name] = url;
+      fresh[name] = JSON.stringify({ url, day: today });
+    })
+  );
+  if (Object.keys(fresh).length > 0)
+    await deps.store.hSet(keys.avatars(), fresh);
+  return out;
+};
+
 /** Once a UTC day; consecutive days climb the 7-day calendar. */
 export const checkIn = async (
   deps: Deps

@@ -34,6 +34,8 @@ export type Deps = {
   /** Posts a comment, preferably as the player. Returns false when it could not post. */
   comment(postId: string, text: string): Promise<boolean>;
   setFlair(username: string, text: string): Promise<void>;
+  /** The player's own Reddit avatar image, when they have one. */
+  avatarUrl?(username: string): Promise<string | null>;
   telemetry: Telemetry;
 };
 

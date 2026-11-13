@@ -18,6 +18,7 @@ import type {
   DashResponse,
   FriendsResponse,
   ClubResponse,
+  AvatarsResponse,
 } from '../../shared/api';
 import { createApi } from '../routes/api';
 import { createInternal } from '../routes/internal';
@@ -878,6 +879,27 @@ describe('game API', () => {
     const bobView = await call<ClubResponse>(h.as('bob'), 'GET', '/club');
     expect(bobView.json.club).toMatchObject({ owner: 'bob' });
     expect(bobView.json.club?.members).toHaveLength(1);
+  });
+
+  it('looks up Reddit avatars once a day and caches them', async () => {
+    const asked: string[] = [];
+    h.deps.avatarUrl = async (u) => {
+      asked.push(u);
+      return u === 'plain' ? null : `https://img.example/${u}.png`;
+    };
+    const first = await call<AvatarsResponse>(
+      h.at('2026-11-12'),
+      'GET',
+      '/avatars?u=alice,plain,bad%20name,alice'
+    );
+    expect(first.json.avatars).toEqual({
+      alice: 'https://img.example/alice.png',
+      plain: null,
+    });
+    await call(h, 'GET', '/avatars?u=alice,plain');
+    expect(asked).toEqual(['alice', 'plain']);
+    await call(h.at('2026-11-13'), 'GET', '/avatars?u=alice');
+    expect(asked).toEqual(['alice', 'plain', 'alice']);
   });
 
   it('checks in once a day and climbs a 7-day calendar', async () => {

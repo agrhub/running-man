@@ -1,4 +1,5 @@
 import type { Profile, RunnerTrack } from '../../shared/api';
+import { Avatar } from '../components/Avatar';
 import type { DayInfo } from '../../shared/content';
 import type { Lane } from '../../shared/course';
 import { startLane } from '../../shared/race';
@@ -63,7 +64,8 @@ export const CorralScreen = ({
           <p className="font-display text-[44px] font-extrabold leading-none tabular text-[var(--accent)] [text-shadow:0_3px_0_#2a2340]">
             {bibText(profile.bib)}
           </p>
-          <p className="mt-1 font-display text-[17px] font-extrabold">
+          <p className="mt-1 flex items-center justify-center gap-2 font-display text-[17px] font-extrabold">
+            <Avatar name={profile.username} size={30} ring />
             u/{profile.username}
           </p>
           <p className="mt-2 text-[14px]">
@@ -83,7 +85,10 @@ export const CorralScreen = ({
                   key={r.username}
                   className="flex justify-between gap-2 truncate"
                 >
-                  <span className="truncate">u/{r.username}</span>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Avatar name={r.username} size={18} />
+                    <span className="truncate">u/{r.username}</span>
+                  </span>
                   <span className="tabular text-ink-soft">
                     {bibText(r.bib)}
                   </span>

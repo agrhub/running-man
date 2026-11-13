@@ -1,3 +1,4 @@
+import type { AchievementState } from './achievements';
 import type { CityId, WeatherId } from './content';
 import type { Chat } from './chat';
 import type { ItemKind } from './course';
@@ -55,6 +56,37 @@ export type Profile = {
   friends: string[];
   /** Join code of this runner's club, if any. */
   club: string | null;
+  /** Lifetime counters for achievements. */
+  stats: RunnerStats;
+  /** Achievement ids already earned (and paid). */
+  achievements: string[];
+};
+
+export type RunnerStats = {
+  fives: number;
+  snacks: number;
+  crashes: number;
+  chats: number;
+  bestRank: number | null;
+  dashBest: number;
+};
+
+/** One run in a runner's history. */
+export type HistoryRow = {
+  dateKey: string;
+  seconds: number;
+  /** Place at the time of the run, and how many had run by then. */
+  rank: number;
+  runners: number;
+};
+
+export type MeResponse = {
+  type: 'me';
+  profile: Profile;
+  history: HistoryRow[];
+  achievements: AchievementState[];
+  /** Achievements earned just now (their coins are already in the profile). */
+  earned: string[];
 };
 
 export type RunnerTrack = {
@@ -124,6 +156,8 @@ export type RunRecord = {
   crewFinishedNow: boolean;
   finisherNow: boolean;
   shared: boolean;
+  /** Achievements this run completed. */
+  achieved?: string[];
 };
 
 /** What happened on a closed stage: posted as a recap comment and shown in the game the next day. */

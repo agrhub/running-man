@@ -1,5 +1,7 @@
 export const keys = {
   user: (username: string) => `user:${username}`,
+  /** A runner's past stages: dateKey -> {seconds, rank, runners}. */
+  history: (username: string) => `history:${username}`,
   bibs: () => 'bibs',
   run: (dateKey: string, username: string) => `run:${dateKey}:${username}`,
   leaderboard: (dateKey: string) => `lb:${dateKey}`,

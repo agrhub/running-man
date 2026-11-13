@@ -160,8 +160,13 @@ describe('economy', () => {
       finisher: false,
       weathersRun: [],
       top10: false,
+      holidayRun: false,
     };
     expect(conditionMet({ kind: 'streak', days: 3 }, p)).toBe(true);
+    expect(conditionMet({ kind: 'holiday' }, p)).toBe(false);
+    expect(conditionMet({ kind: 'holiday' }, { ...p, holidayRun: true })).toBe(
+      true
+    );
     expect(conditionMet({ kind: 'streak', days: 7 }, p)).toBe(false);
     expect(conditionMet({ kind: 'cityFinish', city: 'tokyo' }, p)).toBe(false);
   });

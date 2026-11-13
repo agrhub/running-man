@@ -17,6 +17,7 @@ import {
   type CityBuild,
   type ItemView,
 } from './city';
+import { WINTER_FOG, WINTER_SKY, buildFestive, type Festive } from './festive';
 
 export { UNITS_PER_KM };
 
@@ -121,6 +122,8 @@ export type WorldOptions = {
   items?: CourseItem[];
   /** A single runner on a plain backdrop, used for the locker preview. */
   preview?: boolean;
+  /** December dressing: snow, lights and trees ('christmas' snows harder). */
+  festive?: 'season' | 'christmas' | null;
 };
 
 export type Position = {
@@ -152,6 +155,7 @@ export class RunWorld {
   private readonly items: ItemView[] = [];
   private readonly sun: THREE.DirectionalLight;
   private readonly city: CityBuild | null = null;
+  private readonly festive: Festive | null = null;
   private readonly trail: THREE.Points | null = null;
   private readonly trailData: {
     x: number;
@@ -210,6 +214,12 @@ export class RunWorld {
       this.scene.fog = new THREE.Fog(new THREE.Color(palette.skyLow), 60, 190);
       this.city = buildCity(opts.city, opts.stage, true);
       this.scene.add(this.city.group);
+      if (opts.festive) {
+        this.festive = buildFestive(opts.festive === 'christmas');
+        this.scene.add(this.festive.group);
+        this.scene.background = new THREE.Color(WINTER_SKY);
+        this.scene.fog = new THREE.Fog(new THREE.Color(WINTER_FOG), 45, 170);
+      }
       for (const item of opts.items ?? []) {
         const view = buildItem(item, LANE_WIDTH);
         this.scene.add(view.group);
@@ -285,7 +295,12 @@ export class RunWorld {
       );
       const mat = new THREE.PointsMaterial({
         color: trailItem.color,
-        size: trailItem.shape === 'sparkle' ? 0.16 : 0.22,
+        size:
+          trailItem.shape === 'sparkle'
+            ? 0.16
+            : trailItem.shape === 'snow'
+              ? 0.14
+              : 0.22,
         transparent: true,
         opacity: 0.9,
         depthWrite: false,
@@ -478,6 +493,7 @@ export class RunWorld {
       this.sun.position.set(10, 22, this.camZ + 8);
       this.sun.target.position.set(0, 0, this.camZ - 6);
       this.city?.update(t, dt, this.camZ, finished);
+      this.festive?.update(t, dt, this.camZ);
       // Far runners and items are lost in the fog anyway: skip drawing them.
       const camZ = this.camZ;
       for (const v of this.views.values()) {

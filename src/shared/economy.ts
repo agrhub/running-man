@@ -24,7 +24,8 @@ export type Unlock =
   | { kind: 'cityFinish'; city: CityId }
   | { kind: 'finisher' }
   | { kind: 'weather'; weather: WeatherId }
-  | { kind: 'top10' };
+  | { kind: 'top10' }
+  | { kind: 'holiday' };
 
 export type ItemShape =
   | 'tee'
@@ -48,6 +49,10 @@ export type ItemShape =
   | 'sparkle'
   | 'crown'
   | 'ears'
+  | 'santa'
+  | 'antlers'
+  | 'snow'
+  | 'petSanta'
   | 'petBandana'
   | 'petBow'
   | 'petCap'
@@ -308,6 +313,30 @@ export const ITEMS: Item[] = [
     unlock: { kind: 'badges', cost: 1200 },
   },
   {
+    id: 'santa-hat',
+    name: 'Santa Hat',
+    slot: 'hat',
+    shape: 'santa',
+    color: '#e0313b',
+    unlock: { kind: 'holiday' },
+  },
+  {
+    id: 'antlers',
+    name: 'Reindeer Antlers',
+    slot: 'hat',
+    shape: 'antlers',
+    color: '#9a6a3c',
+    unlock: { kind: 'badges', cost: 350 },
+  },
+  {
+    id: 'trail-snow',
+    name: 'Snowflakes',
+    slot: 'trail',
+    shape: 'snow',
+    color: '#eaf6ff',
+    unlock: { kind: 'badges', cost: 250 },
+  },
+  {
     id: 'runners-coral',
     name: 'Coral Runners',
     slot: 'shoes',
@@ -411,6 +440,14 @@ export const ITEMS: Item[] = [
     shape: 'petCrown',
     color: '#ffc83d',
     unlock: { kind: 'badges', cost: 900 },
+  },
+  {
+    id: 'pet-santa',
+    name: 'Pet Santa Hat',
+    slot: 'petGear',
+    shape: 'petSanta',
+    color: '#e0313b',
+    unlock: { kind: 'holiday' },
   },
 ];
 
@@ -533,6 +570,8 @@ export type Progress = {
   finisher: boolean;
   weathersRun: WeatherId[];
   top10: boolean;
+  /** Ran a stage in a December holiday season. */
+  holidayRun: boolean;
 };
 
 /** Whether an unlock condition is met by progress alone (badge items still need buying). */
@@ -551,6 +590,8 @@ export const conditionMet = (unlock: Unlock, p: Progress): boolean => {
       return p.weathersRun.includes(unlock.weather);
     case 'top10':
       return p.top10;
+    case 'holiday':
+      return p.holidayRun;
   }
 };
 
@@ -570,6 +611,8 @@ export const unlockLabel = (unlock: Unlock): string => {
       return `Run a ${unlock.weather} stage`;
     case 'top10':
       return 'Finish in the top 10% of a stage';
+    case 'holiday':
+      return 'Run a stage in December';
   }
 };
 
@@ -578,6 +621,8 @@ export type RewardBreakdown = {
   rank: number;
   streak: number;
   crew: number;
+  /** Extra coins on the Christmas Run. */
+  holiday?: number;
   total: number;
 };
 

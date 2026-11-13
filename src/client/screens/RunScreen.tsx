@@ -32,6 +32,7 @@ import {
 } from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
 import { ambience, onSoundChange, setSound, sfx, soundOn } from '../lib/sound';
+import { isChristmasRun, isHolidaySeason } from '../../shared/festive';
 import {
   coachSteered,
   startCoach,
@@ -261,6 +262,11 @@ export const RunScreen = ({
       stage: day.stage,
       runners,
       items: setup.items,
+      festive: isChristmasRun(day.dateKey)
+        ? 'christmas'
+        : isHolidaySeason(day.dateKey)
+          ? 'season'
+          : null,
     });
     const state: RaceState = startRace(setup.startLane ?? 0);
     const total = setup.base[setup.base.length - 1] ?? 1;

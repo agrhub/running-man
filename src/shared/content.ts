@@ -495,7 +495,8 @@ export const CITIES: City[] = [
   },
 ];
 
-export type WeatherId = 'cool' | 'hot' | 'rain' | 'headwind' | 'tailwind';
+export type WeatherId =
+  'cool' | 'hot' | 'rain' | 'storm' | 'headwind' | 'tailwind';
 
 export type Weather = {
   id: WeatherId;
@@ -507,7 +508,7 @@ export type Weather = {
 export const WEATHER: Record<WeatherId, Weather> = {
   cool: {
     id: 'cool',
-    label: 'Cool morning',
+    label: 'Sunny and cool',
     icon: '🌤️',
     hint: 'Legs stay fresh. A good day to push.',
   },
@@ -522,6 +523,12 @@ export const WEATHER: Record<WeatherId, Weather> = {
     label: 'Rain',
     icon: '🌧️',
     hint: 'Pushing downhill on wet roads costs time.',
+  },
+  storm: {
+    id: 'storm',
+    label: 'Thunderstorm',
+    icon: '⛈️',
+    hint: 'Wind and rain: slower everywhere, puddles all over, and wet downhills punish a push.',
   },
   headwind: {
     id: 'headwind',
@@ -542,8 +549,51 @@ const WEATHER_BAG: WeatherId[] = [
   'cool',
   'hot',
   'rain',
+  'storm',
   'headwind',
   'tailwind',
+];
+
+/** When the stage starts. Everyone runs at the same time of day. */
+export type TimeOfDay = 'morning' | 'noon' | 'afternoon' | 'evening';
+
+export const TIMES: Record<
+  TimeOfDay,
+  { label: string; icon: string; clock: string; hint: string }
+> = {
+  morning: {
+    label: 'Morning run',
+    icon: '🌅',
+    clock: '6:30 am',
+    hint: 'Fresh air and quiet streets.',
+  },
+  noon: {
+    label: 'Noon run',
+    icon: '☀️',
+    clock: '12:00 pm',
+    hint: 'The sun is high: stamina drains a little faster.',
+  },
+  afternoon: {
+    label: 'Afternoon run',
+    icon: '🌇',
+    clock: '4:00 pm',
+    hint: 'Warm, with more people and traffic about.',
+  },
+  evening: {
+    label: 'Evening run',
+    icon: '🌙',
+    clock: '7:30 pm',
+    hint: 'Cool air under the street lights: easier on the legs.',
+  },
+};
+
+const TIME_BAG: TimeOfDay[] = [
+  'morning',
+  'morning',
+  'noon',
+  'afternoon',
+  'evening',
+  'evening',
 ];
 
 /** Monday the first season starts. Every season is one city, 7 days. */
@@ -570,6 +620,7 @@ export type DayInfo = {
   stageIndex: number;
   stage: Stage;
   weather: Weather;
+  time: TimeOfDay;
 };
 
 export const dayInfo = (dateKey: string): DayInfo => {
@@ -582,6 +633,8 @@ export const dayInfo = (dateKey: string): DayInfo => {
   const rand = mulberry32(hashString(`weather:${dateKey}`));
   const weatherId =
     WEATHER_BAG[Math.floor(rand() * WEATHER_BAG.length)] ?? 'cool';
+  const clock = mulberry32(hashString(`time:${dateKey}`));
+  const time = TIME_BAG[Math.floor(clock() * TIME_BAG.length)] ?? 'morning';
   return {
     dateKey,
     dayIndex,
@@ -590,6 +643,7 @@ export const dayInfo = (dateKey: string): DayInfo => {
     stageIndex,
     stage,
     weather: WEATHER[weatherId],
+    time,
   };
 };
 

@@ -31,7 +31,14 @@ import {
   type Chat,
 } from '../../shared/chat';
 import { RunWorld, type Positions, type Runner } from '../three/world';
-import { ambience, onSoundChange, setSound, sfx, soundOn } from '../lib/sound';
+import {
+  ambience,
+  onSoundChange,
+  setSound,
+  sfx,
+  soundOn,
+  weatherAmbience,
+} from '../lib/sound';
 import { isChristmasRun, isHolidaySeason } from '../../shared/festive';
 import {
   coachSteered,
@@ -217,7 +224,7 @@ export const RunScreen = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const sim = simulate(day.stage, day.weather.id, plan);
+    const sim = simulate(day.stage, day.weather.id, plan, day.time);
     const rivalList: Rival[] = rivals.map((g) => ({
       username: g.username,
       marks: g.marks,
@@ -262,6 +269,11 @@ export const RunScreen = ({
       stage: day.stage,
       runners,
       items: setup.items,
+      weather: day.weather.id,
+      time: day.time,
+      onThunder: () => {
+        if (!skipRef.current) sfx.thunder();
+      },
       festive: isChristmasRun(day.dateKey)
         ? 'christmas'
         : isHolidaySeason(day.dateKey)
@@ -297,12 +309,18 @@ export const RunScreen = ({
     let coachView: CoachView | null = null;
     worldRef.current = world;
     // A quiet bed of sound for the terrain; starts again if sound is switched on mid-race.
-    let stopAmbience = soundOn()
-      ? ambience(day.stage.terrain)
-      : () => undefined;
+    const startAir = () => {
+      const a = ambience(day.stage.terrain);
+      const w = weatherAmbience(day.weather.id);
+      return () => {
+        a();
+        w();
+      };
+    };
+    let stopAmbience = soundOn() ? startAir() : () => undefined;
     const offSound = onSoundChange((on) => {
       stopAmbience();
-      stopAmbience = on ? ambience(day.stage.terrain) : () => undefined;
+      stopAmbience = on ? startAir() : () => undefined;
     });
     const chatIndex = new Map<string, number>();
     let myChatIndex = 0;

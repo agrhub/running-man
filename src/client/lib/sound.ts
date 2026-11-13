@@ -1,4 +1,4 @@
-import type { Terrain } from '../../shared/content';
+import type { Terrain, WeatherId } from '../../shared/content';
 
 /**
  * Every sound in the game is synthesised with Web Audio: nothing to download, and
@@ -121,6 +121,27 @@ const buzz = (ms: number | number[]) => {
 const NOTE = { C5: 523.25, E5: 659.25, G5: 783.99, C6: 1046.5, E6: 1318.5 };
 
 export const sfx = {
+  /** A rolling rumble after lightning. */
+  thunder: () => {
+    burst({
+      filter: 'lowpass',
+      freq: 140,
+      q: 0.7,
+      dur: 2.2,
+      gain: 0.22,
+      attack: 0.05,
+    });
+    burst({
+      filter: 'lowpass',
+      freq: 260,
+      q: 0.5,
+      start: 0.15,
+      dur: 1.2,
+      gain: 0.12,
+      attack: 0.02,
+    });
+    buzz([40, 60, 40]);
+  },
   countdown: () => tone({ freq: 660, dur: 0.14, gain: 0.25, type: 'triangle' }),
   go: () => {
     tone({ freq: 990, dur: 0.35, gain: 0.3, type: 'triangle' });
@@ -318,6 +339,59 @@ export const ambience = (terrain: Terrain): (() => void) => {
       g.gain.cancelScheduledValues(t);
       g.gain.setValueAtTime(g.gain.value, t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      for (const n of nodes) n.stop(t + 0.45);
+    } catch {
+      // Already stopped.
+    }
+  };
+};
+
+/** Rain on the road and gusts of wind, layered over the terrain's sound. */
+export const weatherAmbience = (weather: WeatherId): (() => void) => {
+  const c = audio();
+  if (!c || !master) return () => undefined;
+  const wet = weather === 'rain' || weather === 'storm';
+  const windy =
+    weather === 'headwind' || weather === 'tailwind' || weather === 'storm';
+  if (!wet && !windy) return () => undefined;
+  const nodes: AudioScheduledSourceNode[] = [];
+  const gains: GainNode[] = [];
+  const layer = (
+    type: BiquadFilterType,
+    freq: number,
+    gain: number,
+    gust: number
+  ) => {
+    const src = c.createBufferSource();
+    src.buffer = noise(c);
+    src.loop = true;
+    const f = c.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    const g = c.createGain();
+    g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(gain, c.currentTime + 1.5);
+    const lfo = c.createOscillator();
+    const depth = c.createGain();
+    lfo.frequency.value = 0.13;
+    depth.gain.value = gust;
+    lfo.connect(depth).connect(g.gain);
+    src.connect(f).connect(g).connect(master!);
+    src.start(0, Math.random());
+    lfo.start();
+    nodes.push(src, lfo);
+    gains.push(g);
+  };
+  if (wet) layer('highpass', 1800, weather === 'storm' ? 0.05 : 0.035, 0.006);
+  if (windy) layer('lowpass', 320, weather === 'storm' ? 0.07 : 0.05, 0.035);
+  return () => {
+    const t = c.currentTime;
+    try {
+      for (const g of gains) {
+        g.gain.cancelScheduledValues(t);
+        g.gain.setValueAtTime(g.gain.value, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      }
       for (const n of nodes) n.stop(t + 0.45);
     } catch {
       // Already stopped.

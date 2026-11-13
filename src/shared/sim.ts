@@ -1,4 +1,9 @@
-import { KM_PER_STAGE, type Stage, type WeatherId } from './content';
+import {
+  KM_PER_STAGE,
+  type Stage,
+  type TimeOfDay,
+  type WeatherId,
+} from './content';
 
 export type Pace = 'easy' | 'steady' | 'push';
 
@@ -85,7 +90,19 @@ const kmSeconds = (pace: Pace, grade: number, weather: WeatherId): number => {
     s += 4;
     if (grade < 0 && pace === 'push') s += 26;
   }
+  if (weather === 'storm') {
+    s += 9 + Math.max(0, grade) * 2;
+    if (grade < 0 && pace === 'push') s += 30;
+  }
   return s;
+};
+
+/** The sun's share: noon drains stamina faster, an evening run is easier. */
+export const TIME_DRAIN: Record<TimeOfDay, number> = {
+  morning: 1,
+  noon: 1.12,
+  afternoon: 1.05,
+  evening: 0.94,
 };
 
 const kmDrain = (pace: Pace, grade: number, weather: WeatherId): number => {
@@ -94,6 +111,7 @@ const kmDrain = (pace: Pace, grade: number, weather: WeatherId): number => {
   if (grade < 0) d = Math.max(2, d + grade * 1.2);
   if (weather === 'hot') d *= 1.35;
   if (weather === 'cool') d *= 0.88;
+  if (weather === 'storm') d *= 1.1;
   return d;
 };
 
@@ -108,7 +126,8 @@ const round1 = (n: number): number => Math.round(n * 10) / 10;
 export const simulate = (
   stage: Stage,
   weather: WeatherId,
-  plan: Plan
+  plan: Plan,
+  time: TimeOfDay = 'morning'
 ): SimResult => {
   let stamina = START_STAMINA;
   let total = 0;
@@ -121,7 +140,7 @@ export const simulate = (
     const grade = stage.grades[i] ?? 0;
     let seconds = kmSeconds(pace, grade, weather);
     if (stamina < HEAVY_LEGS_BELOW) seconds *= 1.1;
-    const drain = kmDrain(pace, grade, weather);
+    const drain = kmDrain(pace, grade, weather) * TIME_DRAIN[time];
 
     let walked = 0;
     if (drain <= stamina) {

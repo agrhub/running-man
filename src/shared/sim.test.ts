@@ -218,4 +218,14 @@ describe('next-city vote', () => {
       'newyork'
     );
   });
+  it('makes noon harder and evening easier on the legs, and storms slow', () => {
+    const plan = defaultPlan(climb);
+    const at = (t: 'morning' | 'noon' | 'evening') =>
+      simulate(climb, 'cool', plan, t).splits.at(-1)?.stamina ?? 0;
+    expect(at('noon')).toBeLessThan(at('morning'));
+    expect(at('evening')).toBeGreaterThan(at('morning'));
+    expect(simulate(climb, 'storm', plan).totalSeconds).toBeGreaterThan(
+      simulate(climb, 'rain', plan).totalSeconds
+    );
+  });
 });

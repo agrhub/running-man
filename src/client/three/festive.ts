@@ -6,9 +6,6 @@ import { COURSE_KM, ROAD_HALF, kmZ } from './city';
  * Holiday dressing for a December stage: falling snow that follows the camera,
  * string lights on every km gantry, and decorated trees beside the gates.
  */
-/** A grey-blue winter sky, so the snow shows against it. */
-export const WINTER_SKY = '#b8c7da';
-export const WINTER_FOG = '#d9e2ec';
 
 export type Festive = {
   group: THREE.Group;

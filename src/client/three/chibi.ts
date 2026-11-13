@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { bakeParts } from './bake';
 import {
   HAIR_TONES,
   SKIN_TONES,
@@ -602,6 +603,7 @@ export const buildChibi = (
   group.traverse((o) => {
     if (o instanceof THREE.Mesh) o.castShadow = false;
   });
+  bakeParts(group);
 
   return {
     group,
@@ -1044,6 +1046,8 @@ export const buildPet = (
       );
     }
   }
+
+  bakeParts(group, new Set([...legs, ...bunnyEars]));
 
   return {
     group,

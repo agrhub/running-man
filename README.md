@@ -138,7 +138,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   for a day, with a coloured initial when there is none.
 - **Profile and achievements:** a Me tab with your run calendar, bests per city, fourteen achievements that pay
   coins, and comfort options (calm motion, bigger buttons, one-thumb steering, vibration, language).
-- **English and Vietnamese:** every screen, tip, toast and piece of game data (stages, landmarks, weather, items,
+- **English, Spanish and Vietnamese:** every screen, tip, toast and piece of game data (stages, landmarks, weather, items,
   pets, quests, achievements, mini games, World Tour, server messages) is translated. The language follows the
   device and can be changed in Me → Options; public Reddit posts stay in English. `npm run i18n:check` lists any
   text without a translation.
@@ -178,7 +178,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 121 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 123 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -188,7 +188,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (53 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+Browser end-to-end check (54 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
 vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 

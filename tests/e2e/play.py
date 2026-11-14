@@ -368,6 +368,16 @@ with sync_playwright() as p:
     check('the language can be switched in Options', page.is_visible('text=Language'))
     ctx.close()
 
+    # Spanish: a phone set to Spanish gets the feed card and the game in Spanish.
+    ctx = browser.new_context(viewport={'width': 390, 'height': 844}, locale='es-MX')
+    page = ctx.new_page()
+    page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
+    page.goto(f'{BASE}/splash.html?user=espanol&date=2026-11-12&post=')
+    page.wait_for_selector('text=Corre la etapa de hoy')
+    check('a Spanish phone gets the feed card in Spanish', page.is_visible('text=Meta del equipo'))
+    page.screenshot(path=f'{OUT}/14-splash-es.png')
+    ctx.close()
+
     browser.close()
 
 print('\nconsole/page errors:', len(errors))

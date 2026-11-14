@@ -8,12 +8,13 @@ import { useEffect, useState } from 'react';
  * The language follows the device unless the player picks one in Me → Options.
  * Public Reddit posts and comments stay in English, since everyone reads them.
  */
-export type Lang = 'en' | 'vi';
+export type Lang = 'en' | 'vi' | 'es';
 export type LangChoice = Lang | 'auto';
 
 export const LANGS: { id: LangChoice; label: string }[] = [
   { id: 'auto', label: 'Automatic' },
   { id: 'en', label: 'English' },
+  { id: 'es', label: 'Español' },
   { id: 'vi', label: 'Tiếng Việt' },
 ];
 
@@ -21,11 +22,12 @@ export const LANGS: { id: LangChoice; label: string }[] = [
  * English needs no table. Other tables are loaded only on devices that use
  * them, so English players never download them (the feed card stays light).
  */
-const DICTS: Record<Lang, Record<string, string>> = { en: {}, vi: {} };
+const DICTS: Record<Lang, Record<string, string>> = { en: {}, vi: {}, es: {} };
 const loaded = new Set<Lang>(['en']);
 const loadDict = async (l: Lang): Promise<void> => {
   if (loaded.has(l)) return;
   if (l === 'vi') DICTS.vi = (await import('./vi')).VI;
+  if (l === 'es') DICTS.es = (await import('./es')).ES;
   loaded.add(l);
 };
 const KEY = 'rm-lang';
@@ -35,7 +37,12 @@ const fromDevice = (): Lang => {
     const list = navigator.languages?.length
       ? navigator.languages
       : [navigator.language];
-    for (const l of list) if (l?.toLowerCase().startsWith('vi')) return 'vi';
+    for (const l of list) {
+      const code = l?.toLowerCase() ?? '';
+      if (code.startsWith('vi')) return 'vi';
+      if (code.startsWith('es')) return 'es';
+      if (code.startsWith('en')) return 'en';
+    }
   } catch {
     // no navigator: English
   }
@@ -45,7 +52,7 @@ const fromDevice = (): Lang => {
 const readChoice = (): LangChoice => {
   try {
     const v = window.localStorage.getItem(KEY);
-    if (v === 'en' || v === 'vi') return v;
+    if (v === 'en' || v === 'vi' || v === 'es') return v;
   } catch {
     // storage blocked: automatic
   }

@@ -2,7 +2,7 @@
  * Lists every English text the game can show, so translation tables can be
  * checked for gaps:
  *
- *   npm run i18n:check     # prints missing Vietnamese keys, fails if any
+ *   npm run i18n:check     # prints missing keys per language, fails if any
  *
  * Texts come from tr('...') calls in the client, the game data that screens
  * pass through tr() (stages, landmarks, weather, items, pets, quests…), and the
@@ -29,6 +29,7 @@ import { PACE_LABEL } from '../src/shared/sim';
 import { NEXT_CITIES } from '../src/shared/vote';
 import { holidayBanner, holidayShort } from '../src/shared/festive';
 import { VI } from '../src/client/i18n/vi';
+import { ES } from '../src/client/i18n/es';
 
 const files = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
@@ -189,8 +190,15 @@ for (const lane of ['left', 'middle', 'right'])
 add('🍰 Snack ahead, right in your lane. Run through it for a burst of speed!');
 
 const all = [...keys].filter((k) => /[A-Za-z]/.test(k)).sort();
-const missing = all.filter((k) => !(k in VI));
+const tables: [string, Record<string, string>][] = [
+  ['Vietnamese', VI],
+  ['Spanish', ES],
+];
 if (process.argv.includes('--all')) console.log(JSON.stringify(all, null, 1));
-else console.log(JSON.stringify(missing, null, 1));
-console.error(`${all.length} texts, ${missing.length} missing in Vietnamese`);
-if (missing.length > 0) process.exitCode = 1;
+for (const [name, table] of tables) {
+  const missing = all.filter((k) => !(k in table));
+  if (!process.argv.includes('--all') && missing.length)
+    console.log(name, JSON.stringify(missing, null, 1));
+  console.error(`${all.length} texts, ${missing.length} missing in ${name}`);
+  if (missing.length > 0) process.exitCode = 1;
+}

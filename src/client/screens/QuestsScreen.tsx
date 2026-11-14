@@ -81,7 +81,7 @@ export const CheckInCard = ({
         type="button"
         disabled={busy || done || guest}
         onClick={onCheckIn}
-        className="chunky mt-2 w-full rounded-2xl bg-[var(--accent)] py-2 short:mt-1.5 short:py-1.5 font-display text-[17px] font-extrabold text-white"
+        className="chunky mt-2 w-full rounded-2xl bg-[var(--accent-ink)] py-2 short:mt-1.5 short:py-1.5 font-display text-[17px] font-extrabold text-white"
       >
         {guest
           ? tr('Log in to check in')
@@ -162,7 +162,7 @@ const QuestRow = ({
         </div>
       </div>
       {q.claimed ? (
-        <span className="w-[74px] text-center text-[12px] font-extrabold text-easy">
+        <span className="w-[74px] text-center text-[12px] font-extrabold text-easy-ink">
           {tr('Claimed ✓')}
         </span>
       ) : (

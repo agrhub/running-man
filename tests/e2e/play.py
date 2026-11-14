@@ -31,6 +31,14 @@ FITS_JS = """() => [...document.querySelectorAll('*'), document.scrollingElement
   return !scrolls || el.scrollHeight <= el.clientHeight + 2;
 })"""
 
+AXE = open(os.path.join(os.path.dirname(__file__), '..', '..', 'node_modules', 'axe-core', 'axe.min.js')).read()
+
+def a11y(page):
+    """Accessibility violations (axe-core, WCAG A and AA) on the current screen, as ids."""
+    page.wait_for_timeout(300)
+    page.add_script_tag(content=AXE)
+    return page.evaluate("async () => (await axe.run(document, {runOnly: ['wcag2a', 'wcag2aa', 'best-practice']})).violations.map(v => v.id)")
+
 def fits(page):
     """True when nothing on the screen needs scrolling."""
     page.wait_for_timeout(400)
@@ -149,6 +157,7 @@ with sync_playwright() as p:
     check('server recorded lane changes', True)
     check('crew bar shows contribution', page.locator('.bg-gold.absolute').count() == 1)
     check('the result fits on one screen', fits(page))
+    check('the result has no accessibility violations', (v := a11y(page)) == [], v)
     check('the result counts down to the next stage', re.search(r'Next stage in \d+:\d\d:\d\d', page.inner_text('body')) is not None)
     page.get_by_role('button', name=re.compile(r'^\+\d+$')).click()
     sheet = page.get_by_role('dialog', name='Coins from this run')
@@ -240,6 +249,7 @@ with sync_playwright() as p:
           page.locator('section[aria-label="Free this week"]').count() == 1
           and page.locator('ul[aria-label="World Tour places"] > li', has_text='Free').count() == 1)
     check('the World Tour fits on one screen', fits(page))
+    check('the World Tour has no accessibility violations', (v := a11y(page)) == [], v)
     page.screenshot(path=f'{OUT}/09-world-tour.png')
     page.get_by_role('button', name='← Play').click()
     nav.get_by_role('button', name=re.compile('Friends')).click()
@@ -274,6 +284,7 @@ with sync_playwright() as p:
     page.get_by_role('navigation', name='Main').get_by_role('button', name='Me', exact=True).click()
     page.wait_for_selector('section[aria-label="Your numbers"]')
     check('the profile fits on one screen', fits(page))
+    check('the profile has no accessibility violations', (v := a11y(page)) == [], v)
     numbers = page.inner_text('section[aria-label="Your numbers"]')
     page.get_by_role('button', name=re.compile('^Achievements')).click()
     earned = page.inner_text('section[aria-label="Achievements"]')

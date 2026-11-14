@@ -163,7 +163,7 @@ export const Splash = () => {
         : tr('Run today’s stage');
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <main className="relative h-full overflow-hidden">
       <Scene city={day.city} />
       <div className="relative flex h-full flex-col gap-2 px-4 pt-3 pb-[132px] max-w-[460px] mx-auto">
         <p className="font-display text-[15px] font-extrabold text-[var(--accent)] [text-shadow:0_1.5px_0_#2a2340]">
@@ -224,7 +224,7 @@ export const Splash = () => {
           <NextStage className="relative -mt-1 self-start rounded-full bg-white/90 px-2.5 py-0.5 text-[12px] font-extrabold text-ink tabular" />
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

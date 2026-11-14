@@ -52,6 +52,7 @@ export const CorralScreen = ({
   const closeSheet = () => setSheet(null);
   return (
     <div className="flex h-full flex-col max-w-[440px] mx-auto">
+      <h1 className="sr-only">{tr('Start corral')}</h1>
       <header className="flex items-center justify-between px-4 pt-3">
         <button
           type="button"

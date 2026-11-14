@@ -58,7 +58,10 @@ export const Sheet = ({
             ✕
           </button>
         </div>
-        <div className="flex flex-col gap-2 overflow-y-auto px-4 pt-1 pb-5">
+        <div
+          tabIndex={0}
+          className="flex flex-col gap-2 overflow-y-auto px-4 pt-1 pb-5 outline-none"
+        >
           {children}
         </div>
       </div>

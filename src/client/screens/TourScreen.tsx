@@ -119,7 +119,7 @@ export const TourScreen = ({
                   total: result.total,
                 })}
             {result.stamped && (
-              <span className="ml-1 font-extrabold text-easy">
+              <span className="ml-1 font-extrabold text-easy-ink">
                 🛂 {tr('Passport stamped: +{n}', { n: result.reward })} {COIN}
               </span>
             )}
@@ -166,7 +166,7 @@ export const TourScreen = ({
               type="button"
               disabled={busy}
               onClick={() => onRun(free.id)}
-              className="chunky shrink-0 rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
+              className="chunky shrink-0 rounded-full bg-[var(--accent-ink)] px-4 py-1 text-[14px] font-extrabold text-white"
             >
               {tr('Run here')}
             </button>
@@ -386,7 +386,7 @@ export const TourScreen = ({
                         setOpen(null);
                         onRun(stop.id);
                       }}
-                      className="chunky rounded-full bg-[var(--accent)] px-5 py-1.5 text-[15px] font-extrabold text-white"
+                      className="chunky rounded-full bg-[var(--accent-ink)] px-5 py-1.5 text-[15px] font-extrabold text-white"
                     >
                       {tr('Run here')}
                     </button>

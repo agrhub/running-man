@@ -138,7 +138,7 @@ export const ChallengeBox = ({
             <button
               type="submit"
               disabled={busy || !valid}
-              className="chunky rounded-full bg-[var(--accent)] px-3 py-1 text-[14px] font-extrabold text-white"
+              className="chunky rounded-full bg-[var(--accent-ink)] px-3 py-1 text-[14px] font-extrabold text-white"
             >
               {tr('Challenge')}
             </button>

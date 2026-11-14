@@ -1008,11 +1008,15 @@ export const App = () => {
   })();
 
   if (!HUB.includes(screen))
-    return <Suspense fallback={<Warming />}>{view}</Suspense>;
+    return (
+      <main className="h-full">
+        <Suspense fallback={<Warming />}>{view}</Suspense>
+      </main>
+    );
   const guest = data.profile.username === 'guest';
   return (
     <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">{view}</div>
+      <main className="min-h-0 flex-1 overflow-y-auto">{view}</main>
       <TabBar
         active={tabOf(screen)}
         tabs={SHIPPED_TABS}

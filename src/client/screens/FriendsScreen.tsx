@@ -62,7 +62,7 @@ export const FriendsScreen = (p: Props) => {
           <button
             type="submit"
             disabled={p.busy || guest || !name.trim()}
-            className="chunky rounded-xl bg-[var(--accent)] px-4 font-display text-[16px] font-extrabold text-white"
+            className="chunky rounded-xl bg-[var(--accent-ink)] px-4 font-display text-[16px] font-extrabold text-white"
           >
             {tr('Add')}
           </button>

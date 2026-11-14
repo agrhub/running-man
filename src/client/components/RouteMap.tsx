@@ -322,9 +322,9 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
             className="rounded-lg border-2 border-ink/15 bg-white px-0.5 py-0.5"
           >
             <span
-              className="block font-extrabold"
+              className="block border-b-4 font-extrabold text-ink"
               style={{
-                color:
+                borderColor:
                   tri && i === 0 ? '#3aa0e6' : gradeColor(stage.grades[i]!),
               }}
             >

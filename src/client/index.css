@@ -14,6 +14,8 @@
   --color-ink-soft: #5d5574;
   --color-bib: #ffffff;
   --color-easy: #3fbf98;
+  /* Green text on light backgrounds (4.5:1 on white and on the pink sky). */
+  --color-easy-ink: #17704f;
   --color-steady: #4f9cf0;
   --color-push: #ff5f4f;
   --color-gold: #ffc23d;
@@ -21,7 +23,8 @@
 }
 
 :root {
-  --accent: #ff5d8f;
+  --accent: #f25a8a;
+  --accent-ink: #bd4b77;
   --sky: #ffd7e2;
   --sky-low: #fff1e6;
   color-scheme: light;

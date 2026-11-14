@@ -134,14 +134,14 @@ export const ResultScreen = (p: Props) => {
         className="bib bib-pins pop-in px-4 pt-5 pb-3 text-center"
         aria-label={tr('Your race bib')}
       >
-        <p className="text-[13px] font-extrabold text-ink-soft">
+        <h1 className="text-[13px] font-extrabold text-ink-soft">
           {day.city.flag}{' '}
           {tr('{city}, stage {n}: {stage}', {
             city: tr(day.city.name),
             n: day.stageIndex + 1,
             stage: tr(day.stage.name),
           })}
-        </p>
+        </h1>
         <p className="font-display text-[64px] short:text-[48px] font-extrabold leading-[0.95] tabular text-[var(--accent)] [text-shadow:0_4px_0_#2a2340]">
           #{rank}
         </p>
@@ -249,7 +249,7 @@ export const ResultScreen = (p: Props) => {
           type="button"
           onClick={p.onShare}
           disabled={p.sharing || run.shared}
-          className="chunky rounded-2xl bg-[var(--accent)] py-2.5 font-display text-[16px] font-extrabold text-white"
+          className="chunky rounded-2xl bg-[var(--accent-ink)] py-2.5 font-display text-[16px] font-extrabold text-white"
         >
           {run.shared
             ? tr('Shared in comments')

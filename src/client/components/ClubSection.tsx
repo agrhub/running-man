@@ -180,7 +180,7 @@ export const ClubSection = (p: Props) => {
             type="button"
             disabled={p.busy || guest}
             onClick={() => p.onCreate(adj, noun)}
-            className="chunky mt-2 w-full rounded-2xl bg-[var(--accent)] py-2 font-display text-[17px] font-extrabold text-white"
+            className="chunky mt-2 w-full rounded-2xl bg-[var(--accent-ink)] py-2 font-display text-[17px] font-extrabold text-white"
           >
             {tr('Start this club')}
           </button>

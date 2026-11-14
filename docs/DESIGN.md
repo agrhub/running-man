@@ -85,6 +85,10 @@ The chips (weather, start time, Triathlon, holiday, Maps, Yesterday) open sheets
 - **Comfort options** (Me tab, kept in the browser): calm motion (no lightning flashes, a quarter of the rain, snow
   and leaves, a steady camera; on by default when the phone asks for reduced motion), bigger steering buttons,
   vibration, and both arrows on the left or the right for one-thumb play.
+- **Accessibility:** pinch zoom stays on; every city's accent is darkened just enough that white button text reaches
+  3:1 on large buttons and 4.5:1 on small ones (`readableAccent` in `src/client/lib/theme.ts`); the app is one `main`
+  landmark with a level-one heading per screen; sheets are dialogs that close with Escape and scroll by keyboard. The
+  browser test runs axe-core (WCAG 2 A and AA plus best practice) on the result, the profile and the World Tour.
 
 ### Triathlon Finale (stage 7 of every city)
 

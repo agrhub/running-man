@@ -52,7 +52,7 @@ const ItemCard = ({
   let action: ReactNode;
   if (equipped)
     action = (
-      <span className="text-[12px] font-extrabold text-easy">
+      <span className="text-[12px] font-extrabold text-easy-ink">
         {tr('Wearing')}
       </span>
     );
@@ -115,6 +115,7 @@ export const LockerScreen = (p: Props) => {
 
   return (
     <div className="flex h-full flex-col max-w-[440px] mx-auto">
+      <h1 className="sr-only">{tr('Shop')}</h1>
       <div className="flex items-center justify-between px-4 pt-3">
         <button
           type="button"
@@ -220,7 +221,7 @@ export const LockerScreen = (p: Props) => {
                     </p>
                   </div>
                   {!pet ? (
-                    <span className="text-[12px] font-extrabold text-easy">
+                    <span className="text-[12px] font-extrabold text-easy-ink">
                       {tr('Chosen')}
                     </span>
                   ) : (
@@ -252,7 +253,7 @@ export const LockerScreen = (p: Props) => {
                       <p className="text-[11px] text-ink-soft">{tr(x.quirk)}</p>
                     </div>
                     {active ? (
-                      <span className="text-[12px] font-extrabold text-easy">
+                      <span className="text-[12px] font-extrabold text-easy-ink">
                         {tr('Running')}
                       </span>
                     ) : owned || x.unlock.kind === 'badges' ? (

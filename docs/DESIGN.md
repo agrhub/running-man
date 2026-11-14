@@ -194,6 +194,10 @@ want more running, the Play tab has a World Tour: famous places outside the cale
 - Only your best time per stop is kept, on that stop's own board. The first finish stamps your passport and pays 60
   coins; later runs pay nothing, so the tour cannot be farmed for coins.
 - Tour runs never touch the daily leaderboard, streak, quests, crew goal or weekly standings.
+- One stop is free each week (Monday to Sunday, UTC), going round all 24 in a fixed shuffled order
+  (`featuredStop` in `src/shared/tour.ts`). Anyone can run it without coins, so newcomers get a taste of the tour and
+  the whole crew races on one board; the passport stamp counts as usual, and "Keep it" buys the stop for good. The
+  daily strategy comment names the free stop, and the Play tab shows it.
 
 ### Me: profile and achievements
 

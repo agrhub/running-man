@@ -12,7 +12,7 @@ import {
 } from '../../shared/arcade';
 import { COIN } from '../../shared/economy';
 import { GAME_INFO, PLAY_GAMES } from '../lib/games';
-import { TOUR } from '../../shared/tour';
+import { TOUR, featuredStop } from '../../shared/tour';
 import { tr } from '../i18n';
 
 export type DashResult = { score: number; reward: number };
@@ -82,6 +82,12 @@ export const PlayScreen = ({
               'The Great Wall, the Pyramids, Machu Picchu and more. Unlock with coins, run any time'
             )}{' '}
             · 🛂 {profile.tourStamps.length}/{TOUR.length}
+          </span>
+          <span className="mt-0.5 block text-[12px] font-extrabold">
+            ⭐{' '}
+            {tr('Free this week: {place}', {
+              place: `${featuredStop(today).flag} ${tr(featuredStop(today).stage.landmark.name)}`,
+            })}
           </span>
         </span>
         <span className="font-display text-[22px] font-extrabold" aria-hidden>

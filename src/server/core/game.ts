@@ -125,6 +125,7 @@ import type {
 import { DEFAULT_SETTINGS } from '../../shared/api';
 import type { Deps } from './deps';
 import { updateFlair } from './flair';
+import { featuredStop } from '../../shared/tour';
 import { keys } from './keys';
 import type { Store } from './store';
 
@@ -1978,7 +1979,7 @@ export const ensureDailyPost = async (
   const postId = await deps.createPost({
     title: postTitle(day, await dayNumber(deps, dateKey)),
     fallbackText: `Today's 6 km stage runs through ${day.city.name}: ${day.stage.name}. Weather: ${day.weather.label}. Plan your pace, then race the crew.`,
-    pinnedComment: `**Strategy talk for ${day.stage.name}** ${day.weather.icon}\n\n${day.weather.hint} Where do you push, and where do you save your legs? Share your plan below.`,
+    pinnedComment: `**Strategy talk for ${day.stage.name}** ${day.weather.icon}\n\n${day.weather.hint} Where do you push, and where do you save your legs? Share your plan below.\n\n⭐ Free on the World Tour this week: ${featuredStop(dateKey).flag} ${featuredStop(dateKey).stage.landmark.name}. Open the game, then Play → World Tour.`,
   });
   await Promise.all([
     deps.store.set(keys.dayPost(dateKey), postId),

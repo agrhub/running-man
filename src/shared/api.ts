@@ -446,7 +446,13 @@ export type TourRow = {
   top: { username: string; seconds: number } | null;
 };
 
-export type TourResponse = { type: 'tour'; stops: TourRow[]; profile: Profile };
+export type TourResponse = {
+  type: 'tour';
+  stops: TourRow[];
+  profile: Profile;
+  /** The free stop of the week: anyone can run it without unlocking. */
+  featured: string;
+};
 
 /** Everything needed to race a stop: the best runs there become your ghosts. */
 export type TourStopResponse = {

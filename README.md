@@ -124,7 +124,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   Niagara Falls, the Moai of Easter Island, Mount Fuji, the Statue of Liberty, the Sydney Opera House, Christ the
   Redeemer, Chichén Itzá, the Parthenon, Uluru, the Matterhorn, the Leaning Tower of Pisa, the Golden Gate Bridge,
   Borobudur and Cappadocia, each with its own low-poly 3D wonder, terrain, weather, hour and real map.
-  Unlock a place with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
+  One place is free for everyone each week. Unlock the others with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
   server replays every run), and the first finish stamps your passport for 60 coins. Tour runs never touch the daily
   leaderboard, streak or crew goal.
 - **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
@@ -174,7 +174,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 113 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 117 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -184,7 +184,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (49 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+Browser end-to-end check (50 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
 vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 

@@ -838,6 +838,7 @@ export const App = () => {
           <TourScreen
             profile={data.profile}
             stops={tourStops}
+            today={data.today}
             busy={busy}
             result={tourResult}
             onUnlock={(id) => void unlockTour(id)}

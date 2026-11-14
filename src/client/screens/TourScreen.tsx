@@ -2,7 +2,13 @@ import type { Profile, TourRow, TourRunResponse } from '../../shared/api';
 import { TERRAIN, TIMES } from '../../shared/content';
 import { COIN } from '../../shared/economy';
 import { formatTime } from '../../shared/sim';
-import { TOUR, TOUR_KIND, TOUR_STAMP_REWARD } from '../../shared/tour';
+import {
+  TOUR,
+  TOUR_KIND,
+  TOUR_STAMP_REWARD,
+  featuredDaysLeft,
+  featuredStop,
+} from '../../shared/tour';
 import { WEATHER } from '../../shared/content';
 import { WorldMap } from '../components/PlaceMap';
 import { tr } from '../i18n';
@@ -10,6 +16,8 @@ import { tr } from '../i18n';
 type Props = {
   profile: Profile;
   stops: TourRow[] | null;
+  /** Today (UTC date key): picks the free stop of the week. */
+  today: string;
   busy: boolean;
   /** The run you just finished, shown on top. */
   result: TourRunResponse | null;
@@ -22,6 +30,7 @@ type Props = {
 export const TourScreen = ({
   profile,
   stops,
+  today,
   busy,
   result,
   onUnlock,
@@ -30,6 +39,9 @@ export const TourScreen = ({
 }: Props) => {
   const stamps = profile.tourStamps.length;
   const done = result ? TOUR.find((s) => s.id === result.id) : undefined;
+  const free = featuredStop(today);
+  const daysLeft = featuredDaysLeft(today);
+  const freeOwned = profile.tourUnlocked.includes(free.id);
   return (
     <div className="flex flex-col gap-3 px-4 pt-3 pb-6 max-w-[440px] mx-auto">
       <div className="flex items-center justify-between">
@@ -79,7 +91,7 @@ export const TourScreen = ({
                   at: s.stage.landmark.at,
                   tone: profile.tourStamps.includes(s.id)
                     ? ('done' as const)
-                    : profile.tourUnlocked.includes(s.id)
+                    : profile.tourUnlocked.includes(s.id) || s.id === free.id
                       ? ('now' as const)
                       : ('other' as const),
                   title: `${tr(s.stage.landmark.name)}, ${s.country}`,
@@ -92,6 +104,43 @@ export const TourScreen = ({
         <span style={{ color: '#3fae6a' }}>●</span> {tr('stamped')}{' '}
         <span style={{ color: '#ff5d8f' }}>●</span> {tr('unlocked ○ locked')}
       </p>
+
+      <section
+        className="chunky rounded-2xl bg-[#fff4cf] px-3 py-2"
+        aria-label={tr('Free this week')}
+      >
+        <p className="text-[12px] font-extrabold text-ink-soft">
+          ⭐ {tr('Free this week')} ·{' '}
+          {daysLeft === 1
+            ? tr('last day')
+            : tr('{n} days left', { n: daysLeft })}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-[30px] leading-none" aria-hidden>
+            {free.flag}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-[19px] font-extrabold leading-tight">
+              {tr(free.stage.landmark.name)}
+            </p>
+            <p className="text-[12px] leading-snug">
+              {freeOwned
+                ? tr('Yours to keep. The whole crew races here this week.')
+                : tr(
+                    'Everyone can run it this week without unlocking. Race the crew on one board.'
+                  )}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onRun(free.id)}
+            className="chunky rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
+          >
+            {tr('Run here')}
+          </button>
+        </div>
+      </section>
 
       {result && done && (
         <section
@@ -130,6 +179,8 @@ export const TourScreen = ({
           const unlocked =
             row?.unlocked ?? profile.tourUnlocked.includes(stop.id);
           const stamped = profile.tourStamps.includes(stop.id);
+          const isFree = stop.id === free.id;
+          const owned = profile.tourUnlocked.includes(stop.id);
           const kind = TOUR_KIND[stop.kind];
           const canBuy = profile.badges >= stop.cost;
           return (
@@ -144,6 +195,11 @@ export const TourScreen = ({
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-[17px] font-extrabold leading-tight">
                     {tr(stop.stage.landmark.name)}
+                    {isFree && (
+                      <span className="ml-1 rounded-full bg-gold px-1.5 text-[11px] align-middle">
+                        ⭐ {tr('Free this week')}
+                      </span>
+                    )}
                     {stamped && (
                       <span className="ml-1 text-[13px]" title={tr('Stamped')}>
                         🛂
@@ -182,7 +238,17 @@ export const TourScreen = ({
                   )}
                 </div>
               </div>
-              <div className="mt-1.5 flex justify-end">
+              <div className="mt-1.5 flex justify-end gap-2">
+                {isFree && !owned && (
+                  <button
+                    type="button"
+                    disabled={busy || !canBuy}
+                    onClick={() => onUnlock(stop.id)}
+                    className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
+                  >
+                    {tr('Keep it {n}', { n: stop.cost })} {COIN}
+                  </button>
+                )}
                 {unlocked ? (
                   <button
                     type="button"

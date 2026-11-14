@@ -17,6 +17,7 @@ import { checkpoints, isValidPlan, simulate } from '../../shared/sim';
 import {
   TOUR,
   TOUR_STAMP_REWARD,
+  featuredStop,
   tourById,
   tourDay,
   tourKey,
@@ -34,6 +35,7 @@ import {
 } from './game';
 import { updateFlair } from './flair';
 import { keys } from './keys';
+import { toDateKey } from '../../shared/content';
 
 const findStop = (id: unknown): TourStop => {
   const stop = typeof id === 'string' ? tourById(id) : undefined;
@@ -45,6 +47,7 @@ const findStop = (id: unknown): TourStop => {
 export const tourList = async (deps: Deps): Promise<TourResponse> => {
   const username = await requireUser(deps);
   const profile = await loadProfile(deps.store, username);
+  const featured = featuredStop(toDateKey(deps.now())).id;
   const stops: TourRow[] = await Promise.all(
     TOUR.map(async (stop) => {
       const board = keys.tourBoard(stop.id);
@@ -57,7 +60,8 @@ export const tourList = async (deps: Deps): Promise<TourResponse> => {
       const first = top[0];
       return {
         id: stop.id,
-        unlocked: profile.tourUnlocked.includes(stop.id),
+        unlocked:
+          profile.tourUnlocked.includes(stop.id) || stop.id === featured,
         stamped: profile.tourStamps.includes(stop.id),
         best: best ?? null,
         rank: rank === undefined ? null : rank + 1,
@@ -66,7 +70,7 @@ export const tourList = async (deps: Deps): Promise<TourResponse> => {
       };
     })
   );
-  return { type: 'tour', stops, profile };
+  return { type: 'tour', stops, profile, featured };
 };
 
 export const unlockTour = async (
@@ -122,7 +126,8 @@ export const tourRun = async (
   const username = await requireUser(deps);
   const stop = findStop(id);
   const profile = await loadProfile(store, username);
-  if (!profile.tourUnlocked.includes(stop.id))
+  const free = featuredStop(toDateKey(deps.now())).id === stop.id;
+  if (!free && !profile.tourUnlocked.includes(stop.id))
     throw new GameError('Unlock this place first.');
   const day = tourDay(stop);
   if (!isValidPlan(day.stage, planInput))

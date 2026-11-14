@@ -1,5 +1,7 @@
 import {
   WEATHER,
+  addDays,
+  dayIndexOf,
   type City,
   type CityId,
   type CityPalette,
@@ -8,6 +10,7 @@ import {
   type TimeOfDay,
   type WeatherId,
 } from './content';
+import { hashString, mulberry32 } from './rng';
 
 /**
  * World Tour: famous places to run any time, outside the daily calendar.
@@ -816,3 +819,35 @@ export const tourDay = (stop: TourStop): DayInfo => {
     time: stop.time,
   };
 };
+
+/** The order the free stop of the week goes round in: shuffled once, the same everywhere. */
+const ROTATION: TourStop[] = (() => {
+  const order = [...TOUR];
+  const rand = mulberry32(hashString('tour-rotation'));
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  return order;
+})();
+
+/**
+ * The free stop of the week: open to every runner without coins from Monday to
+ * Sunday (UTC), so newcomers get a taste of the tour and the whole crew races
+ * on one shared board.
+ */
+export const featuredStop = (dateKey: string): TourStop => {
+  const week = Math.floor(dayIndexOf(dateKey) / 7);
+  const n = ROTATION.length;
+  return ROTATION[((week % n) + n) % n]!;
+};
+
+/** The last day (Sunday) the stop featured on `dateKey` stays free. */
+export const featuredUntil = (dateKey: string): string => {
+  const index = dayIndexOf(dateKey);
+  return addDays(dateKey, 6 - (((index % 7) + 7) % 7));
+};
+
+/** Days left in the free week, counting today. */
+export const featuredDaysLeft = (dateKey: string): number =>
+  dayIndexOf(featuredUntil(dateKey)) - dayIndexOf(dateKey) + 1;

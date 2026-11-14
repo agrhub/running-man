@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { TOUR, TOUR_STAMP_REWARD, tourById } from '../../shared/tour';
+import {
+  TOUR,
+  TOUR_STAMP_REWARD,
+  featuredStop,
+  tourById,
+} from '../../shared/tour';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -1505,13 +1510,20 @@ describe('World Tour', () => {
   beforeEach(() => {
     h = makeHarness();
   });
-  const wall = tourById('great-wall')!;
+  // Any stop that is not free this week (the harness date is 2026-11-12).
+  const wall =
+    tourById('great-wall')!.id !== featuredStop('2026-11-12').id
+      ? tourById('great-wall')!
+      : tourById('giza')!;
 
   it('unlocks a stop with coins, stamps the first finish and keeps the best time', async () => {
     await h.deps.store.set(keys.user('alice'), JSON.stringify({ badges: 250 }));
     const list = await call<TourResponse>(h, 'GET', '/tour');
     expect(list.json.stops).toHaveLength(TOUR.length);
-    expect(list.json.stops.every((s) => !s.unlocked)).toBe(true);
+    expect(list.json.featured).toBe(featuredStop('2026-11-12').id);
+    expect(list.json.stops.filter((s) => s.unlocked).map((s) => s.id)).toEqual([
+      list.json.featured,
+    ]);
 
     const locked = await call(h, 'POST', '/tour/run', {
       id: wall.id,
@@ -1554,6 +1566,37 @@ describe('World Tour', () => {
     const init = await call<InitResponse>(h, 'GET', '/init');
     expect(init.json.myRun).toBeNull();
     expect(init.json.profile.streak).toBe(0);
+  });
+
+  it('lets anyone run the free stop of the week, and locks it again after', async () => {
+    const free = featuredStop('2026-11-12');
+    const ran = await call<TourRunResponse>(h, 'POST', '/tour/run', {
+      id: free.id,
+      plan: defaultPlan(free.stage),
+      moves: [],
+    });
+    expect(ran.status).toBe(200);
+    expect(ran.json.stamped).toBe(true);
+    expect(ran.json.profile.tourUnlocked).toEqual([]);
+
+    // Next Monday another place is free, and this one needs coins again.
+    h.at('2026-11-16');
+    expect(featuredStop('2026-11-16').id).not.toBe(free.id);
+    const after = await call(h, 'POST', '/tour/run', {
+      id: free.id,
+      plan: defaultPlan(free.stage),
+      moves: [],
+    });
+    expect(after.status).toBe(400);
+  });
+
+  it('names the free stop in the daily strategy comment', async () => {
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/triggers/on-app-install', { method: 'POST' });
+    const free = featuredStop('2026-11-12');
+    expect(h.posts[0]?.pinnedComment).toContain(
+      `Free on the World Tour this week: ${free.flag} ${free.stage.landmark.name}`
+    );
   });
 
   it('puts the best runs at a stop on the road as ghosts', async () => {

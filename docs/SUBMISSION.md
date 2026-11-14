@@ -130,7 +130,7 @@ Moderators can switch quick chat, road life, pinning, recaps and app posts off i
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   every runner wears a live user flair (bib, stages run, passport stamps, latest finished city), and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 113 unit tests and a 49-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 117 unit tests and a 50-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
   lower resolution, then no shadows, when a phone's frame rate falls.
 

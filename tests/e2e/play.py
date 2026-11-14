@@ -199,6 +199,9 @@ with sync_playwright() as p:
     page.get_by_role('button', name=re.compile('World Tour')).click()
     page.wait_for_selector('ul[aria-label="World Tour places"]')
     check('World Tour lists every place', page.locator('ul[aria-label="World Tour places"] > li').count() == 24)
+    check('World Tour has a free stop of the week',
+          page.locator('section[aria-label="Free this week"]').count() == 1
+          and page.locator('ul[aria-label="World Tour places"] > li', has_text='Run here').count() == 1)
     page.screenshot(path=f'{OUT}/09-world-tour.png')
     page.get_by_role('button', name='← Play').click()
     nav.get_by_role('button', name=re.compile('Friends')).click()

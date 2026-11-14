@@ -1067,4 +1067,13 @@ export const VI: Record<string, string> = {
   'taxi': 'taxi',
   'taxis': 'taxi',
   '{n} coins': '{n} coin',
+  'Everyone can run it this week without unlocking. Race the crew on one board.':
+    'Tuần này ai cũng chạy được mà không cần mở khóa. Đua cùng cả nhóm trên một bảng xếp hạng.',
+  'Free this week': 'Miễn phí tuần này',
+  'Free this week: {place}': 'Miễn phí tuần này: {place}',
+  'Keep it {n}': 'Giữ luôn {n}',
+  'Yours to keep. The whole crew races here this week.':
+    'Địa điểm này đã là của bạn. Tuần này cả nhóm cùng đua ở đây.',
+  'last day': 'ngày cuối',
+  '{n} days left': 'còn {n} ngày',
 };

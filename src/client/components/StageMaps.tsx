@@ -44,7 +44,7 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
                           : ('other' as const),
                     title: `${tr(s.stage.landmark.name)}, ${tr(s.country)}`,
                     ...(s.id === stop.id
-                      ? { label: s.stage.landmark.name }
+                      ? { label: tr(s.stage.landmark.name) }
                       : {}),
                   },
                 ]
@@ -63,8 +63,8 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
               {
                 at,
                 tone: 'now',
-                title: stop.stage.landmark.name,
-                label: stop.stage.landmark.name,
+                title: tr(stop.stage.landmark.name),
+                label: tr(stop.stage.landmark.name),
               },
             ]}
           />
@@ -117,7 +117,9 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
                     stage: tr(s.name),
                     place: tr(s.landmark.name),
                   }),
-                  ...(i === day.stageIndex ? { label: s.landmark.name } : {}),
+                  ...(i === day.stageIndex
+                    ? { label: tr(s.landmark.name) }
+                    : {}),
                 },
               ]
             : []

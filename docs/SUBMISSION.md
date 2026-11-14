@@ -19,6 +19,8 @@ Everything needed to submit Running Man to
 - [ ] Open the demo post on a phone and in a desktop browser, logged in and logged out. Everything should fit in
       the post without scrolling sideways.
 - [x] Record the demo video (script below) and upload it to YouTube: https://youtu.be/CTI8BU9ABzw
+- [ ] Update the Devpost page with the text below (it now covers challenges, the free World Tour week, rest days,
+      flair and the four languages) and add screenshots 27 to 31 to the gallery.
 - [ ] Fill in the optional [developer satisfaction survey](https://forms.gle/dW45UgK6SctevE756) for the
       Feedback award.
 - [ ] Help others in r/Devvit and the Devvit Discord during the hackathon (Devvit Helper award).
@@ -29,8 +31,8 @@ Everything needed to submit Running Man to
 
 **Elevator pitch (under 200 characters):**
 
-> A daily 6 km chibi marathon through Tokyo, Paris, Hanoi, Dubai and the Amazon. Plan your pace, grab snacks, dodge cones and
-> today's real runners. Crash into one and you both fall.
+> A daily 6 km chibi marathon through Tokyo, Paris, Hanoi, Dubai and the Amazon. Plan your pace, dodge today's real
+> runners, challenge a friend to beat your time.
 
 **Links:**
 
@@ -86,6 +88,27 @@ The result is a race bib: your rank among today's runners, your time and splits,
 earned. One tap shares it to the comments, where the pinned strategy thread is already arguing about where to push.
 You can send one cheer a day to another runner, and once a week you vote on which city the crew should get next.
 
+Then you can **challenge** up to three redditors to beat your time. The app comments in today's post as you
+("🏁 u/bob, I challenge you! I ran Meiji Forest in 18:20"), so Reddit notifies them with a mention. When they open
+the post, the feed card itself says who challenged them and the time to beat, with a "Take the challenge" button.
+Beating it pays 30 coins, and when they finish the app replies with the outcome and mentions the challenger back, so
+one run pulls in the next.
+
+Before you race, the plan screen shows where you are: a world map with this week's city, a real map of the city with
+the week's seven stages pinned at their landmarks, and today's 6 km as a course map coloured by grade, with the water
+stops, boosters and how many obstacles and snacks each kilometre holds.
+
+For players who want more than one run a day, the **World Tour** has 24 famous places outside the calendar: the
+Great Wall, the Pyramids of Giza, Machu Picchu, the Colosseum, the Taj Mahal, Angkor Wat, Petra, Ha Long Bay, the
+Grand Canyon, Mount Fuji, the Statue of Liberty and more, each with its own low-poly 3D wonder, terrain and real map.
+Unlock a place with coins and run it as often as you like against the best runs there as ghosts; your first finish
+stamps your passport. One place is free for everyone each week, with its own board, and its three fastest runners
+win coins when the week ends; Monday's recap names them.
+
+Streaks matter, so the shop sells **rest days**: hold up to two, and a missed day uses one up on its own so the streak
+carries on. Every runner wears a live **user flair** in the subreddit ("🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo
+Finisher").
+
 Everything has sound, all synthesised in the browser: footsteps that follow your pace, the crowd in town, waves on the
 beach, wind in the desert, a bonk for a cone, a chime for cake, a thud when two runners go down, and a fanfare at the
 finish. Phones buzz on a crash.
@@ -104,12 +127,13 @@ relay. In the start corral you can call your finish time for bonus coins. The **
 (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and gear for your pet: a bandana, a bow, a tiny crown. Every
 name in the game shows the player's own Reddit avatar. Nothing you buy changes race times. **Me** shows your run
 calendar, your best time in each city, fourteen achievements that pay coins, and comfort options (calm motion,
-bigger buttons, one-thumb steering).
+bigger buttons, one-thumb steering, language). The whole game is in English, Spanish, Brazilian Portuguese and
+Vietnamese and follows the phone's language; public posts stay in English.
 
 The subreddit runs itself: each day's stage is pinned at the top, the app posts a recap under yesterday's stage (the
 podium, the most crashes, the most shouted line), and a celebration post when the crew finishes a city. In December
 it snows on every stage, December runners earn Santa hats, and Christmas Day is the Christmas Run with double coins.
-Moderators can switch quick chat, road life, pinning, recaps and app posts off in the app settings.
+Moderators can switch quick chat, road life, pinning, recaps, app posts and runner flair off in the app settings.
 
 **How we built it**
 
@@ -131,8 +155,9 @@ Moderators can switch quick chat, road life, pinning, recaps and app posts off i
   every runner wears a live user flair (bib, stages run, passport stamps, latest finished city), and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
   can be played and tested without Reddit: 125 unit tests and a 55-check Playwright run cover the full loop.
-- three.js loads as its own chunk in idle time (the first screen needs about 100 KB gzipped), and the race drops to a
-  lower resolution, then no shadows, when a phone's frame rate falls.
+- three.js loads as its own chunk in idle time (the feed card needs about 80 KB gzipped; each translation loads only
+  on phones that use it), and the race drops to a lower resolution, then no shadows, when a phone's frame rate falls.
+- Real maps are built from Natural Earth data at build time into small SVG paths, so they cost no requests.
 
 **Challenges we ran into**
 
@@ -159,12 +184,14 @@ minutes but still gives the comments something to argue about.
 **What we learned**
 
 Daily games live or die by the reason to come back tomorrow. A personal streak alone is not enough; a shared goal
-that only the community can finish works better.
+that only the community can finish works better, and on Reddit the strongest pull is another person: a mention from
+someone who just beat your time.
 
 **What's next for Running Man**
 
-Building the cities the crew votes for (London, New York, Seoul, Rio), mountain trail and snow stages, weekly "half marathon" weekend specials,
-sub-communities racing as clubs, and premium cosmetics through Reddit's payments once eligible.
+Building the cities the crew votes for (London, New York, Seoul, Rio), mountain trail and snow stages, weekly "half
+marathon" weekend specials, sub-communities racing as clubs, more languages, and premium cosmetics through Reddit's
+payments once eligible.
 
 ## 3. Demo video script (about 2 minutes)
 
@@ -223,6 +250,11 @@ In `docs/screenshots/` (portrait, 2x):
 24. `24-first-race-coach.png`: the first-race coach
 25. `25-amazon-stilt-village.png`: stilt houses on an Amazon rainforest stage
 26. `26-amazon-canopy.png`: the canopy walkway in the rainforest
+27. `27-world-tour.png`: the World Tour with its world map and this week's free place
+28. `28-world-tour-giza.png`: running past the Pyramids of Giza
+29. `29-route-map.png`: the real world and city maps and today's course map
+30. `30-challenge-feed-card.png`: a challenge waiting on the feed card
+31. `31-challenge-a-friend.png`: challenging a friend from the race bib
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

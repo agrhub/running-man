@@ -261,6 +261,8 @@ export type SplashResponse = {
   ran: boolean;
   streak: number;
   username: string;
+  /** Runners who challenged you on today's stage, while you have not run it. */
+  challenges: Challenge[];
 };
 
 export type RunRequest = {

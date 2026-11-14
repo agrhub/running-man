@@ -527,6 +527,12 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
     ran: ran !== undefined,
     streak: alive ? (profile?.streak ?? 0) : 0,
     username: username ?? '',
+    challenges:
+      username && ran === undefined && dateKey === today
+        ? (parse<Challenge[]>(
+            await store.hGet(keys.challenges(dateKey), username.toLowerCase())
+          ) ?? [])
+        : [],
   };
 };
 

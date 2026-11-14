@@ -1,3 +1,4 @@
+import { formatTime } from '../shared/sim';
 import './index.css';
 
 import { StrictMode, useEffect, useMemo, useState } from 'react';
@@ -156,7 +157,9 @@ export const Splash = () => {
     ? tr('See the results')
     : data?.ran
       ? tr('See my result')
-      : tr('Run today’s stage');
+      : data?.challenges.length
+        ? tr('Take the challenge')
+        : tr('Run today’s stage');
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -192,6 +195,22 @@ export const Splash = () => {
             </p>
           )}
         </div>
+        {data && data.challenges.length > 0 && (
+          <p className="self-start rounded-2xl border-2 border-ink bg-[#fff4cf] px-2.5 py-1 text-[13px] font-extrabold">
+            🏁{' '}
+            {data.challenges.length === 1
+              ? tr('u/{name} challenged you: beat {time}!', {
+                  name: data.challenges[0]!.from,
+                  time: formatTime(data.challenges[0]!.seconds),
+                })
+              : tr('{n} runners challenged you. Fastest to beat: {time}', {
+                  n: data.challenges.length,
+                  time: formatTime(
+                    Math.min(...data.challenges.map((c) => c.seconds))
+                  ),
+                })}
+          </p>
+        )}
         {data && <CrewBar crew={data.crew} runners={data.totalRunners} />}
         <button
           type="button"

@@ -25,6 +25,7 @@ import type {
   ProfileResponse,
   RunResponse,
   ShareResponse,
+  SplashResponse,
   ChallengeResponse,
   VoteResponse,
   QuestsResponse,
@@ -650,7 +651,10 @@ describe('game API', () => {
       (await call(h, 'POST', '/challenge', { username: 'erin' })).status
     ).toBe(409);
 
-    // Bob sees the challenge before he runs, and beats it with a faster plan.
+    // Bob sees the challenge on the feed card and in the game before he runs,
+    // and beats it with a faster plan.
+    const card = await call<SplashResponse>(h.as('bob'), 'GET', '/splash');
+    expect(card.json.challenges.map((c) => c.from)).toEqual(['alice']);
     const page = await call<InitResponse>(h.as('bob'), 'GET', '/init');
     expect(page.json.challenges.map((c) => c.from)).toEqual(['alice']);
     const bob = await call<RunResponse>(h.as('bob'), 'POST', '/run', {
@@ -660,6 +664,8 @@ describe('game API', () => {
       expect.objectContaining({ from: 'alice', beaten: true }),
     ]);
     expect(bob.json.run.reward.challenge).toBe(CHALLENGE_REWARD);
+    const after = await call<SplashResponse>(h.as('bob'), 'GET', '/splash');
+    expect(after.json.challenges).toEqual([]);
 
     // Someone who already ran cannot be challenged.
     const late = await call(h.as('carol'), 'POST', '/run', {

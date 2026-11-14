@@ -152,6 +152,13 @@ with sync_playwright() as p:
     check('a challenge mentions the runner in a comment',
           len(s['comments']) == 2 and s['comments'][-1]['text'].startswith('🏁 **u/speedy_sam'),
           s['comments'][-1]['text'][:60] if s['comments'] else '')
+    # Own browser context: the harness keeps who you are in a cookie.
+    feed_ctx, feed = new_page(browser, 390, 520)
+    feed.goto(f'{BASE}/splash.html?user=speedy_sam&date=2026-11-12&post=')
+    feed.wait_for_selector('text=Take the challenge')
+    check('the challenged runner sees it on the feed card', feed.get_by_text('challenged you').is_visible())
+    feed.screenshot(path=f'{OUT}/06e-splash-challenge.png')
+    feed_ctx.close()
     cheer = page.locator('button[aria-label^="Cheer for"]').first
     cheer.click()
     page.wait_for_selector('text=Cheer sent today')

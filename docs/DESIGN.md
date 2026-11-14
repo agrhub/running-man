@@ -183,7 +183,7 @@ to 40 coins (score ÷ 8), and each game has its own daily top five.
 
 A daily game spreads when players pull each other in, and on Reddit the native way to do that is a mention. After
 your run you can challenge up to three redditors (friends who have not run yet are suggested). The app posts a comment
-in today's post as you, "🏁 u/bob, I challenge you! I ran … in 18:20", which notifies them. Their plan screen shows
+in today's post as you, "🏁 u/bob, I challenge you! I ran … in 18:20", which notifies them. The feed card ("🏁 u/alice challenged you: beat 18:20!" with a "Take the challenge" button) and their plan screen show
 who challenged them and the time to beat; their run reports each challenge as beaten or not, and each beaten one pays
 30 coins (three at most per run). You cannot challenge yourself, the same runner twice, or someone who already ran
 today. Challenges live in `challenges:{date}` (lower-case username → list of challengers and times).

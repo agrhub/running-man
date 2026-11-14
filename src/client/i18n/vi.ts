@@ -1121,4 +1121,9 @@ export const VI: Record<string, string> = {
   'u/{name} was faster ({time})': 'u/{name} nhanh hơn ({time})',
   '{n} left today': 'còn {n} lượt hôm nay',
   '🏁 Beat your challengers': '🏁 Thắng người thách đấu',
+  'Take the challenge': 'Nhận lời thách đấu',
+  'u/{name} challenged you: beat {time}!':
+    'u/{name} thách bạn: hãy vượt {time}!',
+  '{n} runners challenged you. Fastest to beat: {time}':
+    '{n} người thách đấu bạn. Thời gian nhanh nhất cần vượt: {time}',
 };

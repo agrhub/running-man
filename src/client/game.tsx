@@ -791,6 +791,7 @@ export const App = () => {
             crew={data.crew}
             totalRunners={data.totalRunners}
             yesterday={data.yesterday}
+            roadLife={data.settings.roadLife}
             starting={busy}
             onStart={startRun}
             onLocker={openLocker}

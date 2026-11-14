@@ -16,6 +16,7 @@ import {
   type Plan,
 } from '../../shared/sim';
 import { CourseProfile } from '../components/CourseProfile';
+import { RouteMap } from '../components/RouteMap';
 import { CrewBar } from '../components/CrewBar';
 import { YesterdayCard } from '../components/YesterdayCard';
 import { holidayBanner } from '../../shared/festive';
@@ -27,6 +28,8 @@ type Props = {
   crew: CrewProgress;
   totalRunners: number;
   yesterday?: DayRecap | null;
+  /** Whether people, traffic and animals are on the road today. */
+  roadLife: boolean;
   starting: boolean;
   onStart: (plan: Plan) => void;
   onLocker: () => void;
@@ -60,6 +63,7 @@ export const PlanScreen = ({
   crew,
   totalRunners,
   yesterday,
+  roadLife,
   starting,
   onStart,
   onLocker,
@@ -155,6 +159,16 @@ export const PlanScreen = ({
           {holidayBanner(day.dateKey)}
         </p>
       )}
+
+      <section
+        className="rounded-2xl border-2 border-ink bg-white/70 px-3 py-2"
+        aria-label="Route map"
+      >
+        <h2 className="mb-1 font-display text-[16px] font-extrabold">
+          🗺️ Route map
+        </h2>
+        <RouteMap day={day} drinks={drinks} life={roadLife} />
+      </section>
 
       <section className="bib bib-pins px-3 pt-5 pb-3" aria-label="Race plan">
         <CourseProfile

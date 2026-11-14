@@ -66,6 +66,9 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   cats, chickens and pigs, depending on the city, terrain and hour; and boosters to ride (roller skates, a
   skateboard, a bicycle).
 - **First race coach:** four tips during your first race, each when it is useful.
+- **Route map:** the plan screen draws each stage as a race-day map: the course coloured by grade, km marks, water
+  stops (faded when your plan skips them), the landmark, the boosters on the road and how many obstacles and snacks
+  each km holds, all from the same seeded course the race uses.
 - **Runner and race bib:** a short character creator on first launch (skin, 4 hair styles, hair colour, shirt, and a pet once you own one),
   a bib number that is yours for good and printed on your runner's back, and a start corral before each race.
 - **Strategy first, then steering:** a deterministic stamina model (pace, grade, weather, water) decides most of your

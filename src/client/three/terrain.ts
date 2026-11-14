@@ -462,8 +462,10 @@ export const buildTerrain = (ctx: TerrainContext): TerrainLife => {
         batch.push(
           mats.greens,
           g(
+            // The hill is 1.3 r wide: keep its foot off the road and sidewalk.
             hill.translate(
-              side * (frontX + r * 0.9 + range(6, 30)),
+              side *
+                Math.max(frontX + r * 0.9 + range(6, 30), frontX + 4 + r * 1.3),
               -0.5,
               range(zEnd, zStart)
             ),

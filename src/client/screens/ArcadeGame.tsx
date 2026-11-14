@@ -618,7 +618,15 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
         0,
         since >= 0 && since < 300 ? 'throw' : 'stand'
       );
-      drawPet(ctx, petX, ground, look.pet, since >= 0 ? ms / 60 : 0, petFace);
+      // No pet of your own: the neighbour's corgi fetches.
+      drawPet(
+        ctx,
+        petX,
+        ground,
+        look.pet === 'none' ? 'corgi' : look.pet,
+        since >= 0 ? ms / 60 : 0,
+        petFace
+      );
       ctx.fillStyle = '#d4ff3a';
       ctx.strokeStyle = '#2a2340';
       ctx.lineWidth = 2.5;

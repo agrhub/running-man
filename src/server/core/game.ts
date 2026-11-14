@@ -58,7 +58,7 @@ import {
   isValidGuess,
   type Item,
   type Pet,
-  type PetId,
+  type PetChoice,
   type Progress,
 } from '../../shared/economy';
 import { hashString } from '../../shared/rng';
@@ -1171,10 +1171,18 @@ export const equipItem = async (
   return profile;
 };
 
-export const choosePet = async (deps: Deps, petId: PetId): Promise<Profile> => {
+export const choosePet = async (
+  deps: Deps,
+  petId: PetChoice
+): Promise<Profile> => {
   const username = await requireUser(deps);
-  const pet = findPet(petId);
   const profile = await loadProfile(deps.store, username);
+  if (petId === 'none') {
+    profile.look = { ...profile.look, pet: 'none' };
+    await saveProfile(deps.store, profile);
+    return profile;
+  }
+  const pet = findPet(petId);
   if (!profile.ownedPets.includes(pet.id)) {
     if (pet.unlock.kind !== 'badges')
       throw new GameError('Unlock this pet first.');
@@ -1194,6 +1202,8 @@ export const carePet = async (
   const username = await requireUser(deps);
   const today = toDateKey(deps.now());
   const profile = await loadProfile(deps.store, username);
+  if (profile.look.pet === 'none')
+    throw new GameError('Adopt a pet in the shop first.');
   const name = petById(profile.look.pet)?.name ?? 'Your pet';
   if (profile.petCaredOn === today) {
     return { profile, message: `${name} is already happy today.` };
@@ -1334,7 +1344,11 @@ export const questStates = async (
         return voted ? 1 : 0;
     }
   };
-  return [...dailyQuests(today, QUEST_POOL), ...WEEKLY].map((q) => {
+  // No pet, no treat quest.
+  const pool = QUEST_POOL.filter(
+    (id) => id !== 'pet' || profile.look.pet !== 'none'
+  );
+  return [...dailyQuests(today, pool), ...WEEKLY].map((q) => {
     const claimed = (
       profile.questClaims[questPeriod(q.scope, today, season)] ?? []
     ).includes(q.id);

@@ -22,7 +22,7 @@ type Props = {
   onBack: () => void;
   onEquip: (itemId: string) => void;
   onBuy: (itemId: string) => void;
-  onPet: (petId: Pet['id']) => void;
+  onPet: (petId: Pet['id'] | 'none') => void;
   onCare: () => void;
 };
 
@@ -152,7 +152,9 @@ export const LockerScreen = (p: Props) => {
             <div className="mb-2 flex items-center gap-2 rounded-xl border-2 border-ink bg-white px-3 py-2">
               <div className="flex-1">
                 <p className="text-[14px] font-extrabold">
-                  {pet?.name} runs with you
+                  {pet
+                    ? `${pet.name} runs with you`
+                    : 'No pet yet: adopt one below'}
                 </p>
                 <p className="text-[12px] text-ink-soft">
                   Friendship {'❤️'.repeat(Math.min(5, profile.petAffinity))}
@@ -162,7 +164,7 @@ export const LockerScreen = (p: Props) => {
               </div>
               <button
                 type="button"
-                disabled={p.busy || caredToday}
+                disabled={p.busy || caredToday || !pet}
                 onClick={p.onCare}
                 className="chunky rounded-full bg-gold px-3 py-1 text-[13px] font-extrabold"
               >
@@ -170,6 +172,32 @@ export const LockerScreen = (p: Props) => {
               </button>
             </div>
             <ul className="flex flex-col gap-1.5">
+              {profile.ownedPets.length > 0 && (
+                <li
+                  className={`flex items-center gap-2 rounded-xl border-2 px-2 py-1.5 ${!pet ? 'border-ink bg-[var(--sky)]' : 'border-ink/20 bg-white'}`}
+                >
+                  <div className="flex-1">
+                    <p className="text-[13px] font-extrabold">No pet</p>
+                    <p className="text-[11px] text-ink-soft">
+                      Run on your own today.
+                    </p>
+                  </div>
+                  {!pet ? (
+                    <span className="text-[12px] font-extrabold text-easy">
+                      Chosen
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={p.busy}
+                      onClick={() => p.onPet('none')}
+                      className="chunky rounded-full bg-white px-3 text-[12px] font-extrabold"
+                    >
+                      Leave at home
+                    </button>
+                  )}
+                </li>
+              )}
               {PETS.map((x) => {
                 const owned = profile.ownedPets.includes(x.id);
                 const active = profile.look.pet === x.id;

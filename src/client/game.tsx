@@ -32,7 +32,7 @@ import type {
 } from '../shared/api';
 import { dayInfo, isTriathlon } from '../shared/content';
 import { simulate } from '../shared/sim';
-import type { PetId } from '../shared/economy';
+import type { PetChoice } from '../shared/economy';
 import type { NextCityId } from '../shared/vote';
 import type { Plan } from '../shared/sim';
 import { ApiError, request } from './lib/api';
@@ -208,7 +208,7 @@ export const App = () => {
     hair: number;
     hairStyle: number;
     top: string;
-    pet: PetId;
+    pet: PetChoice;
   }) => {
     if (!data) return;
     setBusy(true);
@@ -687,7 +687,9 @@ export const App = () => {
             onBack={() => setScreen(back === 'locker' ? 'plan' : back)}
             onEquip={(itemId) => void profileCall('/shop/equip', { itemId })}
             onBuy={(itemId) => void profileCall('/shop/buy', { itemId })}
-            onPet={(petId: PetId) => void profileCall('/pet/choose', { petId })}
+            onPet={(petId: PetChoice) =>
+              void profileCall('/pet/choose', { petId })
+            }
             onCare={() => void profileCall('/pet/care', {})}
           />
         );

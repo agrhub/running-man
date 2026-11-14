@@ -186,9 +186,11 @@ export const createApi = (deps: Deps): Hono => {
   api.post('/pet/choose', async (c) => {
     try {
       const body = await readJson<PetRequest>(c);
-      const pet = petById(String(body.petId ?? ''));
-      if (!pet) throw new GameError('That pet does not exist.', 404);
-      const petId = pet.id;
+      const raw = String(body.petId ?? '');
+      const pet = raw === 'none' ? null : petById(raw);
+      if (raw !== 'none' && !pet)
+        throw new GameError('That pet does not exist.', 404);
+      const petId = pet?.id ?? 'none';
       const profile = await choosePet(deps, petId);
       await track(deps, body.journeyId, 'pet_chosen', petId);
       return c.json<ProfileResponse>({ type: 'profile', profile });

@@ -14,7 +14,7 @@ export type Incident = {
   /** True when this runner ran into the other from behind. */
   atFault: boolean;
 };
-import type { Look, PetId, RewardBreakdown } from './economy';
+import type { Look, PetChoice, PetId, RewardBreakdown } from './economy';
 import type { CityVote } from './vote';
 import type { QuestState } from './quests';
 import type { KmSplit, Plan } from './sim';
@@ -274,7 +274,7 @@ export type RegisterRequest = {
 };
 
 export type ItemRequest = { itemId: string; journeyId?: string | null };
-export type PetRequest = { petId: PetId; journeyId?: string | null };
+export type PetRequest = { petId: PetChoice; journeyId?: string | null };
 export type CheerRequest = { username: string; journeyId?: string | null };
 export type VoteRequest = { cityId: string; journeyId?: string | null };
 export type FriendRow = {

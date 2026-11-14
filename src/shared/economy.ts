@@ -463,6 +463,9 @@ export const ITEMS: Item[] = [
 export type PetId =
   'corgi' | 'cat' | 'shiba' | 'penguin' | 'bunny' | 'fox' | 'panda';
 
+/** The pet that runs with you, or none: pets are bought in the shop. */
+export type PetChoice = PetId | 'none';
+
 export type Pet = {
   id: PetId;
   name: string;
@@ -470,42 +473,43 @@ export type Pet = {
   unlock: Unlock;
 };
 
+/** Pets are bought with coins in the shop. Nobody starts with one. */
 export const PETS: Pet[] = [
   {
     id: 'corgi',
     name: 'Corgi',
     quirk: 'Bounces along and barks at every km marker.',
-    unlock: { kind: 'free' },
-  },
-  {
-    id: 'cat',
-    name: 'Tabby Cat',
-    quirk: 'Sprints, stops, stares at you, sprints again.',
-    unlock: { kind: 'badges', cost: 800 },
-  },
-  {
-    id: 'shiba',
-    name: 'Shiba',
-    quirk: 'Very serious about pacing. Curly tail.',
-    unlock: { kind: 'cityFinish', city: 'tokyo' },
-  },
-  {
-    id: 'penguin',
-    name: 'Penguin',
-    quirk: 'Waddles uphill, belly-slides downhill.',
-    unlock: { kind: 'streak', days: 14 },
+    unlock: { kind: 'badges', cost: 300 },
   },
   {
     id: 'bunny',
     name: 'Bunny',
     quirk: 'Hops instead of running. Ears flop on every bounce.',
+    unlock: { kind: 'badges', cost: 450 },
+  },
+  {
+    id: 'cat',
+    name: 'Tabby Cat',
+    quirk: 'Sprints, stops, stares at you, sprints again.',
     unlock: { kind: 'badges', cost: 600 },
+  },
+  {
+    id: 'shiba',
+    name: 'Shiba',
+    quirk: 'Very serious about pacing. Curly tail.',
+    unlock: { kind: 'badges', cost: 750 },
   },
   {
     id: 'fox',
     name: 'Fox',
     quirk: 'Sly sprinter with a big fluffy tail.',
     unlock: { kind: 'badges', cost: 1000 },
+  },
+  {
+    id: 'penguin',
+    name: 'Penguin',
+    quirk: 'Waddles uphill, belly-slides downhill.',
+    unlock: { kind: 'badges', cost: 1200 },
   },
   {
     id: 'panda',
@@ -523,7 +527,7 @@ export type Look = {
   trail: string;
   /** What the pet wears. Older profiles have none. */
   petGear: string;
-  pet: PetId;
+  pet: PetChoice;
   /** Indexes into SKIN_TONES and HAIR_TONES, chosen at registration. */
   skin: number;
   hair: number;
@@ -565,7 +569,7 @@ export const defaultLook = (seed: number): Look => {
     accessory: 'no-extra',
     trail: 'no-trail',
     petGear: 'pet-none',
-    pet: 'corgi',
+    pet: 'none',
     skin: seed % SKIN_TONES.length,
     hair: Math.floor(seed / 7) % HAIR_TONES.length,
     hairStyle: Math.floor(seed / 3) % HAIR_STYLES.length,

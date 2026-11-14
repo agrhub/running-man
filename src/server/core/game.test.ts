@@ -591,7 +591,8 @@ describe('game API', () => {
     expect(last?.run.reward.crew).toBe(200);
     expect(last?.profile.finishedCities).toContain('tokyo');
     expect(last?.profile.owned).toContain('hachimaki');
-    expect(last?.profile.ownedPets).toContain('shiba');
+    // Pets are bought, never handed out for milestones.
+    expect(last?.profile.ownedPets).toEqual([]);
     // One celebration post for the city, from the app.
     expect(h.texts).toHaveLength(1);
     expect(h.texts[0]?.title).toBe('🎉 The crew finished Tokyo!');
@@ -681,22 +682,34 @@ describe('game API', () => {
       pet: 'bunny',
       petGear: 'pet-bow',
     });
-    expect(bunny.json.profile.badges).toBe(1200);
+    expect(bunny.json.profile.badges).toBe(1350);
     const off = await call<ProfileResponse>(h, 'POST', '/shop/equip', {
       itemId: 'pet-none',
     });
     expect(off.json.profile.look.petGear).toBe('pet-none');
   });
 
-  it('buys and cares for pets once a day', async () => {
-    await h.deps.store.set(keys.user('alice'), JSON.stringify({ badges: 900 }));
+  it('starts without a pet, sells pets for coins and cares for them once a day', async () => {
+    await h.deps.store.set(keys.user('alice'), JSON.stringify({ badges: 700 }));
+    const start = await call<InitResponse>(h, 'GET', '/init');
+    expect(start.json.profile.look.pet).toBe('none');
+    expect(start.json.profile.ownedPets).toEqual([]);
+    expect(start.json.quests.map((q) => q.id)).not.toContain('pet');
+    expect((await call(h, 'POST', '/pet/care', {})).status).toBe(400);
+
     const cat = await call<ProfileResponse>(h, 'POST', '/pet/choose', {
       petId: 'cat',
     });
     expect(cat.json.profile.look.pet).toBe('cat');
     expect(cat.json.profile.badges).toBe(100);
-    const locked = await call(h, 'POST', '/pet/choose', { petId: 'penguin' });
-    expect(locked.status).toBe(400);
+    const poor = await call(h, 'POST', '/pet/choose', { petId: 'penguin' });
+    expect(poor.status).toBe(400);
+    const home = await call<ProfileResponse>(h, 'POST', '/pet/choose', {
+      petId: 'none',
+    });
+    expect(home.json.profile.look.pet).toBe('none');
+    expect(home.json.profile.ownedPets).toEqual(['cat']);
+    await call(h, 'POST', '/pet/choose', { petId: 'cat' });
 
     const first = await call<ProfileResponse>(h, 'POST', '/pet/care', {});
     const second = await call<ProfileResponse>(h, 'POST', '/pet/care', {});

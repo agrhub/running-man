@@ -8,7 +8,7 @@ import {
   PETS,
   SKIN_TONES,
   type Look,
-  type PetId,
+  type PetChoice,
 } from '../../shared/economy';
 import { RunnerPreview } from '../components/RunnerPreview';
 
@@ -21,7 +21,7 @@ type Props = {
     hair: number;
     hairStyle: number;
     top: string;
-    pet: PetId;
+    pet: PetChoice;
   }) => void;
 };
 
@@ -56,7 +56,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
   const [hair, setHair] = useState(profile.look.hair);
   const [hairStyle, setHairStyle] = useState(profile.look.hairStyle ?? 0);
   const [top, setTop] = useState(profile.look.top);
-  const [pet, setPet] = useState<PetId>(profile.look.pet);
+  const [pet, setPet] = useState<PetChoice>(profile.look.pet);
 
   const look: Look = useMemo(
     () => ({ ...profile.look, skin, hair, hairStyle, top, pet }),
@@ -141,6 +141,16 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
           <div>
             <h2 className="mb-1.5 text-[13px] font-extrabold">Running buddy</h2>
             <div className="flex flex-wrap gap-1.5">
+              {pets.length > 0 && (
+                <button
+                  type="button"
+                  aria-pressed={pet === 'none'}
+                  onClick={() => setPet('none')}
+                  className={`rounded-full border-2 border-ink px-3 py-1 text-[13px] font-extrabold ${pet === 'none' ? 'bg-ink text-white' : 'bg-white'}`}
+                >
+                  No pet
+                </button>
+              )}
               {pets.map((p) => (
                 <button
                   key={p.id}
@@ -154,7 +164,9 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
               ))}
             </div>
             <p className="mt-1 text-[12px] text-ink-soft">
-              More pets and outfits unlock as you run.
+              {pets.length === 0
+                ? 'No pet yet: adopt one in the Shop with the coins you earn.'
+                : 'More pets and outfits wait in the Shop.'}
             </p>
           </div>
         </section>

@@ -66,7 +66,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   cats, chickens and pigs, depending on the city, terrain and hour; and boosters to ride (roller skates, a
   skateboard, a bicycle).
 - **First race coach:** four tips during your first race, each when it is useful.
-- **Runner and race bib:** a short character creator on first launch (skin, 4 hair styles, hair colour, shirt, pet),
+- **Runner and race bib:** a short character creator on first launch (skin, 4 hair styles, hair colour, shirt, and a pet once you own one),
   a bib number that is yours for good and printed on your runner's back, and a start corral before each race.
 - **Strategy first, then steering:** a deterministic stamina model (pace, grade, weather, water) decides most of your
   time; steering decides the rest (a few dozen seconds at most).
@@ -97,8 +97,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time) and a Friends
   board, each with the players' own Reddit avatars.
 - **Coins and the shop:** coins come from races, the check-in, quests, achievements and the mini games. The shop has 33 outfit items,
-  7 pets (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and pet gear (collar, bandana, bow, cap, shades,
-  crown) drawn on every pet. Some items are earned by streaks, city finishes and weather instead. Nothing you buy
+  7 pets to adopt with coins (corgi, bunny, tabby cat, shiba, fox, penguin, panda; nobody starts with one) and pet
+  gear (collar, bandana, bow, cap, shades, crown) drawn on every pet. Some outfit items are earned by streaks, city finishes and weather instead. Nothing you buy
   changes race times.
 - **Daily check-in and quests:** a 7-day check-in calendar (20 to 150 coins), three daily quests that are the same
   for everyone (run today, grab snacks, high-five fans, finish without a crash…) and weekly quests. The server checks

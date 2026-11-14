@@ -17,7 +17,7 @@ redditors who ran that day. Every finish adds to a shared goal the whole subredd
 | Judging criterion | How the game meets it                                                                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------------- |
 | Delightful UX     | Cute 3D chibis, a pet beside you, a palette per city, a living city, sound and haptics                          |
-| Polish            | Small scope done well: 4 cities, 7 terrains, 4 pets, 21 outfit items, traffic, crowds, birds and a TV motorbike |
+| Polish            | Small scope done well: 5 cities, 8 terrains, 7 pets, 21 outfit items, traffic, crowds, birds and a TV motorbike |
 | Reddit-y          | The subreddit is one running club; real redditors share the road and crashes hurt both; quick chat; bibs; flair |
 | Daily content     | A new stage every day with its own terrain, landmark and weather; a new city every week                         |
 
@@ -30,7 +30,7 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 - Your Reddit account is your login. There is no sign-up form. Logged-out visitors can see the stage and the crew
   bar; tapping Run asks them to log in.
 - The **Make your runner** screen: skin tone, one of four hair styles (Short, Spiky, Bob, Bun), hair colour, shirt
-  colour and a running buddy (the corgi). **Get my race bib** gives you a bib number that is yours for good, printed
+  colour, and a running buddy once you have adopted one in the shop. **Get my race bib** gives you a bib number that is yours for good, printed
   on your runner's back.
 
 ### Plan (about 30 seconds)
@@ -229,15 +229,18 @@ One low-poly chibi model with swappable slots, plus seven pets with their own an
 
 ### Pets
 
-| Pet       | How it runs                             | How to get it       |
-| --------- | --------------------------------------- | ------------------- |
-| Corgi     | Bounces along, barks at every km marker | Free                |
-| Tabby Cat | Sprints, stops, stares at you, sprints  | 800 coins           |
-| Shiba     | Very serious about pacing, curly tail   | Crew finishes Tokyo |
-| Penguin   | Waddles uphill, belly-slides downhill   | 14-day streak       |
-| Bunny     | Hops, ears flop on every bounce         | 600 coins           |
-| Fox       | Sly sprinter with a big fluffy tail     | 1,000 coins         |
-| Panda     | Rolls along, in no hurry at all         | 1,500 coins         |
+Nobody starts with a pet: every pet is adopted in the shop with coins, and you can own several and pick which one
+runs with you (or leave them at home). Without a pet the daily treat quest is left out of your quests.
+
+| Pet       | How it runs                             | Price       |
+| --------- | --------------------------------------- | ----------- |
+| Corgi     | Bounces along, barks at every km marker | 300 coins   |
+| Bunny     | Hops, ears flop on every bounce         | 450 coins   |
+| Tabby Cat | Sprints, stops, stares at you, sprints  | 600 coins   |
+| Shiba     | Very serious about pacing, curly tail   | 750 coins   |
+| Fox       | Sly sprinter with a big fluffy tail     | 1,000 coins |
+| Penguin   | Waddles uphill, belly-slides downhill   | 1,200 coins |
+| Panda     | Rolls along, in no hurry at all         | 1,500 coins |
 
 **Pet gear** (one at a time, worn by whichever pet runs with you): Bell Collar 100, Bandana 150, Big Bow 200, Tiny
 Cap 300, Pet Shades 350, Tiny Crown 900 coins.

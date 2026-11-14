@@ -15,6 +15,9 @@ export const keys = {
   /** World Tour: best times per stop, and each runner's best run there. */
   tourBoard: (id: string) => `tour:${id}:board`,
   tourTracks: (id: string) => `tour:${id}:tracks`,
+  /** Best times at the free stop during its week (Monday date key), and the week's prizes once paid. */
+  tourWeek: (monday: string) => `tour:week:${monday}`,
+  tourWeekPaid: (monday: string) => `tour:week:${monday}:paid`,
   /** Counters for the day's recap: crashes per runner, snacks, high fives, chat lines. */
   dayStats: (dateKey: string) => `stats:${dateKey}`,
   /** Set once the day's recap comment is posted. */

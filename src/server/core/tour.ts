@@ -4,6 +4,7 @@ import type {
   TourRow,
   TourRunResponse,
   TourStopResponse,
+  TourWeekResult,
 } from '../../shared/api';
 import { courseItems } from '../../shared/course';
 import {
@@ -17,13 +18,16 @@ import { checkpoints, isValidPlan, simulate } from '../../shared/sim';
 import {
   TOUR,
   TOUR_STAMP_REWARD,
+  TOUR_WEEK_PRIZES,
   featuredStop,
+  featuredWeek,
   tourById,
   tourDay,
   tourKey,
   type TourStop,
 } from '../../shared/tour';
 import type { Deps } from './deps';
+import type { Store } from './store';
 import {
   GameError,
   ensureBib,
@@ -36,6 +40,37 @@ import {
 import { updateFlair } from './flair';
 import { keys } from './keys';
 import { toDateKey } from '../../shared/content';
+
+/** The three fastest runners at a week's free stop. */
+const weekPodium = async (store: Store, monday: string) =>
+  (await store.zRange(keys.tourWeek(monday), 0, 2, { by: 'rank' })).map(
+    (r) => ({ username: r.member, seconds: r.score })
+  );
+
+/**
+ * Closes a free week: pays its podium once and returns it for the recap.
+ * Returns null when nobody ran it or it was already paid.
+ */
+export const awardTourWeek = async (
+  deps: Deps,
+  monday: string
+): Promise<TourWeekResult | null> => {
+  const { store } = deps;
+  if (await store.get(keys.tourWeekPaid(monday))) return null;
+  const top = await weekPodium(store, monday);
+  if (!top.length) return null;
+  await store.set(keys.tourWeekPaid(monday), '1');
+  const podium = await Promise.all(
+    top.map(async (r, i) => {
+      const prize = TOUR_WEEK_PRIZES[i] ?? 0;
+      const profile = await loadProfile(store, r.username);
+      profile.badges += prize;
+      await saveProfile(store, profile);
+      return { ...r, prize };
+    })
+  );
+  return { stop: featuredStop(monday).id, podium };
+};
 
 const findStop = (id: unknown): TourStop => {
   const stop = typeof id === 'string' ? tourById(id) : undefined;
@@ -70,7 +105,11 @@ export const tourList = async (deps: Deps): Promise<TourResponse> => {
       };
     })
   );
-  return { type: 'tour', stops, profile, featured };
+  const week = await weekPodium(
+    deps.store,
+    featuredWeek(toDateKey(deps.now()))
+  );
+  return { type: 'tour', stops, profile, featured, week };
 };
 
 export const unlockTour = async (
@@ -185,6 +224,13 @@ export const tourRun = async (
     await store.hSet(keys.tourTracks(stop.id), {
       [username]: JSON.stringify(track),
     });
+  }
+
+  if (free) {
+    const week = keys.tourWeek(featuredWeek(toDateKey(deps.now())));
+    const weekBest = await store.zScore(week, username);
+    if (weekBest === undefined || seconds < weekBest)
+      await store.zAdd(week, { member: username, score: seconds });
   }
 
   const stamped = !profile.tourStamps.includes(stop.id);

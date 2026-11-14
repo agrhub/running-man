@@ -104,6 +104,7 @@ import type {
   RelayLeg,
   RelayRow,
   DayRecap,
+  TourWeekResult,
   GameSettings,
   HistoryRow,
   MeResponse,
@@ -131,7 +132,7 @@ import {
   missedDays,
   streakAlive,
 } from '../../shared/streak';
-import { featuredStop } from '../../shared/tour';
+import { featuredStop, tourById } from '../../shared/tour';
 import { keys } from './keys';
 import type { Store } from './store';
 
@@ -821,6 +822,19 @@ export const recapText = (r: DayRecap): string => {
       '',
       `Most shouted: "${r.topLine.line}" (${r.topLine.times} ${r.topLine.times === 1 ? 'time' : 'times'})`
     );
+  if (r.tourWeek) {
+    const stop = tourById(r.tourWeek.stop);
+    lines.push(
+      '',
+      `🌍 **World Tour, free this week: ${stop ? `${stop.flag} ${stop.stage.landmark.name}` : r.tourWeek.stop}**`,
+      r.tourWeek.podium
+        .map(
+          (p, i) =>
+            `${MEDALS[i] ?? ''} u/${p.username} ${formatTime(p.seconds)} (+${p.prize} coins)`
+        )
+        .join(' · ')
+    );
+  }
   const km = Math.floor(r.crew.meters / 1000);
   const target = Math.round(r.crew.target / 1000);
   lines.push(
@@ -837,14 +851,15 @@ export const recapText = (r: DayRecap): string => {
 /** Posts the recap of a closed day under that day's post, once. */
 export const postRecap = async (
   deps: Deps,
-  dateKey: string
+  dateKey: string,
+  tourWeek: TourWeekResult | null = null
 ): Promise<boolean> => {
   if (!deps.appComment) return false;
   if (!(await gameSettings(deps)).dailyRecap) return false;
   if (await deps.store.get(keys.recap(dateKey))) return false;
   const postId = await deps.store.get(keys.dayPost(dateKey));
   if (!postId) return false;
-  const recap = await dayRecap(deps.store, dateKey);
+  const recap = { ...(await dayRecap(deps.store, dateKey)), tourWeek };
   if (recap.runners === 0) return false;
   const id = await deps.appComment(postId, recapText(recap));
   await deps.store.set(keys.recap(dateKey), id);

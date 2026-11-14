@@ -208,6 +208,8 @@ export type DayRecap = {
   crashKing: { username: string; crashes: number } | null;
   topLine: { line: string; times: number } | null;
   crew: CrewProgress;
+  /** On the day a free World Tour week ends: that week's podium. */
+  tourWeek?: TourWeekResult | null;
 };
 
 export type InitResponse = {
@@ -456,6 +458,14 @@ export type TourResponse = {
   profile: Profile;
   /** The free stop of the week: anyone can run it without unlocking. */
   featured: string;
+  /** The fastest runners at the free stop this week. */
+  week: { username: string; seconds: number }[];
+};
+
+/** The free stop's week, closed: its podium and the coins each runner won. */
+export type TourWeekResult = {
+  stop: string;
+  podium: { username: string; seconds: number; prize: number }[];
 };
 
 /** Everything needed to race a stop: the best runs there become your ghosts. */

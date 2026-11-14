@@ -1089,4 +1089,7 @@ export const VI: Record<string, string> = {
     '{n} ngày nghỉ đã bù cho những ngày bạn bỏ lỡ. Chuỗi vẫn giữ!',
   'Rest day saved. Your streak is safe for one missed day.':
     'Đã mua ngày nghỉ. Chuỗi của bạn an toàn nếu lỡ một ngày.',
+  'The fastest three this week win {a}, {b} and {c} {coin} on Monday.':
+    'Ba người nhanh nhất tuần này nhận {a}, {b} và {c} {coin} vào thứ Hai.',
+  'This week’s leaders': 'Dẫn đầu tuần này',
 };

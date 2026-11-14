@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   TOUR,
   TOUR_STAMP_REWARD,
+  TOUR_WEEK_PRIZES,
   featuredStop,
   tourById,
 } from '../../shared/tour';
@@ -1631,6 +1632,46 @@ describe('World Tour', () => {
       moves: [],
     });
     expect(after.status).toBe(400);
+  });
+
+  it('pays the free stop’s weekly podium on Monday and names it in the recap', async () => {
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const sunday = '2026-11-15';
+    h.at(sunday);
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    const free = featuredStop(sunday);
+    await call(h.as('bob'), 'POST', '/tour/run', {
+      id: free.id,
+      plan: { paces: free.stage.grades.map(() => 'easy'), drinks: [] },
+      moves: [],
+    });
+    await call(h.as('alice'), 'POST', '/tour/run', {
+      id: free.id,
+      plan: defaultPlan(free.stage),
+      moves: [],
+    });
+    await call(h.as('alice').on('t3_post1'), 'POST', '/run', {
+      plan: planFor(sunday),
+    });
+    const list = await call<TourResponse>(h, 'GET', '/tour');
+    expect(list.json.week.map((r) => r.username)).toEqual(['alice', 'bob']);
+
+    const coins = async (u: string) =>
+      (await call<InitResponse>(h.as(u), 'GET', '/init')).json.profile.badges;
+    const before = { alice: await coins('alice'), bob: await coins('bob') };
+    h.at('2026-11-16');
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(await coins('alice')).toBe(before.alice + TOUR_WEEK_PRIZES[0]!);
+    expect(await coins('bob')).toBe(before.bob + TOUR_WEEK_PRIZES[1]!);
+    const recap = h.appComments.at(-1)?.text ?? '';
+    expect(recap).toContain(
+      `World Tour, free this week: ${free.flag} ${free.stage.landmark.name}`
+    );
+    expect(recap).toMatch(/🥇 u\/alice \d+:\d\d \(\+100 coins\)/);
+    // A new week starts with an empty board.
+    const next = await call<TourResponse>(h, 'GET', '/tour');
+    expect(next.json.week).toEqual([]);
   });
 
   it('names the free stop in the daily strategy comment', async () => {

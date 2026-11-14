@@ -1,3 +1,5 @@
+import { awardTourWeek } from '../core/tour';
+import { featuredUntil, featuredWeek } from '../../shared/tour';
 import { Hono, type Context } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import type { Deps } from '../core/deps';
@@ -53,7 +55,17 @@ export const createInternal = (
       console.log(`Daily stage post ready: ${postId}`);
       await pointGuide(postId);
       const yesterday = addDays(toDateKey(deps.now()), -1);
-      await postRecap(deps, yesterday).catch((error: unknown) => {
+      // A free World Tour week ends on Sunday: pay its podium.
+      const tourWeek =
+        featuredUntil(yesterday) === yesterday
+          ? await awardTourWeek(deps, featuredWeek(yesterday)).catch(
+              (error: unknown) => {
+                console.error('Could not close the World Tour week', error);
+                return null;
+              }
+            )
+          : null;
+      await postRecap(deps, yesterday, tourWeek).catch((error: unknown) => {
         console.error('Could not post the recap', error);
       });
       return c.json({ status: 'ok', postId }, 200);

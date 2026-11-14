@@ -6,6 +6,7 @@ import {
   TOUR,
   TOUR_KIND,
   TOUR_STAMP_REWARD,
+  TOUR_WEEK_PRIZES,
   featuredDaysLeft,
   featuredStop,
 } from '../../shared/tour';
@@ -18,6 +19,8 @@ type Props = {
   stops: TourRow[] | null;
   /** Today (UTC date key): picks the free stop of the week. */
   today: string;
+  /** The fastest runners at the free stop this week. */
+  week: { username: string; seconds: number }[];
   busy: boolean;
   /** The run you just finished, shown on top. */
   result: TourRunResponse | null;
@@ -31,6 +34,7 @@ export const TourScreen = ({
   profile,
   stops,
   today,
+  week,
   busy,
   result,
   onUnlock,
@@ -140,6 +144,29 @@ export const TourScreen = ({
             {tr('Run here')}
           </button>
         </div>
+        <p className="mt-1 text-[11px] font-bold text-ink-soft">
+          {tr(
+            'The fastest three this week win {a}, {b} and {c} {coin} on Monday.',
+            {
+              a: TOUR_WEEK_PRIZES[0]!,
+              b: TOUR_WEEK_PRIZES[1]!,
+              c: TOUR_WEEK_PRIZES[2]!,
+              coin: COIN,
+            }
+          )}
+        </p>
+        {week.length > 0 && (
+          <ol
+            className="mt-1 flex flex-wrap gap-x-3 text-[12px] font-extrabold"
+            aria-label={tr('This week’s leaders')}
+          >
+            {week.map((r, i) => (
+              <li key={r.username}>
+                {['🥇', '🥈', '🥉'][i]} u/{r.username} {formatTime(r.seconds)}
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
 
       {result && done && (

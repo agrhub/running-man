@@ -301,6 +301,7 @@ export const App = () => {
 
   // ---- World Tour
   const [tourStops, setTourStops] = useState<TourRow[] | null>(null);
+  const [tourWeek, setTourWeek] = useState<TourResponse['week']>([]);
   const [tourId, setTourId] = useState<string | null>(null);
   const [tourGhosts, setTourGhosts] = useState<RunnerTrack[]>([]);
   const [tourPlan, setTourPlan] = useState<Plan | null>(null);
@@ -317,6 +318,7 @@ export const App = () => {
     request<TourResponse>('/tour')
       .then((r) => {
         setTourStops(r.stops);
+        setTourWeek(r.week);
         patch({ profile: r.profile });
       })
       .catch((e: unknown) => showToast(message(e)));
@@ -327,6 +329,7 @@ export const App = () => {
     try {
       const r = await request<TourResponse>('/tour/unlock', { id });
       setTourStops(r.stops);
+      setTourWeek(r.week);
       patch({ profile: r.profile });
       showToast('Unlocked! Run it any time.');
     } catch (e) {
@@ -369,7 +372,10 @@ export const App = () => {
       setTourResult(r);
       setTourPlan(null);
       request<TourResponse>('/tour')
-        .then((l) => setTourStops(l.stops))
+        .then((l) => {
+          setTourStops(l.stops);
+          setTourWeek(l.week);
+        })
         .catch(() => undefined);
       setScreen('tour');
     } catch (e) {
@@ -845,6 +851,7 @@ export const App = () => {
             profile={data.profile}
             stops={tourStops}
             today={data.today}
+            week={tourWeek}
             busy={busy}
             result={tourResult}
             onUnlock={(id) => void unlockTour(id)}

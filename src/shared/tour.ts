@@ -851,3 +851,10 @@ export const featuredUntil = (dateKey: string): string => {
 /** Days left in the free week, counting today. */
 export const featuredDaysLeft = (dateKey: string): number =>
   dayIndexOf(featuredUntil(dateKey)) - dayIndexOf(dateKey) + 1;
+
+/** The Monday that starts the free week `dateKey` is in. */
+export const featuredWeek = (dateKey: string): string =>
+  addDays(featuredUntil(dateKey), -6);
+
+/** Coins for the three fastest runners at the free stop, paid when its week ends. */
+export const TOUR_WEEK_PRIZES = [100, 60, 40];

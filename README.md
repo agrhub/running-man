@@ -125,7 +125,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   Niagara Falls, the Moai of Easter Island, Mount Fuji, the Statue of Liberty, the Sydney Opera House, Christ the
   Redeemer, Chichén Itzá, the Parthenon, Uluru, the Matterhorn, the Leaning Tower of Pisa, the Golden Gate Bridge,
   Borobudur and Cappadocia, each with its own low-poly 3D wonder, terrain, weather, hour and real map.
-  One place is free for everyone each week. Unlock the others with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
+  One place is free for everyone each week, and its three fastest runners win coins when the week ends. Unlock the others with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
   server replays every run), and the first finish stamps your passport for 60 coins. Tour runs never touch the daily
   leaderboard, streak or crew goal.
 - **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
@@ -175,7 +175,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 119 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 120 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

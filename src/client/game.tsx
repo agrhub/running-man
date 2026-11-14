@@ -833,6 +833,7 @@ export const App = () => {
             profile={data.profile}
             tour={{
               label: `${tourStopNow.flag} World Tour`,
+              stopId: tourStopNow.id,
               onBack: () => setScreen('tour'),
             }}
             roadLife={data.settings.roadLife}

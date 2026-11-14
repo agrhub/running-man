@@ -17,6 +17,7 @@ import {
 } from '../../shared/sim';
 import { CourseProfile } from '../components/CourseProfile';
 import { RouteMap } from '../components/RouteMap';
+import { StageMaps } from '../components/StageMaps';
 import { CrewBar } from '../components/CrewBar';
 import { YesterdayCard } from '../components/YesterdayCard';
 import { holidayBanner } from '../../shared/festive';
@@ -29,7 +30,7 @@ type Props = {
   crew?: CrewProgress;
   totalRunners?: number;
   /** World Tour: the place's name replaces the daily stage line. */
-  tour?: { label: string; onBack: () => void };
+  tour?: { label: string; stopId: string; onBack: () => void };
   yesterday?: DayRecap | null;
   /** Whether people, traffic and animals are on the road today. */
   roadLife: boolean;
@@ -176,12 +177,20 @@ export const PlanScreen = ({
       )}
 
       <section
-        className="rounded-2xl border-2 border-ink bg-white/70 px-3 py-2"
-        aria-label="Route map"
+        className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-white/70 px-3 py-2"
+        aria-label="Maps"
       >
-        <h2 className="mb-1 font-display text-[16px] font-extrabold">
-          🗺️ Route map
+        <h2 className="font-display text-[16px] font-extrabold">
+          🗺️ Where you run
         </h2>
+        <StageMaps
+          day={day}
+          tourId={tour?.stopId}
+          stamps={profile.tourStamps}
+        />
+        <h3 className="font-display text-[15px] font-extrabold">
+          Today’s 6 km
+        </h3>
         <RouteMap day={day} drinks={drinks} life={roadLife} />
       </section>
 

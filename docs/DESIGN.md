@@ -35,8 +35,10 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 
 ### Plan (about 30 seconds)
 
-- See the route map (the course coloured by grade, km marks, water stops, the landmark, boosters, and how many
-  obstacles and snacks each km holds), the 6 km elevation profile, the terrain, today's weather and the start time.
+- See where you run on real maps: the world with the five-city rotation, then the city with its real coastline and
+  rivers and the week's seven stages pinned at their real landmarks. Below, today's 6 km as a course map (coloured by
+  grade, km marks, water stops, the landmark, boosters, and how many obstacles and snacks each km holds), the
+  elevation profile, the terrain, today's weather and the start time.
 - Yesterday's podium sits under the start button: the same recap the app posts in the comments.
 - Tap each kilometre to switch between Easy, Steady and Push, and choose where to drink. The default is all Steady,
   so a new player can run straight away.

@@ -4,6 +4,7 @@ import { COIN } from '../../shared/economy';
 import { formatTime } from '../../shared/sim';
 import { TOUR, TOUR_KIND, TOUR_STAMP_REWARD } from '../../shared/tour';
 import { WEATHER } from '../../shared/content';
+import { WorldMap } from '../components/PlaceMap';
 
 type Props = {
   profile: Profile;
@@ -64,6 +65,29 @@ export const TourScreen = ({
           </span>
         </p>
       </header>
+
+      <WorldMap
+        label={`World map of the ${TOUR.length} World Tour places; ${stamps} stamped.`}
+        pins={TOUR.flatMap((s) =>
+          s.stage.landmark.at
+            ? [
+                {
+                  at: s.stage.landmark.at,
+                  tone: profile.tourStamps.includes(s.id)
+                    ? ('done' as const)
+                    : profile.tourUnlocked.includes(s.id)
+                      ? ('now' as const)
+                      : ('other' as const),
+                  title: `${s.stage.landmark.name}, ${s.country}`,
+                },
+              ]
+            : []
+        )}
+      />
+      <p className="-mt-1 text-[11px] font-bold text-ink-soft">
+        <span style={{ color: '#3fae6a' }}>●</span> stamped{' '}
+        <span style={{ color: '#ff5d8f' }}>●</span> unlocked ○ locked
+      </p>
 
       {result && done && (
         <section

@@ -85,6 +85,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Great Wall of China',
         kind: 'wall',
+        at: [40.4319, 116.5704],
         km: 3,
         blurb:
           'Stone ramparts and watchtowers riding the ridgeline for thousands of kilometres.',
@@ -115,6 +116,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Pyramids of Giza',
         kind: 'pyramid',
+        at: [29.9792, 31.1342],
         km: 2.5,
         blurb:
           'The last standing wonder of the ancient world, watched over by the Sphinx.',
@@ -145,6 +147,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Machu Picchu',
         kind: 'terraces',
+        at: [-13.1631, -72.545],
         km: 4,
         blurb:
           'An Inca citadel of stone terraces high in the Andes, above the clouds.',
@@ -175,6 +178,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Colosseum',
         kind: 'colosseum',
+        at: [41.8902, 12.4922],
         km: 3.5,
         blurb:
           'Rome’s great stone amphitheatre, nearly two thousand years old.',
@@ -204,6 +208,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Taj Mahal',
         kind: 'mausoleum',
+        at: [27.1751, 78.0421],
         km: 3,
         blurb:
           'A white marble mausoleum with four minarets, mirrored in its long pool.',
@@ -234,6 +239,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Angkor Wat',
         kind: 'angkor',
+        at: [13.4125, 103.867],
         km: 3,
         blurb:
           'The largest temple on Earth, five lotus towers rising over the moat.',
@@ -263,6 +269,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Stonehenge',
         kind: 'stones',
+        at: [51.1789, -1.8262],
         km: 3,
         blurb:
           'A ring of standing stones raised about five thousand years ago.',
@@ -293,6 +300,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Petra Treasury',
         kind: 'treasury',
+        at: [30.3221, 35.4513],
         km: 4,
         blurb:
           'A temple facade carved straight into rose-red sandstone cliffs.',
@@ -322,6 +330,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Ha Long Bay',
         kind: 'karst',
+        at: [20.9101, 107.1839],
         km: 3,
         blurb:
           'Nearly two thousand limestone islands rising out of emerald water.',
@@ -352,6 +361,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Grand Canyon',
         kind: 'canyon',
+        at: [36.0619, -112.1077],
         km: 3,
         blurb:
           'A mile-deep canyon carved by the Colorado River, banded red and gold.',
@@ -381,6 +391,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Niagara Falls',
         kind: 'falls',
+        at: [43.0828, -79.0742],
         km: 3,
         blurb:
           'Three waterfalls pouring over a curved cliff, misty with rainbows.',
@@ -410,6 +421,7 @@ export const TOUR: TourStop[] = [
       landmark: {
         name: 'Moai of Easter Island',
         kind: 'moai',
+        at: [-27.1258, -109.2769],
         km: 3.5,
         blurb:
           'Fifteen giant stone heads standing in a row, their backs to the Pacific.',

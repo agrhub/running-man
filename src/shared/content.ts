@@ -55,6 +55,8 @@ export type Landmark = {
   kind: LandmarkKind;
   /** Kilometre (0-6) where the landmark sits beside the road. */
   km: number;
+  /** Where the real place is: latitude, longitude. */
+  at?: [number, number];
   blurb: string;
 };
 
@@ -121,6 +123,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Thunder Gate',
           kind: 'gate',
+          at: [35.7111, 139.7964],
           km: 1.2,
           blurb:
             'A giant red lantern, almost 4 m tall, hangs at the heart of this temple gate.',
@@ -134,6 +137,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Sky Tower',
           kind: 'tower',
+          at: [35.7101, 139.8107],
           km: 3.5,
           blurb: 'At 634 m it is the tallest tower in Japan.',
         },
@@ -146,6 +150,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'The Scramble',
           kind: 'crossing',
+          at: [35.6595, 139.7005],
           km: 2.5,
           blurb: 'Up to 3,000 people cross here at once when the lights turn.',
         },
@@ -158,6 +163,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Forest Shrine',
           kind: 'temple',
+          at: [35.6764, 139.6993],
           km: 2.2,
           blurb:
             'Over 100,000 trees were donated from across Japan to plant this forest.',
@@ -171,6 +177,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Bay Bridge',
           kind: 'bridge',
+          at: [35.6365, 139.7633],
           km: 2.5,
           blurb: 'Its lights glow in rainbow colours on special nights.',
         },
@@ -183,6 +190,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Five-Storey Pagoda',
           kind: 'temple',
+          at: [35.7163, 139.7714],
           km: 3.2,
           blurb:
             'This pagoda stands inside the zoo grounds. It was rebuilt in 1639.',
@@ -196,6 +204,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Stone Bridge',
           kind: 'bridge',
+          at: [35.6799, 139.7514],
           km: 5,
           blurb: 'A double-arched bridge reflected in the palace moat.',
         },
@@ -225,6 +234,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Iron Lady',
           kind: 'tower',
+          at: [48.8584, 2.2945],
           km: 3.2,
           blurb: 'It was meant to stand for only 20 years after 1889.',
         },
@@ -237,6 +247,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Triumph Arch',
           kind: 'arch',
+          at: [48.8738, 2.295],
           km: 3,
           blurb: 'Twelve avenues meet in a star around this arch.',
         },
@@ -249,6 +260,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'White Basilica',
           kind: 'basilica',
+          at: [48.8867, 2.3431],
           km: 3,
           blurb: 'Its stone whitens in the rain, so it never needs cleaning.',
         },
@@ -261,6 +273,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Island Cathedral',
           kind: 'temple',
+          at: [48.853, 2.3499],
           km: 1.5,
           blurb:
             'All road distances in France are measured from a star in front of it.',
@@ -274,6 +287,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Vincennes Castle',
           kind: 'fort',
+          at: [48.8427, 2.4358],
           km: 2.6,
           blurb:
             'Its 52 m keep is the tallest medieval fortified tower in Europe.',
@@ -287,6 +301,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Palace Pond',
           kind: 'lake',
+          at: [48.8462, 2.3371],
           km: 2,
           blurb:
             'Kids have rented little wooden sailboats on this pond for generations.',
@@ -300,6 +315,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Glass Pyramid',
           kind: 'tower',
+          at: [48.8611, 2.3358],
           km: 4.5,
           blurb: 'It is made of 673 glass panes.',
         },
@@ -329,6 +345,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Turtle Tower',
           kind: 'lake',
+          at: [21.0277, 105.8523],
           km: 2,
           blurb: 'A small tower stands on an islet in the middle of the lake.',
         },
@@ -341,6 +358,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Old East Gate',
           kind: 'gate',
+          at: [21.0378, 105.8526],
           km: 3,
           blurb: 'The last surviving gate of the old city walls.',
         },
@@ -353,6 +371,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Iron River Bridge',
           kind: 'bridge',
+          at: [21.043, 105.859],
           km: 2.5,
           blurb:
             'Trains, scooters and walkers share this bridge across the Red River.',
@@ -366,6 +385,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Lakeside Pagoda',
           kind: 'temple',
+          at: [21.048, 105.8368],
           km: 4,
           blurb:
             'One of the oldest pagodas in the city sits on a lake peninsula.',
@@ -379,6 +399,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Temple of Scholars',
           kind: 'temple',
+          at: [21.0285, 105.8355],
           km: 2,
           blurb: 'Home of the first national university, founded in 1076.',
         },
@@ -391,6 +412,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Rail Alley',
           kind: 'crossing',
+          at: [21.0256, 105.8436],
           km: 3,
           blurb:
             'Trains squeeze past cafes with only an arm’s length to spare.',
@@ -404,6 +426,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Flag Tower',
           kind: 'tower',
+          at: [21.0325, 105.8397],
           km: 4.5,
           blurb: 'Built in 1812, it survived when most of the citadel did not.',
         },
@@ -433,6 +456,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Needle Tower',
           kind: 'tower',
+          at: [25.1972, 55.2744],
           km: 3,
           blurb:
             'At 828 m, the tallest building in the world rises over this boulevard.',
@@ -446,6 +470,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Sail Hotel',
           kind: 'sail',
+          at: [25.1412, 55.1852],
           km: 3.4,
           blurb:
             'Built on its own island, the sail-shaped hotel rises 321 m over the sea.',
@@ -459,6 +484,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Giant Wheel',
           kind: 'wheel',
+          at: [25.08, 55.1225],
           km: 2.5,
           blurb:
             'At 250 m, this is the tallest observation wheel in the world.',
@@ -472,6 +498,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Desert Fort',
           kind: 'fort',
+          at: [24.8155, 55.2347],
           km: 3,
           blurb:
             'Mud-brick forts once guarded the oases on the old caravan routes.',
@@ -485,6 +512,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Safari Gate',
           kind: 'gate',
+          at: [25.1735, 55.4523],
           km: 1.5,
           blurb:
             'Giraffes, rhinos and lions roam the park on the edge of the desert.',
@@ -498,6 +526,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Old Fort',
           kind: 'fort',
+          at: [25.2633, 55.2972],
           km: 2.2,
           blurb: 'Built around 1787, it is the oldest building in the city.',
         },
@@ -510,6 +539,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Twisted Tower',
           kind: 'tower',
+          at: [25.0838, 55.143],
           km: 4,
           blurb: 'This tower turns a full 90 degrees from its base to its top.',
         },
@@ -539,6 +569,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Amazon Theatre',
           kind: 'opera',
+          at: [-3.1302, -60.0234],
           km: 2.6,
           blurb:
             'An opera house in the rainforest, crowned with 36,000 coloured tiles.',
@@ -552,6 +583,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Giant Kapok',
           kind: 'kapok',
+          at: [-3.0034, -59.9395],
           km: 3,
           blurb:
             'Kapok trees grow up to 60 m tall, with buttress roots wider than a car.',
@@ -565,6 +597,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Canopy Walkway',
           kind: 'canopy',
+          at: [-2.993, -59.931],
           km: 2.4,
           blurb:
             'Rope bridges 40 m up let you walk where the monkeys and macaws live.',
@@ -578,6 +611,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Stilt Houses',
           kind: 'stilt',
+          at: [-3.165, -59.92],
           km: 3.2,
           blurb:
             'The river rises up to 10 m in the wet season, so houses stand on stilts.',
@@ -591,6 +625,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Black River',
           kind: 'river',
+          at: [-3.0716, -60.1063],
           km: 2.8,
           blurb:
             'The Rio Negro is dark as tea from the leaves, with white sand beaches.',
@@ -604,6 +639,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Giant Water Lilies',
           kind: 'lilies',
+          at: [-3.2167, -60.04],
           km: 2.2,
           blurb:
             'Their floating leaves grow up to 3 m across, strong enough to hold a child.',
@@ -617,6 +653,7 @@ export const CITIES: City[] = [
         landmark: {
           name: 'Meeting of the Waters',
           kind: 'meeting',
+          at: [-3.135, -59.905],
           km: 4.6,
           blurb:
             'The dark Rio Negro and the sandy Solimões run side by side for 6 km without mixing.',

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:maps": "tsx scripts/build-maps.ts && prettier --write src/client/lib/mapData.ts",
     "deploy": "npm run test:types && npm run lint && devvit upload",
     "dev": "devvit playtest",
     "dev:local": "vite build --config vite.harness.config.ts && tsx src/dev/server.ts",
@@ -40,16 +41,19 @@
     "@types/react-dom": "19.3.0",
     "@types/three": "0.187.0",
     "@vitejs/plugin-react": "6.3.0",
+    "d3-geo": "^3.1.1",
     "eslint": "10.14.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.7",
     "globals": "17.14.0",
     "prettier": "3.9.10",
     "tailwindcss": "4.3.5",
+    "topojson-client": "^3.1.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2",
     "vite": "8.3.7",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "world-atlas": "^2.0.2"
   }
 }

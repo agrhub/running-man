@@ -640,6 +640,8 @@ export type RewardBreakdown = {
   guess?: number;
   /** Coins for completing today's club relay. */
   relay?: number;
+  /** Coins for beating the runners who challenged you. */
+  challenge?: number;
   total: number;
 };
 

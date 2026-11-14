@@ -15,6 +15,7 @@ import type {
   ProfileResponse,
   RunRequest,
   ShareResponse,
+  ChallengeResponse,
   VoteRequest,
   QuestClaimRequest,
   AvatarsResponse,
@@ -39,6 +40,7 @@ import {
   GameError,
   buyItem,
   buyRestDay,
+  challenge,
   castVote,
   checkIn,
   claimQuest,
@@ -482,6 +484,17 @@ export const createApi = (deps: Deps): Hono => {
       const { vote, message } = await castVote(deps, String(body.cityId ?? ''));
       await track(deps, body.journeyId, 'city_voted', String(body.cityId));
       return c.json<VoteResponse>({ type: 'vote', vote, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/challenge', async (c) => {
+    try {
+      const body = await readJson<JourneyRequest & { username?: string }>(c);
+      const result = await challenge(deps, body.username);
+      await track(deps, body.journeyId, 'runner_challenged');
+      return c.json<ChallengeResponse>({ type: 'challenge', ...result });
     } catch (e) {
       return fail(c, e);
     }

@@ -1,3 +1,5 @@
+import { ChallengedBy } from '../components/Challenges';
+import type { Challenge } from '../../shared/challenge';
 import { useMemo, useState } from 'react';
 import type { CrewProgress, DayRecap, Profile } from '../../shared/api';
 import {
@@ -33,6 +35,8 @@ type Props = {
   /** World Tour: the place's name replaces the daily stage line. */
   tour?: { label: string; stopId: string; onBack: () => void };
   yesterday?: DayRecap | null;
+  /** Runners who challenged you today. */
+  challenges?: Challenge[];
   /** Whether people, traffic and animals are on the road today. */
   roadLife: boolean;
   starting: boolean;
@@ -68,6 +72,7 @@ export const PlanScreen = ({
   crew,
   totalRunners,
   yesterday,
+  challenges = [],
   tour,
   roadLife,
   starting,
@@ -274,6 +279,7 @@ export const PlanScreen = ({
       </section>
 
       <div className="flex flex-col gap-3">
+        <ChallengedBy challenges={challenges} />
         {crew && <CrewBar crew={crew} runners={totalRunners ?? 0} />}
         <button
           type="button"

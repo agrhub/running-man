@@ -144,6 +144,14 @@ with sync_playwright() as p:
     page.wait_for_selector('text=Shared in comments')
     s = state()
     check('share posted one comment as the player', len(s['comments']) == 1 and s['comments'][0]['user'] == 'you', s['comments'][-1]['text'][:80] if s['comments'] else '')
+    box = page.locator('section[aria-label="Challenge a friend"]')
+    box.locator('input').fill('u/speedy_sam')
+    box.get_by_role('button', name='Challenge', exact=True).click()
+    page.wait_for_selector('text=Challenged: u/speedy_sam')
+    s = state()
+    check('a challenge mentions the runner in a comment',
+          len(s['comments']) == 2 and s['comments'][-1]['text'].startswith('🏁 **u/speedy_sam'),
+          s['comments'][-1]['text'][:60] if s['comments'] else '')
     cheer = page.locator('button[aria-label^="Cheer for"]').first
     cheer.click()
     page.wait_for_selector('text=Cheer sent today')

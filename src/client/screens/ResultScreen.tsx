@@ -12,6 +12,7 @@ import type { DayInfo } from '../../shared/content';
 import { itemById, petById } from '../../shared/economy';
 import { PACE_LABEL, formatTime } from '../../shared/sim';
 import { CrewBar } from '../components/CrewBar';
+import { ChallengeBox, ChallengeResults } from '../components/Challenges';
 import { VoteCard } from '../components/VoteCard';
 import type { CityVote, NextCityId } from '../../shared/vote';
 import { Leaderboard, WeeklyStandings } from '../components/Leaderboard';
@@ -34,6 +35,8 @@ type Props = {
   onLocker: () => void;
   onReplay: () => void;
   onCheer: (username: string) => void;
+  onChallenge: (username: string) => void;
+  challenging: boolean;
   weekly: WeeklyBoard;
   friends: FriendRow[];
   vote: CityVote;
@@ -101,6 +104,7 @@ export const ResultScreen = (p: Props) => {
     [tr('Crew finished the city'), run.reward.crew],
     [tr('🎄 Christmas Run bonus'), run.reward.holiday ?? 0],
     [tr('🤝 Club relay complete'), run.reward.relay ?? 0],
+    [tr('🏁 Beat your challengers'), run.reward.challenge ?? 0],
     [
       tr('🔮 Called your time ({n}s off)', { n: run.guess?.off ?? 0 }),
       run.reward.guess ?? 0,
@@ -269,6 +273,8 @@ export const ResultScreen = (p: Props) => {
         </section>
       )}
 
+      <ChallengeResults run={run} />
+
       <CrewBar crew={p.crew} {...(p.justFinished ? { gained: 6000 } : {})} />
 
       <div className="grid grid-cols-2 gap-2">
@@ -292,6 +298,15 @@ export const ResultScreen = (p: Props) => {
           {tr('Shop')} 🪙 {profile.badges}
         </button>
       </div>
+
+      {run.dateKey === p.today && (
+        <ChallengeBox
+          run={run}
+          friends={p.friends}
+          busy={p.challenging}
+          onChallenge={p.onChallenge}
+        />
+      )}
 
       <section className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2">
         <div className="flex items-center justify-between gap-2 px-2">

@@ -21,6 +21,7 @@ import type {
   RunRecord,
   RunResponse,
   ShareResponse,
+  ChallengeResponse,
   VoteResponse,
   QuestsResponse,
   DashBoard,
@@ -591,6 +592,29 @@ export const App = () => {
     }
   };
 
+  const challenge = async (username: string) => {
+    if (!data?.myRun) return;
+    setBusy(true);
+    try {
+      const res = await request<ChallengeResponse>('/challenge', {
+        username,
+        journeyId: data.journeyId,
+      });
+      patch({ myRun: res.record });
+      showToast(
+        tr('Challenge posted. u/{name} will get a mention.', {
+          name: res.target,
+        })
+      );
+      sfx.chat();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
@@ -795,6 +819,8 @@ export const App = () => {
             onLocker={openLocker}
             onReplay={() => setScreen('run')}
             onCheer={(username) => void profileCall('/cheer', { username })}
+            onChallenge={(username) => void challenge(username)}
+            challenging={busy}
             weekly={data.weekly}
             friends={data.friends}
             vote={data.vote}
@@ -971,6 +997,7 @@ export const App = () => {
             crew={data.crew}
             totalRunners={data.totalRunners}
             yesterday={data.yesterday}
+            challenges={data.challenges}
             roadLife={data.settings.roadLife}
             starting={busy}
             onStart={startRun}

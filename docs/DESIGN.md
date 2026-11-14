@@ -179,6 +179,15 @@ to 40 coins (score ÷ 8), and each game has its own daily top five.
   the ball and brings it back. Wind adds or takes off metres. Up to 100 points a throw, by how close the ball lands
   to the ring.
 
+### Challenges
+
+A daily game spreads when players pull each other in, and on Reddit the native way to do that is a mention. After
+your run you can challenge up to three redditors (friends who have not run yet are suggested). The app posts a comment
+in today's post as you, "🏁 u/bob, I challenge you! I ran … in 18:20", which notifies them. Their plan screen shows
+who challenged them and the time to beat; their run reports each challenge as beaten or not, and each beaten one pays
+30 coins (three at most per run). You cannot challenge yourself, the same runner twice, or someone who already ran
+today. Challenges live in `challenges:{date}` (lower-case username → list of challengers and times).
+
 ### World Tour
 
 Waiting a day for the next stage is the point of the daily loop, so the next stage never opens early. For players who
@@ -390,36 +399,37 @@ messages) and fails if one has no Vietnamese; a unit test checks that every tran
 
 ### Redis keys
 
-| Key                       | Type       | Contents                                                            |
-| ------------------------- | ---------- | ------------------------------------------------------------------- |
-| `user:{name}`             | string     | Profile: badges, streak, look, items, pet, bib                      |
-| `lb:{date}`               | sorted set | Everyone's official time that day                                   |
-| `tracks:{date}`           | hash       | Each runner's track: time at each km, lane changes, chat, bib, look |
-| `run:{date}:…`            | string     | Each runner's full record, including crashes                        |
-| `crew:{season}`           | hash       | Crew kilometres and finish state for that city's week               |
-| `cheers:{date}`           | hash       | Cheers each runner received that day                                |
-| `post:{postId}`           | string     | Which day a post belongs to                                         |
-| `bibs`                    | counter    | The next bib number                                                 |
-| `day:{date}:post`         | string     | The stage post for that day                                         |
-| `votes:{season}`          | hash       | Next-city vote counts for that week                                 |
-| `voters:{season}`         | hash       | Who voted for which city that week (one vote each)                  |
-| `week:{season}`           | hash       | Stages and total seconds this week per runner                       |
-| `weeklb:{season}`         | sorted set | This week's standings                                               |
-| `dashlb:{date}`           | sorted set | Best Snack Dash score per runner that day                           |
-| `arcadelb:{game}:{date}`  | sorted set | Best Hurdle Hop, Rhythm Steps or Pet Fetch score that day           |
-| `club:{code}`             | string     | A running club: name, owner, members                                |
-| `clubweek:{season}`       | sorted set | Clubs ranked by stages this week                                    |
-| `avatars`                 | hash       | Reddit avatar URLs, refreshed once a day                            |
-| `history:{name}`          | hash       | A runner's past stages: time, place, field size                     |
-| `stats:{date}`            | hash       | The day's counters for the recap: crashes, snacks, chat lines       |
-| `recap:{date}`            | string     | The recap comment, once posted                                      |
-| `welcome:post`            | string     | The pinned how-to-play post                                         |
-| `celebrate:{season}`      | string     | The city celebration post                                           |
-| `sub:firstDay`            | string     | The date of this subreddit's first stage (its Day 1)                |
-| `tour:{id}:board`         | sorted set | Best World Tour time per runner at that stop                        |
-| `tour:{id}:tracks`        | hash       | Each runner's best run at that stop, replayed as a ghost            |
-| `tour:week:{monday}`      | sorted set | Best time per runner at the free stop during its week               |
-| `tour:week:{monday}:paid` | string     | Set once that week's podium is paid                                 |
+| Key                       | Type       | Contents                                                                     |
+| ------------------------- | ---------- | ---------------------------------------------------------------------------- |
+| `user:{name}`             | string     | Profile: badges, streak, look, items, pet, bib                               |
+| `lb:{date}`               | sorted set | Everyone's official time that day                                            |
+| `tracks:{date}`           | hash       | Each runner's track: time at each km, lane changes, chat, bib, look          |
+| `run:{date}:…`            | string     | Each runner's full record, including crashes                                 |
+| `crew:{season}`           | hash       | Crew kilometres and finish state for that city's week                        |
+| `cheers:{date}`           | hash       | Cheers each runner received that day                                         |
+| `post:{postId}`           | string     | Which day a post belongs to                                                  |
+| `bibs`                    | counter    | The next bib number                                                          |
+| `day:{date}:post`         | string     | The stage post for that day                                                  |
+| `votes:{season}`          | hash       | Next-city vote counts for that week                                          |
+| `voters:{season}`         | hash       | Who voted for which city that week (one vote each)                           |
+| `week:{season}`           | hash       | Stages and total seconds this week per runner                                |
+| `weeklb:{season}`         | sorted set | This week's standings                                                        |
+| `dashlb:{date}`           | sorted set | Best Snack Dash score per runner that day                                    |
+| `arcadelb:{game}:{date}`  | sorted set | Best Hurdle Hop, Rhythm Steps or Pet Fetch score that day                    |
+| `club:{code}`             | string     | A running club: name, owner, members                                         |
+| `clubweek:{season}`       | sorted set | Clubs ranked by stages this week                                             |
+| `avatars`                 | hash       | Reddit avatar URLs, refreshed once a day                                     |
+| `history:{name}`          | hash       | A runner's past stages: time, place, field size                              |
+| `stats:{date}`            | hash       | The day's counters for the recap: crashes, snacks, chat lines                |
+| `recap:{date}`            | string     | The recap comment, once posted                                               |
+| `welcome:post`            | string     | The pinned how-to-play post                                                  |
+| `celebrate:{season}`      | string     | The city celebration post                                                    |
+| `sub:firstDay`            | string     | The date of this subreddit's first stage (its Day 1)                         |
+| `tour:{id}:board`         | sorted set | Best World Tour time per runner at that stop                                 |
+| `tour:{id}:tracks`        | hash       | Each runner's best run at that stop, replayed as a ghost                     |
+| `tour:week:{monday}`      | sorted set | Best time per runner at the free stop during its week                        |
+| `tour:week:{monday}:paid` | string     | Set once that week's podium is paid                                          |
+| `challenges:{date}`       | hash       | Lower-case username → runners who challenged them that day, with their times |
 
 ### Stage simulation (deterministic, runs on client and server)
 

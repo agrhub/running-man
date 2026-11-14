@@ -1,3 +1,4 @@
+import type { Challenge, ChallengeResult } from './challenge';
 import type { AchievementState } from './achievements';
 import type { ArcadeId } from './arcade';
 import type { CityId, WeatherId } from './content';
@@ -163,6 +164,10 @@ export type RunRecord = {
   totalRunners: number;
   reward: RewardBreakdown;
   streak: number;
+  /** Runners you called out after this run (they were mentioned in a comment). */
+  challenged?: string[];
+  /** The challenges waiting for you when you ran, and whether you beat them. */
+  challenges?: ChallengeResult[];
   /** Rest days this run used up to keep the streak going. */
   restUsed?: number;
   /** Item and pet ids whose unlock condition became true with this run. */
@@ -235,6 +240,8 @@ export type InitResponse = {
   quests: QuestState[];
   /** Your friends and how their day went. */
   friends: FriendRow[];
+  /** Runners who challenged you today, while you have not run yet. */
+  challenges: Challenge[];
   club: ClubView | null;
   /** The day before this post's stage, when anyone ran it. */
   yesterday: DayRecap | null;
@@ -430,6 +437,12 @@ export type ProfileResponse = {
   type: 'profile';
   profile: Profile;
   message?: string;
+};
+
+export type ChallengeResponse = {
+  type: 'challenge';
+  record: RunRecord;
+  target: string;
 };
 
 export type ShareResponse = {

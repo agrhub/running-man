@@ -127,6 +127,14 @@ import { DEFAULT_SETTINGS } from '../../shared/api';
 import type { Deps } from './deps';
 import { updateFlair } from './flair';
 import {
+  CHALLENGE_REWARD,
+  MAX_CHALLENGES,
+  MAX_CHALLENGE_PAYOUTS,
+  cleanUsername,
+  type Challenge,
+  type ChallengeResult,
+} from '../../shared/challenge';
+import {
   MAX_REST_DAYS,
   REST_DAY_COST,
   missedDays,
@@ -482,6 +490,12 @@ export const init = async (deps: Deps): Promise<InitResponse> => {
     friends,
     club,
     yesterday: before.runners > 0 ? before : null,
+    challenges:
+      myRun || !username
+        ? []
+        : (parse<Challenge[]>(
+            await store.hGet(keys.challenges(dateKey), username.toLowerCase())
+          ) ?? []),
     settings: {
       quickChat: options.quickChat,
       roadLife: options.roadLife,
@@ -1093,6 +1107,24 @@ export const run = async (
     await readHistory(store, username)
   );
 
+  // Runners who challenged you today: beating their time pays coins.
+  const waiting =
+    parse<Challenge[]>(
+      await store.hGet(keys.challenges(dateKey), username.toLowerCase())
+    ) ?? [];
+  const challenges: ChallengeResult[] = waiting.map((c) => ({
+    ...c,
+    beaten: result.totalSeconds < c.seconds,
+  }));
+  const challengeCoins =
+    Math.min(MAX_CHALLENGE_PAYOUTS, challenges.filter((c) => c.beaten).length) *
+    CHALLENGE_REWARD;
+  if (challengeCoins > 0) {
+    reward.challenge = challengeCoins;
+    reward.total += challengeCoins;
+    profile.badges += challengeCoins;
+  }
+
   // Your run is a leg of your club's relay if fewer than three clubmates ran before you.
   const relayClub = await loadClub(store, profile.club);
   const relay = relayClub
@@ -1119,6 +1151,7 @@ export const run = async (
     reward,
     streak: profile.streak,
     ...(restUsed ? { restUsed } : {}),
+    ...(challenges.length ? { challenges } : {}),
     unlocked,
     crewFinishedNow,
     finisherNow,
@@ -1971,6 +2004,64 @@ export const share = async (
     await deps.store.set(keys.run(dateKey, username), JSON.stringify(record));
   }
   return { commentPosted: posted, text };
+};
+
+export const challengeText = (
+  day: DayInfo,
+  record: RunRecord,
+  target: string
+): string =>
+  [
+    `🏁 **u/${target}, I challenge you!** I ran ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7 · ${day.stage.name} in **${formatTime(record.seconds)}** (#${record.rank} of ${record.totalRunners}).`,
+    '',
+    `Think you can beat me? Open the game in this post and race today's stage. Beat my time and you win ${CHALLENGE_REWARD} coins.`,
+  ].join('\n');
+
+/**
+ * Calls out another redditor in today's post after your run. The comment
+ * mentions them, so Reddit notifies them; their run then shows whether they
+ * beat you. A few per day, today's stage only, never the same runner twice.
+ */
+export const challenge = async (
+  deps: Deps,
+  raw: unknown
+): Promise<{ record: RunRecord; target: string }> => {
+  const { store } = deps;
+  const username = await requireUser(deps);
+  const dateKey = await postDateKey(deps);
+  if (dateKey !== toDateKey(deps.now()))
+    throw new GameError('Challenges are for today’s stage.', 409);
+  const target = cleanUsername(raw);
+  if (!target) throw new GameError('That is not a Reddit username.');
+  if (target.toLowerCase() === username.toLowerCase())
+    throw new GameError('You cannot challenge yourself.');
+  const record = parse<RunRecord>(await store.get(keys.run(dateKey, username)));
+  if (!record) throw new GameError('Run the stage before you challenge.', 404);
+  const done = record.challenged ?? [];
+  if (done.some((n) => n.toLowerCase() === target.toLowerCase()))
+    throw new GameError('You already challenged them today.', 409);
+  if (done.length >= MAX_CHALLENGES)
+    throw new GameError('That is all your challenges for today.', 409);
+  if ((await store.zScore(keys.leaderboard(dateKey), target)) !== undefined)
+    throw new GameError('They already ran today. Try someone else!', 409);
+  const postId = deps.postId();
+  const posted = postId
+    ? await deps
+        .comment(postId, challengeText(dayInfo(dateKey), record, target))
+        .catch(() => false)
+    : false;
+  if (!posted) throw new GameError('Could not post the challenge. Try again.');
+
+  const field = target.toLowerCase();
+  const list =
+    parse<Challenge[]>(await store.hGet(keys.challenges(dateKey), field)) ?? [];
+  list.push({ from: username, seconds: record.seconds });
+  record.challenged = [...done, target];
+  await Promise.all([
+    store.hSet(keys.challenges(dateKey), { [field]: JSON.stringify(list) }),
+    store.set(keys.run(dateKey, username), JSON.stringify(record)),
+  ]);
+  return { record, target };
 };
 
 /**

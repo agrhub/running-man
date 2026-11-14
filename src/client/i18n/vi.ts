@@ -1092,4 +1092,33 @@ export const VI: Record<string, string> = {
   'The fastest three this week win {a}, {b} and {c} {coin} on Monday.':
     'Ba người nhanh nhất tuần này nhận {a}, {b} và {c} {coin} vào thứ Hai.',
   'This week’s leaders': 'Dẫn đầu tuần này',
+  'Challenge': 'Thách đấu',
+  'Challenge a friend': 'Thách đấu bạn bè',
+  'Challenge posted. u/{name} will get a mention.':
+    'Đã đăng lời thách đấu. u/{name} sẽ được nhắc tên.',
+  'Challenge results': 'Kết quả thách đấu',
+  'Challenged: {names}': 'Đã thách: {names}',
+  'Challenges': 'Thách đấu',
+  'Challenges are for today’s stage.': 'Chỉ thách đấu được ở chặng hôm nay.',
+  'Challenges for you': 'Lời thách dành cho bạn',
+  'Could not post the challenge. Try again.':
+    'Không đăng được lời thách đấu. Thử lại nhé.',
+  'Mention someone in a comment on today’s post. If they beat {time}, they win {n} coins.':
+    'Nhắc tên một người trong bình luận ở post hôm nay. Nếu họ chạy nhanh hơn {time}, họ nhận {n} coin.',
+  'Run the stage before you challenge.':
+    'Hãy chạy chặng trước rồi mới thách đấu.',
+  'That is all your challenges for today.':
+    'Bạn đã dùng hết lượt thách đấu hôm nay.',
+  'That is not a Reddit username.': 'Đó không phải tên người dùng Reddit.',
+  'They already ran today. Try someone else!':
+    'Người này đã chạy hôm nay rồi. Thử người khác nhé!',
+  'You already challenged them today.': 'Hôm nay bạn đã thách người này rồi.',
+  'You beat u/{name} ({time})': 'Bạn đã thắng u/{name} ({time})',
+  'You cannot challenge yourself.': 'Bạn không thể tự thách chính mình.',
+  'You have been challenged!': 'Bạn bị thách đấu!',
+  'u/{name} ran {time}. Beat it for +{n} coins.':
+    'u/{name} chạy {time}. Vượt qua để nhận +{n} coin.',
+  'u/{name} was faster ({time})': 'u/{name} nhanh hơn ({time})',
+  '{n} left today': 'còn {n} lượt hôm nay',
+  '🏁 Beat your challengers': '🏁 Thắng người thách đấu',
 };

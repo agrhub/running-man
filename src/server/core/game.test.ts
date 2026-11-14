@@ -7,6 +7,7 @@ import {
   tourById,
 } from '../../shared/tour';
 import { streakAlive } from '../../shared/streak';
+import { CHALLENGE_REWARD } from '../../shared/challenge';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -24,6 +25,7 @@ import type {
   ProfileResponse,
   RunResponse,
   ShareResponse,
+  ChallengeResponse,
   VoteResponse,
   QuestsResponse,
   DashResponse,
@@ -614,6 +616,61 @@ describe('game API', () => {
     expect(streakAlive({ lastRunDate: null, restDays: 2 }, '2026-11-12')).toBe(
       false
     );
+  });
+
+  it('lets a runner challenge others, and pays whoever beats the time', async () => {
+    const date = '2026-11-12';
+    h.on('t3_post1');
+    const early = await call(h, 'POST', '/challenge', { username: 'bob' });
+    expect(early.status).toBe(404);
+
+    const slow = ['easy', 'easy', 'easy', 'easy', 'easy', 'easy'] as const;
+    await call(h.as('alice'), 'POST', '/run', {
+      plan: planFor(date, [...slow]),
+    });
+    const bad = await call(h, 'POST', '/challenge', { username: 'a b' });
+    expect(bad.status).toBe(400);
+    const self = await call(h, 'POST', '/challenge', { username: 'u/Alice' });
+    expect(self.status).toBe(400);
+
+    const ok = await call<ChallengeResponse>(h, 'POST', '/challenge', {
+      username: 'u/Bob',
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.json.record.challenged).toEqual(['Bob']);
+    expect(h.comments.at(-1)?.text).toMatch(
+      /^🏁 \*\*u\/Bob, I challenge you!\*\*/
+    );
+    expect(
+      (await call(h, 'POST', '/challenge', { username: 'bob' })).status
+    ).toBe(409);
+    for (const n of ['carol', 'dave'])
+      await call(h, 'POST', '/challenge', { username: n });
+    expect(
+      (await call(h, 'POST', '/challenge', { username: 'erin' })).status
+    ).toBe(409);
+
+    // Bob sees the challenge before he runs, and beats it with a faster plan.
+    const page = await call<InitResponse>(h.as('bob'), 'GET', '/init');
+    expect(page.json.challenges.map((c) => c.from)).toEqual(['alice']);
+    const bob = await call<RunResponse>(h.as('bob'), 'POST', '/run', {
+      plan: planFor(date),
+    });
+    expect(bob.json.run.challenges).toEqual([
+      expect.objectContaining({ from: 'alice', beaten: true }),
+    ]);
+    expect(bob.json.run.reward.challenge).toBe(CHALLENGE_REWARD);
+
+    // Someone who already ran cannot be challenged.
+    const late = await call(h.as('carol'), 'POST', '/run', {
+      plan: planFor(date),
+    });
+    expect(late.status).toBe(200);
+    await call(h.as('frank'), 'POST', '/run', { plan: planFor(date) });
+    expect(
+      (await call(h.as('frank'), 'POST', '/challenge', { username: 'carol' }))
+        .status
+    ).toBe(409);
   });
 
   it('puts the other runners on the road, but not yourself', async () => {

@@ -328,6 +328,24 @@ with sync_playwright() as p:
         page.screenshot(path=f'{OUT}/12-run-{name}.png')
         ctx.close()
 
+    # Vietnamese: a phone set to Vietnamese gets the game in Vietnamese, and
+    # Me → Options switches it back to English.
+    ctx = browser.new_context(viewport={'width': 390, 'height': 844}, locale='vi-VN')
+    page = ctx.new_page()
+    page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
+    page.goto(f'{BASE}/splash.html?user=viet&date=2026-11-12&post=')
+    page.wait_for_selector('text=Mục tiêu chung')
+    check('a Vietnamese phone gets the feed card in Vietnamese', page.is_visible('text=Chạy chặng hôm nay'))
+    page.goto(f'{BASE}/game.html?user=viet&date=2026-11-12&post=')
+    page.wait_for_selector('text=Tạo runner của bạn')
+    page.click('text=Nhận số áo')
+    page.wait_for_selector('text=Bắt đầu chạy')
+    page.locator('nav').last.get_by_role('button', name=re.compile('Tôi')).click()
+    page.get_by_role('radio', name='English').click()
+    page.wait_for_selector('text=Options')
+    check('the language can be switched in Options', page.is_visible('text=Language'))
+    ctx.close()
+
     browser.close()
 
 print('\nconsole/page errors:', len(errors))

@@ -5,6 +5,7 @@ import { formatTime } from '../../shared/sim';
 import { TOUR, TOUR_KIND, TOUR_STAMP_REWARD } from '../../shared/tour';
 import { WEATHER } from '../../shared/content';
 import { WorldMap } from '../components/PlaceMap';
+import { tr } from '../i18n';
 
 type Props = {
   profile: Profile;
@@ -37,7 +38,7 @@ export const TourScreen = ({
           onClick={onBack}
           className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
         >
-          ← Play
+          {tr('← Play')}
         </button>
         <p className="font-display text-[18px] font-extrabold">
           {COIN} {profile.badges}
@@ -45,19 +46,22 @@ export const TourScreen = ({
       </div>
       <header>
         <h1 className="font-display text-[26px] font-extrabold leading-tight">
-          🌍 World Tour
+          {tr('🌍 World Tour')}
         </h1>
         <p className="text-[13px] leading-snug text-ink-soft">
-          Famous places to run any time, as often as you like. Unlock a place
-          with coins; your first finish there stamps your passport (+
-          {TOUR_STAMP_REWARD} {COIN}). Tour runs never count for the daily
-          stage.
+          {tr(
+            'Famous places to run any time, as often as you like. Unlock a place with coins; your first finish there stamps your passport (+{n} {coin}). Tour runs never count for the daily stage.',
+            { n: TOUR_STAMP_REWARD, coin: COIN }
+          )}
         </p>
         <p
           className="mt-1 text-[13px] font-extrabold"
-          aria-label={`${stamps} of ${TOUR.length} passport stamps`}
+          aria-label={tr('{n} of {total} passport stamps', {
+            n: stamps,
+            total: TOUR.length,
+          })}
         >
-          🛂 Passport: {stamps} / {TOUR.length}{' '}
+          🛂 {tr('Passport:')} {stamps} / {TOUR.length}{' '}
           <span aria-hidden>
             {TOUR.map((s) =>
               profile.tourStamps.includes(s.id) ? s.flag : '·'
@@ -78,42 +82,49 @@ export const TourScreen = ({
                     : profile.tourUnlocked.includes(s.id)
                       ? ('now' as const)
                       : ('other' as const),
-                  title: `${s.stage.landmark.name}, ${s.country}`,
+                  title: `${tr(s.stage.landmark.name)}, ${s.country}`,
                 },
               ]
             : []
         )}
       />
       <p className="-mt-1 text-[11px] font-bold text-ink-soft">
-        <span style={{ color: '#3fae6a' }}>●</span> stamped{' '}
-        <span style={{ color: '#ff5d8f' }}>●</span> unlocked ○ locked
+        <span style={{ color: '#3fae6a' }}>●</span> {tr('stamped')}{' '}
+        <span style={{ color: '#ff5d8f' }}>●</span> {tr('unlocked ○ locked')}
       </p>
 
       {result && done && (
         <section
           className="bib bib-pins px-3 pt-5 pb-3"
-          aria-label="Your World Tour run"
+          aria-label={tr('Your World Tour run')}
         >
           <p className="text-[13px] font-extrabold text-ink-soft">
-            {done.flag} {done.stage.landmark.name}
+            {done.flag} {tr(done.stage.landmark.name)}
           </p>
           <p className="font-display text-[34px] font-extrabold leading-none">
             {formatTime(result.seconds)}
           </p>
           <p className="mt-1 text-[13px] font-bold">
             {result.improved
-              ? `New best! #${result.rank} of ${result.total} here.`
-              : `Your best stays ${formatTime(result.best)} (#${result.rank} of ${result.total}).`}
+              ? tr('New best! #{rank} of {total} here.', {
+                  rank: result.rank,
+                  total: result.total,
+                })
+              : tr('Your best stays {time} (#{rank} of {total}).', {
+                  time: formatTime(result.best),
+                  rank: result.rank,
+                  total: result.total,
+                })}
           </p>
           {result.stamped && (
             <p className="mt-1 text-[13px] font-extrabold text-easy">
-              🛂 Passport stamped: +{result.reward} {COIN}
+              🛂 {tr('Passport stamped: +{n}', { n: result.reward })} {COIN}
             </p>
           )}
         </section>
       )}
 
-      <ul className="flex flex-col gap-2" aria-label="World Tour places">
+      <ul className="flex flex-col gap-2" aria-label={tr('World Tour places')}>
         {TOUR.map((stop) => {
           const row = stops?.find((r) => r.id === stop.id);
           const unlocked =
@@ -132,32 +143,41 @@ export const TourScreen = ({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-[17px] font-extrabold leading-tight">
-                    {stop.stage.landmark.name}
+                    {tr(stop.stage.landmark.name)}
                     {stamped && (
-                      <span className="ml-1 text-[13px]" title="Stamped">
+                      <span className="ml-1 text-[13px]" title={tr('Stamped')}>
                         🛂
                       </span>
                     )}
                   </p>
                   <p className="text-[12px] font-bold text-ink-soft">
-                    {kind.icon} {kind.label} · {stop.place}, {stop.country}
+                    {kind.icon} {tr(kind.label)} · {tr(stop.place)},{' '}
+                    {tr(stop.country)}
                   </p>
                   <p className="text-[12px] leading-snug">
-                    {stop.stage.landmark.blurb}
+                    {tr(stop.stage.landmark.blurb)}
                   </p>
                   <p className="mt-0.5 text-[11px] font-bold text-ink-soft">
                     {TERRAIN[stop.stage.terrain].icon}{' '}
-                    {TERRAIN[stop.stage.terrain].label} ·{' '}
-                    {WEATHER[stop.weather].icon} {WEATHER[stop.weather].label} ·{' '}
-                    {TIMES[stop.time].icon} {TIMES[stop.time].label}
+                    {tr(TERRAIN[stop.stage.terrain].label)} ·{' '}
+                    {WEATHER[stop.weather].icon}{' '}
+                    {tr(WEATHER[stop.weather].label)} · {TIMES[stop.time].icon}{' '}
+                    {tr(TIMES[stop.time].label)}
                   </p>
                   {row && (row.best !== null || row.top) && (
                     <p className="mt-0.5 text-[11px] font-bold">
                       {row.best !== null &&
-                        `Your best ${formatTime(row.best)} (#${row.rank} of ${row.runners})`}
+                        tr('Your best {time} (#{rank} of {total})', {
+                          time: formatTime(row.best),
+                          rank: row.rank ?? '',
+                          total: row.runners,
+                        })}
                       {row.best !== null && row.top && ' · '}
                       {row.top &&
-                        `Record ${formatTime(row.top.seconds)} by u/${row.top.username}`}
+                        tr('Record {time} by u/{name}', {
+                          time: formatTime(row.top.seconds),
+                          name: row.top.username,
+                        })}
                     </p>
                   )}
                 </div>
@@ -170,7 +190,7 @@ export const TourScreen = ({
                     onClick={() => onRun(stop.id)}
                     className="chunky rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
                   >
-                    Run here
+                    {tr('Run here')}
                   </button>
                 ) : (
                   <button
@@ -179,7 +199,7 @@ export const TourScreen = ({
                     onClick={() => onUnlock(stop.id)}
                     className="chunky rounded-full bg-gold px-4 py-1 text-[14px] font-extrabold"
                   >
-                    Unlock {stop.cost} {COIN}
+                    {tr('Unlock {n}', { n: stop.cost })} {COIN}
                   </button>
                 )}
               </div>

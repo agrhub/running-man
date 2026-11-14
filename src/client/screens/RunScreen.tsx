@@ -62,6 +62,7 @@ import {
   type CoachState,
   type CoachView,
 } from '../lib/coach';
+import { currentLang, tr } from '../i18n';
 
 export type RaceOutcome = {
   moves: Move[];
@@ -112,6 +113,7 @@ const OFFSETS = [
 ];
 
 const ordinal = (n: number) => {
+  if (currentLang() !== 'en') return `#${n}`;
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
@@ -134,11 +136,20 @@ const LIFE_ICON: Partial<Record<ItemKind, string>> = {
 };
 
 const eventToast = (e: RaceEvent): Toast => {
+  const n = e.seconds;
   if (e.kind === 'bump') {
-    const body = `You both fell and lose ${e.seconds}s each.`;
+    const body = tr('You both fell and lose {n}s each.', { n });
     return e.atFault
-      ? { title: `💥 You ran into u/${e.rival}`, body, tone: 'bad' }
-      : { title: `💥 u/${e.rival} ran into you`, body, tone: 'bad' };
+      ? {
+          title: tr('💥 You ran into u/{name}', { name: e.rival }),
+          body,
+          tone: 'bad',
+        }
+      : {
+          title: tr('💥 u/{name} ran into you', { name: e.rival }),
+          body,
+          tone: 'bad',
+        };
   }
   if (isBooster(e.kind)) {
     const what = {
@@ -147,8 +158,8 @@ const eventToast = (e: RaceEvent): Toast => {
       bike: '🚲 Bicycle',
     }[e.kind as RideKind];
     return {
-      title: `${what}!`,
-      body: `Ride it for a big burst: ${e.seconds}s`,
+      title: `${tr(what)}!`,
+      body: tr('Ride it for a big burst: {n}s', { n }),
       tone: 'good',
     };
   }
@@ -165,39 +176,39 @@ const eventToast = (e: RaceEvent): Toast => {
       candy: '🍬 Candy',
     }[e.kind];
     return {
-      title: `${what}!`,
-      body: `Burst of speed: ${e.seconds}s`,
+      title: `${tr(what)}!`,
+      body: tr('Burst of speed: {n}s', { n }),
       tone: 'good',
     };
   }
   if (e.kind === 'fan')
     return {
-      title: '🙌 High five!',
-      body: `A burst of speed: ${e.seconds}s`,
+      title: tr('🙌 High five!'),
+      body: tr('A burst of speed: {n}s', { n }),
       tone: 'good',
     };
   if (isRoadLife(e.kind)) {
     const emergency = e.kind === 'ambulance' || e.kind === 'firetruck';
     return {
-      title: `${LIFE_ICON[e.kind] ?? '⚠️'} ${ITEM_LABEL[e.kind]}!`,
+      title: `${LIFE_ICON[e.kind] ?? '⚠️'} ${tr(ITEM_LABEL[e.kind])}!`,
       body: emergency
-        ? `You stop to make way. +${e.seconds}s`
+        ? tr('You stop to make way. +{n}s', { n })
         : isVehicle(e.kind)
-          ? `Beep beep! You have to stop. +${e.seconds}s`
-          : `You stop short. +${e.seconds}s`,
+          ? tr('Beep beep! You have to stop. +{n}s', { n })
+          : tr('You stop short. +{n}s', { n }),
       tone: 'bad',
     };
   }
   if (e.kind === 'buoy')
     return {
-      title: '🛟 Buoy!',
-      body: `You swim into it. +${e.seconds}s`,
+      title: tr('🛟 Buoy!'),
+      body: tr('You swim into it. +{n}s', { n }),
       tone: 'bad',
     };
   const icon = e.kind === 'cone' ? '🚧' : e.kind === 'puddle' ? '💦' : '🥤';
   return {
-    title: `${icon} ${ITEM_LABEL[e.kind]}!`,
-    body: `You stumble. +${e.seconds}s`,
+    title: `${icon} ${tr(ITEM_LABEL[e.kind])}!`,
+    body: tr('You stumble. +{n}s', { n }),
     tone: 'bad',
   };
 };
@@ -254,7 +265,7 @@ export const RunScreen = ({
     if (last && step - last.step < CHAT_GAP_STEPS) return;
     if (chatRef.current.length >= MAX_CHATS) return;
     chatRef.current.push({ step, line });
-    worldRef.current?.say('__me', QUICK_CHAT[line] ?? '');
+    worldRef.current?.say('__me', tr(QUICK_CHAT[line] ?? ''));
     sfx.chat();
   };
   const finishRef = useRef(onFinish);
@@ -564,7 +575,10 @@ export const RunScreen = ({
 
       if (!lmShown && state.km >= lm.km - 0.55) {
         lmShown = true;
-        show({ title: `📍 ${lm.name}`, body: lm.blurb, tone: 'info' }, 4.5);
+        show(
+          { title: `📍 ${tr(lm.name)}`, body: tr(lm.blurb), tone: 'info' },
+          4.5
+        );
         sfx.landmark();
       }
       for (const s of sim.splits) {
@@ -572,7 +586,11 @@ export const RunScreen = ({
           shownDrinks.add(s.km);
           if (!toast || toast.tone === 'info')
             show(
-              { title: '💧 Water!', body: 'Stamina topped up.', tone: 'good' },
+              {
+                title: tr('💧 Water!'),
+                body: tr('Stamina topped up.'),
+                tone: 'good',
+              },
               1.6
             );
           sfx.water();
@@ -606,14 +624,14 @@ export const RunScreen = ({
         const i = chatIndex.get(r.username) ?? 0;
         const c = r.chat[i];
         if (c && state.t >= c.step * RACE_DT) {
-          world.say(r.username, QUICK_CHAT[c.line] ?? '');
+          world.say(r.username, tr(QUICK_CHAT[c.line] ?? ''));
           chatIndex.set(r.username, i + 1);
         }
       }
       if (!live && replayChat) {
         const c = replayChat[myChatIndex];
         if (c && state.step >= c.step) {
-          world.say('__me', QUICK_CHAT[c.line] ?? '');
+          world.say('__me', tr(QUICK_CHAT[c.line] ?? ''));
           myChatIndex += 1;
         }
       }
@@ -700,7 +718,7 @@ export const RunScreen = ({
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"
-        aria-label="Race"
+        aria-label={tr('Race')}
       />
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
         <div className="bib px-3 py-1.5">
@@ -709,7 +727,7 @@ export const RunScreen = ({
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft tabular">
             {tri ? `${LEG_LABEL[legAt(true, hud.km)].icon} ` : ''}
-            {hud.km.toFixed(2)} of 6 km
+            {tr('{km} of 6 km', { km: hud.km.toFixed(2) })}
           </p>
         </div>
         <div className="bib px-3 py-1.5 text-right">
@@ -717,7 +735,7 @@ export const RunScreen = ({
             {ordinal(hud.place)}
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft">
-            of {hud.field} on the road
+            {tr('of {n} on the road', { n: hud.field })}
           </p>
         </div>
       </div>
@@ -727,7 +745,7 @@ export const RunScreen = ({
         onPointerUp={(e) => e.stopPropagation()}
         onClick={() => setSound(!sound)}
         className="chunky absolute left-1/2 top-3 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-white text-[18px]"
-        aria-label={sound ? 'Turn sound off' : 'Turn sound on'}
+        aria-label={sound ? tr('Turn sound off') : tr('Turn sound on')}
         aria-pressed={sound}
       >
         {sound ? '🔊' : '🔇'}
@@ -736,7 +754,7 @@ export const RunScreen = ({
         <div
           className="h-3 rounded-full border-2 border-ink bg-white overflow-hidden"
           role="meter"
-          aria-label="Stamina"
+          aria-label={tr('Stamina')}
           aria-valuenow={Math.round(hud.stamina)}
           aria-valuemin={0}
           aria-valuemax={100}
@@ -774,7 +792,7 @@ export const RunScreen = ({
         <div
           className="pop-in absolute inset-x-3 bottom-[148px] mx-auto grid max-w-[380px] grid-cols-2 gap-1.5 rounded-2xl border-2 border-ink bg-white/95 p-2"
           role="menu"
-          aria-label="Quick chat lines"
+          aria-label={tr('Quick chat lines')}
           onPointerDown={(e) => e.stopPropagation()}
           onPointerUp={(e) => e.stopPropagation()}
         >
@@ -786,7 +804,7 @@ export const RunScreen = ({
               onClick={() => sayLine(i)}
               className="rounded-xl bg-[var(--sky)] px-2 py-1.5 text-left text-[13px] font-extrabold"
             >
-              {line}
+              {tr(line)}
             </button>
           ))}
         </div>
@@ -798,14 +816,14 @@ export const RunScreen = ({
           className="pop-in pointer-events-none absolute inset-x-6 bottom-[150px] mx-auto max-w-[340px] rounded-2xl border-2 border-white bg-ink px-3 py-2 text-center text-[14px] font-bold text-white shadow-[0_4px_0_#2a2340]"
         >
           <span className="mb-0.5 block text-[12px] font-extrabold text-gold">
-            First race tip
+            {tr('First race tip')}
           </span>
-          {hud.coach.text}
+          {tr(hud.coach.text ?? '')}
         </div>
       )}
       {finished && (
         <p className="stamp pointer-events-none absolute inset-x-0 top-[42%] text-center font-display text-[56px] font-extrabold text-[var(--accent)] [text-shadow:0_3px_0_#2a2340]">
-          {saving ? 'Saving…' : 'Finished!'}
+          {saving ? tr('Saving…') : tr('Finished!')}
         </p>
       )}
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
@@ -823,7 +841,7 @@ export const RunScreen = ({
                   steer(dir);
                 }}
                 className={`chunky ${size} rounded-2xl bg-white font-display font-extrabold ${pulse}`}
-                aria-label={dir < 0 ? 'Move left' : 'Move right'}
+                aria-label={dir < 0 ? tr('Move left') : tr('Move right')}
               >
                 {dir < 0 ? '◀' : '▶'}
               </button>
@@ -839,7 +857,7 @@ export const RunScreen = ({
                       setChatOpen((o) => !o);
                     }}
                     className={`chunky h-12 w-12 rounded-full bg-gold text-[22px] ${hud.coach?.point === 'chat' ? 'coach-pulse' : ''}`}
-                    aria-label="Quick chat"
+                    aria-label={tr('Quick chat')}
                     aria-expanded={chatOpen}
                     disabled={finished || hud.countdown > 0}
                   >
@@ -853,7 +871,7 @@ export const RunScreen = ({
                   className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
                   disabled={finished}
                 >
-                  Finish without steering
+                  {tr('Finish without steering')}
                 </button>
               </div>
             );
@@ -890,14 +908,14 @@ export const RunScreen = ({
               className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
               aria-pressed={fast}
             >
-              {fast ? 'Normal speed' : 'Fast-forward'}
+              {fast ? tr('Normal speed') : tr('Fast-forward')}
             </button>
             <button
               type="button"
               onClick={() => (skipRef.current = true)}
               className="chunky rounded-full bg-white px-4 py-1.5 text-[14px] font-extrabold"
             >
-              Skip to results
+              {tr('Skip to results')}
             </button>
           </div>
         )}

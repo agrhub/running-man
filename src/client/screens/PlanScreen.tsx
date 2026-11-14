@@ -22,6 +22,7 @@ import { CrewBar } from '../components/CrewBar';
 import { YesterdayCard } from '../components/YesterdayCard';
 import { holidayBanner } from '../../shared/festive';
 import { PACE_COLOR, PACE_HINT } from '../lib/theme';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -113,16 +114,20 @@ export const PlanScreen = ({
               className="text-[13px] font-extrabold text-ink-soft"
             >
               ← {tour.label} · {TERRAIN[stage.terrain].icon}{' '}
-              {TERRAIN[stage.terrain].label}
+              {tr(TERRAIN[stage.terrain].label)}
             </button>
           ) : (
             <p className="text-[13px] font-extrabold text-ink-soft">
-              {city.flag} {city.name}, stage {day.stageIndex + 1} of 7 ·{' '}
-              {TERRAIN[stage.terrain].icon} {TERRAIN[stage.terrain].label}
+              {city.flag}{' '}
+              {tr('{city}, stage {n} of 7', {
+                city: tr(city.name),
+                n: day.stageIndex + 1,
+              })}{' '}
+              · {TERRAIN[stage.terrain].icon} {tr(TERRAIN[stage.terrain].label)}
             </p>
           )}
           <h1 className="font-display text-[30px] leading-[1.05] font-extrabold">
-            {stage.name}
+            {tr(stage.name)}
           </h1>
         </div>
         <button
@@ -132,7 +137,7 @@ export const PlanScreen = ({
         >
           🪙 {profile.badges}
           <span className="block text-[11px] font-semibold text-ink-soft">
-            Shop
+            {tr('Shop')}
           </span>
         </button>
       </header>
@@ -142,14 +147,14 @@ export const PlanScreen = ({
           {weather.icon}
         </span>
         <p className="text-[13px] leading-tight">
-          <strong className="font-extrabold">{weather.label}.</strong>{' '}
-          {weather.hint}
+          <strong className="font-extrabold">{tr(weather.label)}.</strong>{' '}
+          {tr(weather.hint)}
           <span className="mt-0.5 block">
             <strong className="font-extrabold">
-              {TIMES[day.time].icon} {TIMES[day.time].label},{' '}
+              {TIMES[day.time].icon} {tr(TIMES[day.time].label)},{' '}
               {TIMES[day.time].clock}.
             </strong>{' '}
-            {TIMES[day.time].hint}
+            {tr(TIMES[day.time].hint)}
           </span>
         </p>
       </div>
@@ -157,31 +162,31 @@ export const PlanScreen = ({
       {tri && (
         <section
           className="rounded-2xl border-2 border-ink bg-[#e3f6ff] px-3 py-2"
-          aria-label="Triathlon finale"
+          aria-label={tr('Triathlon finale')}
         >
           <p className="font-display text-[18px] font-extrabold leading-tight">
-            🏊 🚴 🏃 Triathlon Finale
+            {tr('🏊 🚴 🏃 Triathlon Finale')}
           </p>
           <p className="text-[13px] leading-snug">
-            The last stage of the week: swim the first km, bike the next three,
-            run the last two. Each change costs 30 seconds. Swimming drains
-            stamina fast; your legs recover a little on the bike.
+            {tr(
+              'The last stage of the week: swim the first km, bike the next three, run the last two. Each change costs 30 seconds. Swimming drains stamina fast; your legs recover a little on the bike.'
+            )}
           </p>
         </section>
       )}
 
       {holidayBanner(day.dateKey) && (
         <p className="rounded-2xl border-2 border-ink bg-[#e9f6ff] px-3 py-2 text-[13px] font-bold">
-          {holidayBanner(day.dateKey)}
+          {tr(holidayBanner(day.dateKey) ?? '')}
         </p>
       )}
 
       <section
         className="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-white/70 px-3 py-2"
-        aria-label="Maps"
+        aria-label={tr('Maps')}
       >
         <h2 className="font-display text-[16px] font-extrabold">
-          🗺️ Where you run
+          {tr('🗺️ Where you run')}
         </h2>
         <StageMaps
           day={day}
@@ -189,12 +194,15 @@ export const PlanScreen = ({
           stamps={profile.tourStamps}
         />
         <h3 className="font-display text-[15px] font-extrabold">
-          Today’s 6 km
+          {tr('Today’s 6 km')}
         </h3>
         <RouteMap day={day} drinks={drinks} life={roadLife} />
       </section>
 
-      <section className="bib bib-pins px-3 pt-5 pb-3" aria-label="Race plan">
+      <section
+        className="bib bib-pins px-3 pt-5 pb-3"
+        aria-label={tr('Race plan')}
+      >
         <CourseProfile
           stage={stage}
           splits={projection.splits}
@@ -211,25 +219,29 @@ export const PlanScreen = ({
                 setShowTip(false);
                 setPaces((ps) => ps.map((x, j) => (j === i ? nextPace(x) : x)));
               }}
-              aria-label={`Km ${i + 1}: ${PACE_LABEL[p]}. Tap to change.`}
+              aria-label={tr('Km {n}: {pace}. Tap to change.', {
+                n: i + 1,
+                pace: tr(PACE_LABEL[p]),
+              })}
             >
               <span className="text-[10px] font-extrabold opacity-90">
                 {tri ? `${LEG_LABEL[legAt(true, i)].icon} ` : ''}km {i + 1}
               </span>
               <span className="font-display text-[14px] font-extrabold leading-none">
-                {PACE_LABEL[p]}
+                {tr(PACE_LABEL[p])}
               </span>
             </button>
           ))}
           {showTip && (
             <div className="pop-in absolute top-full z-10 mt-2 left-0 right-0 mx-auto w-[92%] rounded-xl bg-ink px-3 py-2 text-center text-[12px] font-bold text-white shadow-lg">
-              Tap a km to switch pace. Push is fast but drains stamina (the gold
-              line).
+              {tr(
+                'Tap a km to switch pace. Push is fast but drains stamina (the gold line).'
+              )}
             </div>
           )}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px]">
-          <span className="font-extrabold">Water:</span>
+          <span className="font-extrabold">{tr('Water:')}</span>
           {stage.waterAfterKm.map((km) => (
             <button
               key={km}
@@ -238,13 +250,15 @@ export const PlanScreen = ({
               onClick={() => toggleDrink(km)}
               className={`rounded-full border-2 border-ink px-2 py-0.5 font-extrabold ${drinks.includes(km) ? 'bg-water text-white' : 'bg-white text-ink-soft line-through'}`}
             >
-              💧 after km {km}
+              {tr('💧 after km {n}', { n: km })}
             </button>
           ))}
-          <span className="text-ink-soft">Each stop costs a few seconds.</span>
+          <span className="text-ink-soft">
+            {tr('Each stop costs a few seconds.')}
+          </span>
         </div>
         <p className={`mt-2 text-[13px] font-bold ${verdict.tone}`}>
-          {verdict.text}
+          {tr(verdict.text)}
         </p>
         <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-ink-soft">
           {PACES.map((p) => (
@@ -253,7 +267,7 @@ export const PlanScreen = ({
                 className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{ background: PACE_COLOR[p] }}
               />
-              {PACE_HINT[p]}
+              {tr(PACE_HINT[p])}
             </li>
           ))}
         </ul>
@@ -267,7 +281,7 @@ export const PlanScreen = ({
           onClick={() => onStart({ paces, drinks })}
           className="chunky w-full rounded-2xl bg-[var(--accent)] py-3 font-display text-[22px] font-extrabold text-white"
         >
-          {starting ? 'Lacing up…' : 'Start the race'}
+          {starting ? tr('Lacing up…') : tr('Start the race')}
         </button>
         {yesterday && <YesterdayCard recap={yesterday} />}
       </div>

@@ -31,6 +31,7 @@ import {
   popText,
   runnerPaint,
 } from '../lib/sprites';
+import { tr } from '../i18n';
 
 type Props = {
   game: ArcadeId;
@@ -78,7 +79,9 @@ const Frame = ({
         <p className="font-display text-[26px] font-extrabold leading-none tabular">
           {hud.score}
         </p>
-        <p className="text-[12px] font-extrabold text-ink-soft">points</p>
+        <p className="text-[12px] font-extrabold text-ink-soft">
+          {tr('points')}
+        </p>
       </div>
       <div className="bib px-3 py-1.5 text-right">
         <p className="font-display text-[26px] font-extrabold leading-none tabular">
@@ -102,7 +105,7 @@ const Frame = ({
     )}
     {children}
     <p className="pointer-events-none absolute inset-x-0 bottom-6 text-center font-display text-[17px] font-extrabold text-ink/70">
-      Tap anywhere (or press space)
+      {tr('Tap anywhere (or press space)')}
     </p>
   </div>
 );
@@ -219,7 +222,7 @@ const HurdleHop = ({ dateKey, round, look, bib, onDone }: Props) => {
         } else {
           s.combo = 0;
           s.tripAt = ms;
-          s.pops.push({ text: 'Trip!', color: '#e63946', born: ms, x: rx });
+          s.pops.push({ text: tr('Trip!'), color: '#e63946', born: ms, x: rx });
           sfx.stumble();
         }
         s.judged += 1;
@@ -301,13 +304,19 @@ const HurdleHop = ({ dateKey, round, look, bib, onDone }: Props) => {
         o.score === s.score &&
         o.left === left &&
         o.count === count &&
-        o.note === (s.combo > 1 ? `streak ${s.combo}` : 'round ' + (round + 1))
+        o.note ===
+          (s.combo > 1
+            ? tr('streak {n}', { n: s.combo })
+            : tr('round {n}', { n: round + 1 }))
           ? o
           : {
               score: s.score,
               left,
               count,
-              note: s.combo > 1 ? `streak ${s.combo}` : 'round ' + (round + 1),
+              note:
+                s.combo > 1
+                  ? tr('streak {n}', { n: s.combo })
+                  : tr('round {n}', { n: round + 1 }),
             }
       );
       if (ms > HURDLE_MS + 400) {
@@ -324,7 +333,7 @@ const HurdleHop = ({ dateKey, round, look, bib, onDone }: Props) => {
       hud={hud}
       onTap={tap}
       canvasRef={canvasRef}
-      hint="Tap to jump each hurdle as it reaches you. Not too early!"
+      hint={tr('Tap to jump each hurdle as it reaches you. Not too early!')}
     />
   );
 };
@@ -374,7 +383,7 @@ const RhythmSteps = ({ dateKey, round, look, bib, onDone }: Props) => {
       const pts = base * (s.combo >= 10 ? 3 : s.combo >= 5 ? 2 : 1);
       s.score += pts;
       s.pops.push({
-        text: bestD <= PERFECT_MS ? 'Perfect!' : 'Good',
+        text: bestD <= PERFECT_MS ? tr('Perfect!') : tr('Good'),
         color: bestD <= PERFECT_MS ? '#1f8f7f' : '#3a7bd5',
         born: ms,
       });
@@ -382,7 +391,7 @@ const RhythmSteps = ({ dateKey, round, look, bib, onDone }: Props) => {
     } else {
       s.combo = 0;
       s.score = Math.max(0, s.score - 5);
-      s.pops.push({ text: 'Off beat', color: '#e63946', born: ms });
+      s.pops.push({ text: tr('Off beat'), color: '#e63946', born: ms });
     }
   };
   useSpace(tap);
@@ -402,7 +411,7 @@ const RhythmSteps = ({ dateKey, round, look, bib, onDone }: Props) => {
       while (s.passed < ns.length && (ns[s.passed] ?? 0) + GOOD_MS < ms) {
         if (!s.used.has(s.passed)) {
           s.combo = 0;
-          s.pops.push({ text: 'Miss', color: '#9b8fb0', born: ms });
+          s.pops.push({ text: tr('Miss'), color: '#9b8fb0', born: ms });
         }
         s.passed += 1;
       }
@@ -458,7 +467,10 @@ const RhythmSteps = ({ dateKey, round, look, bib, onDone }: Props) => {
         s.lastCount = count;
       }
       const left = Math.max(0, Math.ceil((RHYTHM_MS - Math.max(0, ms)) / 1000));
-      const note = s.combo > 1 ? `combo ${s.combo}` : 'round ' + (round + 1);
+      const note =
+        s.combo > 1
+          ? tr('combo {n}', { n: s.combo })
+          : tr('round {n}', { n: round + 1 });
       setHud((o) =>
         o.score === s.score &&
         o.left === left &&
@@ -481,7 +493,7 @@ const RhythmSteps = ({ dateKey, round, look, bib, onDone }: Props) => {
       hud={hud}
       onTap={tap}
       canvasRef={canvasRef}
-      hint="Tap as each footprint reaches the white line. Keep the beat!"
+      hint={tr('Tap as each footprint reaches the white line. Keep the beat!')}
     />
   );
 };
@@ -506,7 +518,7 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
   const clock = useRef(-COUNTDOWN);
   const [hud, setHud] = useState<Hud>({
     score: 0,
-    note: `throw 1 of ${FETCH_THROWS}`,
+    note: tr('throw {n} of {total}', { n: 1, total: FETCH_THROWS }),
     left: FETCH_THROWS,
     count: 3,
   });
@@ -585,8 +597,11 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
         ctx.textAlign = 'right';
         ctx.fillText(
           th.wind === 0
-            ? 'No wind'
-            : `Wind ${th.wind > 0 ? '→' : '←'} ${Math.abs(th.wind).toFixed(1)} m`,
+            ? tr('No wind')
+            : tr('Wind {dir} {m} m', {
+                dir: th.wind > 0 ? '→' : '←',
+                m: Math.abs(th.wind).toFixed(1),
+              }),
           w - 14,
           116
         );
@@ -638,7 +653,7 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
         popText(
           ctx,
           s.last.points >= 90
-            ? `Bullseye! +${s.last.points}`
+            ? tr('Bullseye! +{n}', { n: s.last.points })
             : `+${s.last.points}`,
           px0 + s.last.distance * perM,
           ground - 60,
@@ -672,7 +687,10 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
         s.lastCount = count;
       }
       const shown = s.score + (since >= 900 && s.last ? s.last.points : 0);
-      const note = `throw ${Math.min(FETCH_THROWS, s.i + 1)} of ${FETCH_THROWS}`;
+      const note = tr('throw {n} of {total}', {
+        n: Math.min(FETCH_THROWS, s.i + 1),
+        total: FETCH_THROWS,
+      });
       const left = FETCH_THROWS - s.i;
       setHud((o) =>
         o.score === shown &&
@@ -693,7 +711,7 @@ const PetFetch = ({ dateKey, round, look, bib, onDone }: Props) => {
       hud={hud}
       onTap={tap}
       canvasRef={canvasRef}
-      hint="Tap when the power bar reaches the pink mark. Mind the wind!"
+      hint={tr('Tap when the power bar reaches the pink mark. Mind the wind!')}
     />
   );
 };

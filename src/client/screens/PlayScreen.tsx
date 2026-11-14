@@ -13,6 +13,7 @@ import {
 import { COIN } from '../../shared/economy';
 import { GAME_INFO, PLAY_GAMES } from '../lib/games';
 import { TOUR } from '../../shared/tour';
+import { tr } from '../i18n';
 
 export type DashResult = { score: number; reward: number };
 export type { PlayGame } from '../lib/games';
@@ -57,7 +58,9 @@ export const PlayScreen = ({
   return (
     <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
       <header className="flex items-baseline justify-between">
-        <h1 className="font-display text-[26px] font-extrabold">Play</h1>
+        <h1 className="font-display text-[26px] font-extrabold">
+          {tr('Play')}
+        </h1>
         <p className="font-display text-[18px] font-extrabold">
           {COIN} {profile.badges}
         </p>
@@ -72,11 +75,13 @@ export const PlayScreen = ({
         </span>
         <span className="flex-1">
           <span className="block font-display text-[19px] font-extrabold leading-tight">
-            World Tour
+            {tr('World Tour')}
           </span>
           <span className="block text-[12px] leading-snug text-ink-soft">
-            The Great Wall, the Pyramids, Machu Picchu and more. Unlock with
-            coins, run any time · 🛂 {profile.tourStamps.length}/{TOUR.length}
+            {tr(
+              'The Great Wall, the Pyramids, Machu Picchu and more. Unlock with coins, run any time'
+            )}{' '}
+            · 🛂 {profile.tourStamps.length}/{TOUR.length}
           </span>
         </span>
         <span className="font-display text-[22px] font-extrabold" aria-hidden>
@@ -87,7 +92,7 @@ export const PlayScreen = ({
       <div
         className="grid grid-cols-2 gap-1.5"
         role="tablist"
-        aria-label="Mini games"
+        aria-label={tr('Mini games')}
       >
         {PLAY_GAMES.map((g) => {
           const on = g === game;
@@ -106,10 +111,12 @@ export const PlayScreen = ({
               </span>
               <span className="min-w-0">
                 <span className="block truncate font-display text-[15px] font-extrabold leading-tight">
-                  {GAME_INFO[g].name}
+                  {tr(GAME_INFO[g].name)}
                 </span>
                 <span className="block text-[11px] font-bold text-ink-soft">
-                  {d.plays > 0 ? `best ${d.best} today` : 'not played today'}
+                  {d.plays > 0
+                    ? tr('best {n} today', { n: d.best })
+                    : tr('not played today')}
                 </span>
               </span>
             </button>
@@ -120,32 +127,32 @@ export const PlayScreen = ({
       {last && (
         <section
           className="pop-in bib px-4 py-3 text-center"
-          aria-label="Your last round"
+          aria-label={tr('Your last round')}
         >
           <p className="text-[13px] font-extrabold text-ink-soft">
-            {info.name}: round {plays} done
+            {tr('{game}: round {n} done', { game: tr(info.name), n: plays })}
           </p>
           <p className="font-display text-[44px] font-extrabold leading-none text-[var(--accent)]">
             {last.score}
           </p>
           <p className="text-[14px] font-extrabold">
             {last.reward > 0
-              ? `+${last.reward} ${COIN} coins`
-              : 'Just for fun: no coins this round'}
+              ? tr('+{n} {coin} coins', { n: last.reward, coin: COIN })
+              : tr('Just for fun: no coins this round')}
           </p>
         </section>
       )}
 
       <section className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-3">
         <h2 className="font-display text-[20px] font-extrabold leading-tight">
-          {info.icon} {info.name}
+          {info.icon} {tr(info.name)}
         </h2>
-        <p className="mt-1 text-[14px] leading-snug">{info.rules}</p>
+        <p className="mt-1 text-[14px] leading-snug">{tr(info.rules)}</p>
         <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
           {[
-            [best, 'best today'],
-            [paidLeft, 'paid rounds left'],
-            [left, 'rounds left'],
+            [best, tr('best today')],
+            [paidLeft, tr('paid rounds left')],
+            [left, tr('rounds left')],
           ].map(([n, label]) => (
             <div key={label} className="rounded-xl bg-[var(--sky)] py-1.5">
               <p className="font-display text-[20px] font-extrabold leading-none tabular">
@@ -164,29 +171,34 @@ export const PlayScreen = ({
           className="chunky mt-3 w-full rounded-2xl bg-[var(--accent)] py-2.5 font-display text-[20px] font-extrabold text-white"
         >
           {guest
-            ? 'Log in to play'
+            ? tr('Log in to play')
             : left <= 0
-              ? 'Back tomorrow for more'
+              ? tr('Back tomorrow for more')
               : paidLeft > 0
-                ? `Play round ${plays + 1} (up to ${reward} ${COIN})`
-                : `Play round ${plays + 1} for fun`}
+                ? tr('Play round {n} (up to {reward} {coin})', {
+                    n: plays + 1,
+                    reward,
+                    coin: COIN,
+                  })
+                : tr('Play round {n} for fun', { n: plays + 1 })}
         </button>
         <p className="mt-1 text-[11px] text-ink-soft">
-          Everyone gets the same course for each round, and the server checks
-          every score.
+          {tr(
+            'Everyone gets the same course for each round, and the server checks every score.'
+          )}
         </p>
       </section>
 
       <section
         className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2"
-        aria-label={`Today’s best ${info.name} scores`}
+        aria-label={tr('Today’s best {game} scores', { game: tr(info.name) })}
       >
         <h2 className="px-2 font-display text-[19px] font-extrabold">
-          Today’s best
+          {tr('Today’s best')}
         </h2>
         {!board || board.rows.length === 0 ? (
           <p className="px-2 text-[13px] text-ink-soft">
-            No scores yet. Be the first!
+            {tr('No scores yet. Be the first!')}
           </p>
         ) : (
           <ol className="mt-1 flex flex-col gap-1">
@@ -214,7 +226,10 @@ export const PlayScreen = ({
             {board.mine &&
               !board.rows.some((r) => r.username === board.mine?.username) && (
                 <li className="px-2 text-[13px] text-ink-soft">
-                  You are #{board.mine.rank} with {board.mine.score}.
+                  {tr('You are #{rank} with {score}.', {
+                    rank: board.mine.rank,
+                    score: board.mine.score,
+                  })}
                 </li>
               )}
           </ol>

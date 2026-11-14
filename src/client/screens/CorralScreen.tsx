@@ -7,6 +7,7 @@ import type { DayInfo } from '../../shared/content';
 import type { Lane } from '../../shared/course';
 import { startLane } from '../../shared/race';
 import { RunnerPreview } from '../components/RunnerPreview';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -54,10 +55,10 @@ export const CorralScreen = ({
           onClick={onBack}
           className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
         >
-          ← Plan
+          {tr('← Plan')}
         </button>
         <p className="text-[13px] font-extrabold text-ink-soft">
-          {day.city.flag} {day.stage.name}
+          {day.city.flag} {tr(day.stage.name)}
         </p>
       </header>
 
@@ -73,7 +74,7 @@ export const CorralScreen = ({
       <div className="flex-1 overflow-y-auto px-4">
         <section className="bib bib-pins px-4 pt-6 pb-3 text-center">
           <p className="text-[13px] font-extrabold text-ink-soft">
-            Start corral
+            {tr('Start corral')}
           </p>
           <p className="font-display text-[44px] font-extrabold leading-none tabular text-[var(--accent)] [text-shadow:0_3px_0_#2a2340]">
             {bibText(profile.bib)}
@@ -83,16 +84,27 @@ export const CorralScreen = ({
             u/{profile.username}
           </p>
           <p className="mt-2 text-[14px]">
-            You start in the <strong>{LANE_NAME[lane]} lane</strong>
+            <strong>
+              {tr('You start in the {lane} lane', {
+                lane: tr(LANE_NAME[lane]),
+              })}
+            </strong>
             {field > 0
-              ? `, with ${field} ${field === 1 ? 'runner' : 'runners'} from today on the road.`
-              : '. Nobody has run today yet: the road is yours.'}
+              ? tr(
+                  field === 1
+                    ? ', with {n} runner from today on the road.'
+                    : ', with {n} runners from today on the road.',
+                  { n: field }
+                )
+              : tr('. Nobody has run today yet: the road is yours.')}
           </p>
         </section>
 
         {field > 0 && (
           <section className="mt-3 rounded-2xl border-2 border-ink bg-white/80 px-3 py-2">
-            <h2 className="text-[13px] font-extrabold">On the road with you</h2>
+            <h2 className="text-[13px] font-extrabold">
+              {tr('On the road with you')}
+            </h2>
             <ul className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
               {runners.slice(0, 12).map((r) => (
                 <li
@@ -114,13 +126,16 @@ export const CorralScreen = ({
 
         <section
           className="mt-3 rounded-2xl border-2 border-ink bg-white/85 px-3 py-2"
-          aria-label="Call your time"
+          aria-label={tr('Call your time')}
         >
-          <h2 className="text-[13px] font-extrabold">🔮 Call your time</h2>
+          <h2 className="text-[13px] font-extrabold">
+            {tr('🔮 Call your time')}
+          </h2>
           <p className="text-[12px] leading-snug text-ink-soft">
-            Your plan says {formatTime(projected)}. Snacks, cones and crashes
-            will change it: guess your finish. Within 10 s pays {30} 🪙, within
-            3 s pays {60} 🪙.
+            {tr(
+              'Your plan says {time}. Snacks, cones and crashes will change it: guess your finish. Within 10 s pays 30 🪙, within 3 s pays 60 🪙.',
+              { time: formatTime(projected) }
+            )}
           </p>
           <div className="mt-1.5 flex items-center justify-center gap-1.5">
             {[-30, -5].map((d) => (
@@ -129,7 +144,7 @@ export const CorralScreen = ({
                 type="button"
                 onClick={() => nudge(d)}
                 className="chunky rounded-xl bg-white px-2.5 py-1 text-[13px] font-extrabold"
-                aria-label={`${-d} seconds faster`}
+                aria-label={tr('{n} seconds faster', { n: -d })}
               >
                 {d}s
               </button>
@@ -137,7 +152,7 @@ export const CorralScreen = ({
             <output
               className="w-[92px] text-center font-display text-[28px] font-extrabold tabular"
               aria-live="polite"
-              aria-label="Your guess"
+              aria-label={tr('Your guess')}
             >
               {formatTime(guess)}
             </output>
@@ -147,7 +162,7 @@ export const CorralScreen = ({
                 type="button"
                 onClick={() => nudge(d)}
                 className="chunky rounded-xl bg-white px-2.5 py-1 text-[13px] font-extrabold"
-                aria-label={`${d} seconds slower`}
+                aria-label={tr('{n} seconds slower', { n: d })}
               >
                 +{d}s
               </button>
@@ -156,12 +171,13 @@ export const CorralScreen = ({
         </section>
 
         <ul className="mt-3 flex flex-col gap-1 text-[13px]">
-          <li>◀ ▶ Swipe or tap to change lanes.</li>
+          <li>{tr('◀ ▶ Swipe or tap to change lanes.')}</li>
           <li>
-            🚧 Cones, puddles and cups cost seconds. 🍬 Snacks and 🙌 high fives
-            speed you up.
+            {tr(
+              '🚧 Cones, puddles and cups cost seconds. 🍬 Snacks and 🙌 high fives speed you up.'
+            )}
           </li>
-          <li>💥 Run into a runner and you both fall.</li>
+          <li>{tr('💥 Run into a runner and you both fall.')}</li>
         </ul>
       </div>
 
@@ -171,7 +187,7 @@ export const CorralScreen = ({
           onClick={() => onGo(guess)}
           className="chunky w-full rounded-2xl bg-[var(--accent)] py-3 font-display text-[22px] font-extrabold text-white"
         >
-          Line up at the start
+          {tr('Line up at the start')}
         </button>
       </div>
     </div>

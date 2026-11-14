@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { Avatar } from '../components/Avatar';
 import type { FriendRow, Profile } from '../../shared/api';
 import { formatTime } from '../../shared/sim';
+import { tr } from '../i18n';
 
 type Props = {
   profile: Profile;
@@ -28,21 +29,26 @@ export const FriendsScreen = (p: Props) => {
   return (
     <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
       <header className="flex items-baseline justify-between">
-        <h1 className="font-display text-[26px] font-extrabold">Friends</h1>
+        <h1 className="font-display text-[26px] font-extrabold">
+          {tr('Friends')}
+        </h1>
         <p className="text-[13px] font-extrabold text-ink-soft">
           {p.friends.length > 0
-            ? `${ran} of ${p.friends.length} ran today`
-            : 'Run together'}
+            ? tr('{n} of {total} ran today', {
+                n: ran,
+                total: p.friends.length,
+              })
+            : tr('Run together')}
         </p>
       </header>
 
       <section
         className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-        aria-label="Your friends"
+        aria-label={tr('Your friends')}
       >
         <form className="flex gap-2" onSubmit={submit}>
           <label className="sr-only" htmlFor="friend-name">
-            Reddit username
+            {tr('Reddit username')}
           </label>
           <input
             id="friend-name"
@@ -58,18 +64,19 @@ export const FriendsScreen = (p: Props) => {
             disabled={p.busy || guest || !name.trim()}
             className="chunky rounded-xl bg-[var(--accent)] px-4 font-display text-[16px] font-extrabold text-white"
           >
-            Add
+            {tr('Add')}
           </button>
         </form>
         <p className="mt-1 text-[11px] text-ink-soft">
-          Friends run on your road first, get their own tag colour and a Friends
-          tab on the leaderboard.
+          {tr(
+            'Friends run on your road first, get their own tag colour and a Friends tab on the leaderboard.'
+          )}
         </p>
         {p.friends.length === 0 ? (
           <p className="mt-2 text-[13px] text-ink-soft">
             {guest
-              ? 'Log in to Reddit to add friends.'
-              : 'No friends yet. Add someone from today’s runners below.'}
+              ? tr('Log in to Reddit to add friends.')
+              : tr('No friends yet. Add someone from today’s runners below.')}
           </p>
         ) : (
           <ul className="mt-2 flex flex-col gap-1.5">
@@ -88,9 +95,14 @@ export const FriendsScreen = (p: Props) => {
                   </p>
                   <p className="text-[11px] text-ink-soft">
                     {f.seconds !== null
-                      ? `Ran today: ${formatTime(f.seconds)}, #${f.rank}`
-                      : 'Has not run today yet'}
-                    {f.streak > 1 ? ` · 🔥 ${f.streak}-day streak` : ''}
+                      ? tr('Ran today: {time}, #{rank}', {
+                          time: formatTime(f.seconds),
+                          rank: f.rank ?? '',
+                        })
+                      : tr('Has not run today yet')}
+                    {f.streak > 1
+                      ? ` · ${tr('🔥 {n}-day streak', { n: f.streak })}`
+                      : ''}
                   </p>
                 </div>
                 <button
@@ -98,7 +110,9 @@ export const FriendsScreen = (p: Props) => {
                   disabled={p.busy}
                   onClick={() => p.onRemove(f.username)}
                   className="rounded-full px-2 text-[14px] font-extrabold text-ink-soft"
-                  aria-label={`Remove u/${f.username} from friends`}
+                  aria-label={tr('Remove u/{name} from friends', {
+                    name: f.username,
+                  })}
                 >
                   ✕
                 </button>
@@ -109,9 +123,9 @@ export const FriendsScreen = (p: Props) => {
       </section>
 
       {p.suggestions.length > 0 && (
-        <section aria-label="Runners from today">
+        <section aria-label={tr('Runners from today')}>
           <h2 className="mb-1 font-display text-[17px] font-extrabold">
-            Runners from today
+            {tr('Runners from today')}
           </h2>
           <ul className="flex flex-wrap gap-1.5">
             {p.suggestions.map((s) => (
@@ -121,7 +135,7 @@ export const FriendsScreen = (p: Props) => {
                   disabled={p.busy || guest}
                   onClick={() => p.onAdd(s)}
                   className="chunky flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-[13px] font-extrabold"
-                  aria-label={`Add u/${s} as a friend`}
+                  aria-label={tr('Add u/{name} as a friend', { name: s })}
                 >
                   <Avatar name={s} size={22} />+ u/{s}
                 </button>

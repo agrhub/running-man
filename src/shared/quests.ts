@@ -26,7 +26,7 @@ export type QuestDef = {
   scope: QuestScope;
 };
 
-const DAILY: QuestDef[] = [
+export const DAILY: QuestDef[] = [
   {
     id: 'snacks',
     label: 'Grab 3 snacks on the road',

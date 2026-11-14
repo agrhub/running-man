@@ -11,6 +11,7 @@ import {
   type PetChoice,
 } from '../../shared/economy';
 import { RunnerPreview } from '../components/RunnerPreview';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -67,13 +68,15 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
     <div className="flex h-full flex-col max-w-[440px] mx-auto">
       <header className="px-4 pt-3">
         <p className="text-[13px] font-extrabold text-ink-soft">
-          {day.city.flag} Running Man
+          {day.city.flag} {tr('Running Man')}
         </p>
         <h1 className="font-display text-[28px] font-extrabold leading-tight">
-          Make your runner
+          {tr('Make your runner')}
         </h1>
         <p className="text-[13px] text-ink-soft">
-          Everyone on the road will see this runner as u/{profile.username}.
+          {tr('Everyone on the road will see this runner as u/{name}.', {
+            name: profile.username,
+          })}
         </p>
       </header>
 
@@ -84,13 +87,13 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
       <div className="flex-1 overflow-y-auto px-4 pb-3">
         <section className="flex flex-col gap-3">
           <div>
-            <h2 className="mb-1.5 text-[13px] font-extrabold">Skin</h2>
+            <h2 className="mb-1.5 text-[13px] font-extrabold">{tr('Skin')}</h2>
             <div className="flex flex-wrap gap-2">
               {SKIN_TONES.map((c, i) => (
                 <Swatch
                   key={c}
                   color={c}
-                  label={`Skin tone ${i + 1}`}
+                  label={tr('Skin tone {n}', { n: i + 1 })}
                   selected={skin === i}
                   onClick={() => setSkin(i)}
                 />
@@ -98,7 +101,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
             </div>
           </div>
           <div>
-            <h2 className="mb-1.5 text-[13px] font-extrabold">Hair</h2>
+            <h2 className="mb-1.5 text-[13px] font-extrabold">{tr('Hair')}</h2>
             <div className="mb-2 flex flex-wrap gap-1.5">
               {HAIR_STYLES.map((name, i) => (
                 <button
@@ -108,7 +111,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
                   onClick={() => setHairStyle(i)}
                   className={`rounded-full border-2 border-ink px-3 py-1 text-[13px] font-extrabold ${hairStyle === i ? 'bg-ink text-white' : 'bg-white'}`}
                 >
-                  {name}
+                  {tr(name)}
                 </button>
               ))}
             </div>
@@ -117,7 +120,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
                 <Swatch
                   key={c}
                   color={c}
-                  label={`Hair colour ${i + 1}`}
+                  label={tr('Hair colour {n}', { n: i + 1 })}
                   selected={hair === i}
                   onClick={() => setHair(i)}
                 />
@@ -125,7 +128,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
             </div>
           </div>
           <div>
-            <h2 className="mb-1.5 text-[13px] font-extrabold">Shirt</h2>
+            <h2 className="mb-1.5 text-[13px] font-extrabold">{tr('Shirt')}</h2>
             <div className="flex flex-wrap gap-2">
               {tops.map((t) => (
                 <Swatch
@@ -139,7 +142,9 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
             </div>
           </div>
           <div>
-            <h2 className="mb-1.5 text-[13px] font-extrabold">Running buddy</h2>
+            <h2 className="mb-1.5 text-[13px] font-extrabold">
+              {tr('Running buddy')}
+            </h2>
             <div className="flex flex-wrap gap-1.5">
               {pets.length > 0 && (
                 <button
@@ -148,7 +153,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
                   onClick={() => setPet('none')}
                   className={`rounded-full border-2 border-ink px-3 py-1 text-[13px] font-extrabold ${pet === 'none' ? 'bg-ink text-white' : 'bg-white'}`}
                 >
-                  No pet
+                  {tr('No pet')}
                 </button>
               )}
               {pets.map((p) => (
@@ -165,8 +170,10 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
             </div>
             <p className="mt-1 text-[12px] text-ink-soft">
               {pets.length === 0
-                ? 'No pet yet: adopt one in the Shop with the coins you earn.'
-                : 'More pets and outfits wait in the Shop.'}
+                ? tr(
+                    'No pet yet: adopt one in the Shop with the coins you earn.'
+                  )
+                : tr('More pets and outfits wait in the Shop.')}
             </p>
           </div>
         </section>
@@ -179,7 +186,7 @@ export const RegisterScreen = ({ day, profile, busy, onRegister }: Props) => {
           onClick={() => onRegister({ skin, hair, hairStyle, top, pet })}
           className="chunky w-full rounded-2xl bg-[var(--accent)] py-3 font-display text-[21px] font-extrabold text-white"
         >
-          {busy ? 'Printing your bib…' : 'Get my race bib'}
+          {busy ? tr('Printing your bib…') : tr('Get my race bib')}
         </button>
       </div>
     </div>

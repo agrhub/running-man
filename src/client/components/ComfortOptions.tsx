@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { setPrefs, usePrefs, type Hand } from '../lib/prefs';
 import { onSoundChange, setSound, soundOn } from '../lib/sound';
+import { LANGS, langChoice, setLang, tr, useLang } from '../i18n';
 
 const Toggle = ({
   label,
@@ -42,48 +43,53 @@ const HANDS: { id: Hand; label: string }[] = [
 /** Sound and comfort options; they stay in this browser. */
 export const ComfortOptions = () => {
   const p = usePrefs();
+  useLang();
   const [sound, setSoundState] = useState(soundOn);
   useEffect(() => onSoundChange(setSoundState), []);
   return (
     <section
       className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2"
-      aria-label="Options"
+      aria-label={tr('Options')}
     >
-      <h2 className="font-display text-[17px] font-extrabold">Options</h2>
+      <h2 className="font-display text-[17px] font-extrabold">
+        {tr('Options')}
+      </h2>
       <ul className="divide-y-2 divide-ink/10">
         <Toggle
-          label="Sound"
-          hint="Footsteps, crowds, weather and the finish fanfare."
+          label={tr('Sound')}
+          hint={tr('Footsteps, crowds, weather and the finish fanfare.')}
           on={sound}
           onChange={setSound}
         />
         <Toggle
-          label="Calm motion"
-          hint="No lightning flashes, less rain and snow, a steady camera."
+          label={tr('Calm motion')}
+          hint={tr(
+            'No lightning flashes, less rain and snow, a steady camera.'
+          )}
           on={p.calm}
           onChange={(calm) => setPrefs({ calm })}
         />
         <Toggle
-          label="Bigger steering buttons"
-          hint="Larger ◀ ▶ buttons in the race."
+          label={tr('Bigger steering buttons')}
+          hint={tr('Larger ◀ ▶ buttons in the race.')}
           on={p.bigControls}
           onChange={(bigControls) => setPrefs({ bigControls })}
         />
         <Toggle
-          label="Vibration"
-          hint="A buzz on crashes and boosters, on phones that allow it."
+          label={tr('Vibration')}
+          hint={tr('A buzz on crashes and boosters, on phones that allow it.')}
           on={p.vibration}
           onChange={(vibration) => setPrefs({ vibration })}
         />
         <li className="py-1.5">
-          <p className="text-[14px] font-extrabold">Steering buttons</p>
+          <p className="text-[14px] font-extrabold">{tr('Steering buttons')}</p>
           <p className="text-[11px] text-ink-soft">
-            Put both arrows on one side to steer with one thumb.
+            {tr('Put both arrows on one side to steer with one thumb.')}
           </p>
           <div
             className="mt-1 grid grid-cols-3 gap-1"
             role="radiogroup"
-            aria-label="Steering buttons"
+            aria-label={tr('Steering buttons')}
           >
             {HANDS.map((h) => (
               <button
@@ -94,7 +100,31 @@ export const ComfortOptions = () => {
                 onClick={() => setPrefs({ hand: h.id })}
                 className={`rounded-xl border-2 border-ink py-1 text-[13px] font-extrabold ${p.hand === h.id ? 'bg-ink text-white' : 'bg-white'}`}
               >
-                {h.label}
+                {tr(h.label)}
+              </button>
+            ))}
+          </div>
+        </li>
+        <li className="py-1.5">
+          <p className="text-[14px] font-extrabold">{tr('Language')}</p>
+          <p className="text-[11px] text-ink-soft">
+            {tr('Automatic follows your device.')}
+          </p>
+          <div
+            className="mt-1 grid grid-cols-3 gap-1"
+            role="radiogroup"
+            aria-label={tr('Language')}
+          >
+            {LANGS.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                role="radio"
+                aria-checked={langChoice() === l.id}
+                onClick={() => setLang(l.id)}
+                className={`rounded-xl border-2 border-ink py-1 text-[13px] font-extrabold ${langChoice() === l.id ? 'bg-ink text-white' : 'bg-white'}`}
+              >
+                {l.id === 'auto' ? tr(l.label) : l.label}
               </button>
             ))}
           </div>

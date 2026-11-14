@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { DayInfo } from '../../shared/content';
 import type { Look } from '../../shared/economy';
 import { loadWorld } from '../three/load';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -50,6 +51,10 @@ export const RunnerPreview = ({ day, look, bib, showBack = false }: Props) => {
     };
   }, [day, look, bib, showBack]);
   return (
-    <canvas ref={ref} className="h-full w-full" aria-label="Your runner" />
+    <canvas
+      ref={ref}
+      className="h-full w-full"
+      aria-label={tr('Your runner')}
+    />
   );
 };

@@ -1,6 +1,7 @@
 import type { LeaderRow, WeeklyBoard } from '../../shared/api';
 import { Avatar } from './Avatar';
 import { formatTime } from '../../shared/sim';
+import { tr } from '../i18n';
 
 type Props = {
   rows: LeaderRow[];
@@ -16,7 +17,9 @@ const medal = (rank: number) =>
 export const Leaderboard = ({ rows, me, myRank, canCheer, onCheer }: Props) => {
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-ink-soft">No one has run this stage yet.</p>
+      <p className="text-sm text-ink-soft">
+        {tr('No one has run this stage yet.')}
+      </p>
     );
   }
   const meVisible = rows.some((r) => r.username === me);
@@ -40,7 +43,7 @@ export const Leaderboard = ({ rows, me, myRank, canCheer, onCheer }: Props) => {
               type="button"
               className="chunky rounded-full bg-gold px-2 text-[12px] font-extrabold"
               onClick={() => onCheer(r.username)}
-              aria-label={`Cheer for ${r.username}`}
+              aria-label={tr('Cheer for {name}', { name: r.username })}
             >
               👏
             </button>
@@ -48,7 +51,9 @@ export const Leaderboard = ({ rows, me, myRank, canCheer, onCheer }: Props) => {
         </li>
       ))}
       {!meVisible && myRank !== null && (
-        <li className="px-2 text-[13px] text-ink-soft">You are #{myRank}.</li>
+        <li className="px-2 text-[13px] text-ink-soft">
+          {tr('You are #{rank}.', { rank: myRank })}
+        </li>
       )}
     </ol>
   );
@@ -65,7 +70,7 @@ export const WeeklyStandings = ({
   if (board.rows.length === 0) {
     return (
       <p className="px-2 text-sm text-ink-soft">
-        No one has run this week yet.
+        {tr('No one has run this week yet.')}
       </p>
     );
   }
@@ -92,8 +97,12 @@ export const WeeklyStandings = ({
       ))}
       {!meVisible && board.mine && (
         <li className="px-2 text-[13px] text-ink-soft">
-          You are #{board.mine.rank} with {board.mine.stages}{' '}
-          {board.mine.stages === 1 ? 'stage' : 'stages'}.
+          {tr(
+            board.mine.stages === 1
+              ? 'You are #{rank} with {n} stage.'
+              : 'You are #{rank} with {n} stages.',
+            { rank: board.mine.rank, n: board.mine.stages }
+          )}
         </li>
       )}
     </ol>

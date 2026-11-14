@@ -18,6 +18,7 @@ import {
   type Look,
 } from '../../shared/economy';
 import { sfx } from '../lib/sound';
+import { tr } from '../i18n';
 
 type Props = {
   dateKey: string;
@@ -319,7 +320,7 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
               pops.push({
                 x,
                 y: h * 0.62,
-                text: e.points < 0 ? `${e.points}` : 'Splash!',
+                text: e.points < 0 ? `${e.points}` : tr('Splash!'),
                 color: '#2a2340',
                 born: t,
               });
@@ -375,14 +376,16 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"
-        aria-label="Snack Dash"
+        aria-label={tr('Snack Dash')}
       />
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
         <div className="bib px-3 py-1.5">
           <p className="font-display text-[26px] font-extrabold leading-none tabular">
             {hud.score}
           </p>
-          <p className="text-[12px] font-extrabold text-ink-soft">points</p>
+          <p className="text-[12px] font-extrabold text-ink-soft">
+            {tr('points')}
+          </p>
         </div>
         <div className="bib px-3 py-1.5 text-right">
           <p className="font-display text-[26px] font-extrabold leading-none tabular">
@@ -390,7 +393,7 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
           </p>
           <p className="text-[12px] font-extrabold text-ink-soft">
             {hud.combo > 0
-              ? `combo ${hud.combo}${mult > 1 ? ` · x${mult}` : ''}`
+              ? `${tr('combo {n}', { n: hud.combo })}${mult > 1 ? ` · x${mult}` : ''}`
               : 'round ' + (round + 1)}
           </p>
         </div>
@@ -405,7 +408,9 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
       )}
       {hud.count > 0 && (
         <p className="pointer-events-none absolute inset-x-6 bottom-[104px] mx-auto max-w-[320px] rounded-xl bg-ink px-3 py-2 text-center text-[13px] font-bold text-white">
-          Catch 🍬🥤💧🍰, dodge 🚧 and 💦. Snacks in a row build a combo.
+          {tr(
+            'Catch 🍬🥤💧🍰, dodge 🚧 and 💦. Snacks in a row build a combo.'
+          )}
         </p>
       )}
       <div className="absolute inset-x-0 bottom-0 flex justify-between p-3">
@@ -416,7 +421,7 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
             steer(-1);
           }}
           className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
-          aria-label="Move left"
+          aria-label={tr('Move left')}
         >
           ◀
         </button>
@@ -427,7 +432,7 @@ export const DashGame = ({ dateKey, round, look, bib, onDone }: Props) => {
             steer(1);
           }}
           className="chunky h-16 w-20 rounded-2xl bg-white font-display text-[30px] font-extrabold"
-          aria-label="Move right"
+          aria-label={tr('Move right')}
         >
           ▶
         </button>

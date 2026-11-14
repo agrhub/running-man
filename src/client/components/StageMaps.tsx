@@ -2,6 +2,7 @@ import { CITIES, type DayInfo } from '../../shared/content';
 import { cityAt } from '../lib/geo';
 import { TOUR, tourById } from '../../shared/tour';
 import { AreaMap, WorldMap } from './PlaceMap';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -22,7 +23,14 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
     return (
       <div className="flex flex-col gap-2">
         <WorldMap
-          label={`World map with the ${TOUR.length} World Tour places; this run is at ${stop.stage.landmark.name}, ${stop.country}.`}
+          label={tr(
+            'World map with the {n} World Tour places; this run is at {place}, {country}.',
+            {
+              n: TOUR.length,
+              place: tr(stop.stage.landmark.name),
+              country: tr(stop.country),
+            }
+          )}
           pins={TOUR.flatMap((s) =>
             s.stage.landmark.at
               ? [
@@ -34,7 +42,7 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
                         : stamps.includes(s.id)
                           ? ('done' as const)
                           : ('other' as const),
-                    title: `${s.stage.landmark.name}, ${s.country}`,
+                    title: `${tr(s.stage.landmark.name)}, ${tr(s.country)}`,
                     ...(s.id === stop.id
                       ? { label: s.stage.landmark.name }
                       : {}),
@@ -46,7 +54,11 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
         {at && (
           <AreaMap
             area={stop.id}
-            label={`Map of ${stop.place}, ${stop.country}, with ${stop.stage.landmark.name}.`}
+            label={tr('Map of {area}, {country}, with {place}.', {
+              area: tr(stop.place),
+              country: tr(stop.country),
+              place: tr(stop.stage.landmark.name),
+            })}
             pins={[
               {
                 at,
@@ -66,18 +78,28 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
     <div className="flex flex-col gap-2">
       <WorldMap
         path
-        label={`World map of the five-city rotation; this week is ${city.name}, ${city.country}.`}
+        label={tr(
+          'World map of the five-city rotation; this week is {city}, {country}.',
+          { city: tr(city.name), country: tr(city.country) }
+        )}
         pins={CITIES.map((c) => ({
           at: cityAt(c),
           tone: c.id === city.id ? 'now' : 'other',
-          title: `${c.name}, ${c.country}`,
-          ...(c.id === city.id ? { label: `${c.flag} ${c.name}` } : {}),
+          title: `${tr(c.name)}, ${tr(c.country)}`,
+          ...(c.id === city.id ? { label: `${c.flag} ${tr(c.name)}` } : {}),
         }))}
       />
       <AreaMap
         area={city.id}
         path
-        label={`Map of ${city.name} with this week's seven stages at their landmarks; today is stage ${day.stageIndex + 1}, ${day.stage.landmark.name}.`}
+        label={tr(
+          "Map of {city} with this week's seven stages at their landmarks; today is stage {n}, {place}.",
+          {
+            city: tr(city.name),
+            n: day.stageIndex + 1,
+            place: tr(day.stage.landmark.name),
+          }
+        )}
         pins={city.stages.flatMap((s, i) =>
           s.landmark.at
             ? [
@@ -90,7 +112,11 @@ export const StageMaps = ({ day, tourId, stamps }: Props) => {
                       : i < day.stageIndex
                         ? ('done' as const)
                         : ('other' as const),
-                  title: `Stage ${i + 1}: ${s.name}, ${s.landmark.name}`,
+                  title: tr('Stage {n}: {stage}, {place}', {
+                    n: i + 1,
+                    stage: tr(s.name),
+                    place: tr(s.landmark.name),
+                  }),
                   ...(i === day.stageIndex ? { label: s.landmark.name } : {}),
                 },
               ]

@@ -349,6 +349,15 @@ the soundscape follow the clock.
 
 We brute-forced every pace plan for each stage and weather to make sure the best plan changes from day to day.
 
+## Languages
+
+The game ships in English and Vietnamese. Translation is gettext style: the English text is the key, so English needs
+no table and anything untranslated falls back to English. `{name}` marks values filled in at run time, and server
+messages that carry values are matched by pattern. The language follows the device and can be changed in Me →
+Options (kept in the browser). Public Reddit posts and comments stay in English, since the whole community reads
+them. `npm run i18n:check` collects every text the game can show (from `tr()` calls, the game data and the server's
+messages) and fails if one has no Vietnamese; a unit test checks that every translation keeps its `{values}`.
+
 ## Technology
 
 - **Client:** React for the interface, three.js for the runners, pets, cities and terrains. All 3D is procedural

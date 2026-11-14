@@ -1,6 +1,7 @@
 import type { Stage } from '../../shared/content';
 import type { KmSplit } from '../../shared/sim';
 import { PACE_COLOR } from '../lib/theme';
+import { tr } from '../i18n';
 
 type Props = {
   stage: Stage;
@@ -34,7 +35,7 @@ export const CourseProfile = ({ stage, splits, drinks }: Props) => {
       viewBox={`0 0 ${W} ${H}`}
       className="w-full h-auto"
       role="img"
-      aria-label={`Course profile for ${stage.name}`}
+      aria-label={tr('Course profile for {stage}', { stage: tr(stage.name) })}
     >
       {splits.map((s, i) => (
         <rect

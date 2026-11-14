@@ -4,6 +4,7 @@ import {
   type CityVote,
   type NextCityId,
 } from '../../shared/vote';
+import { tr } from '../i18n';
 
 type Props = {
   vote: CityVote;
@@ -19,22 +20,24 @@ export const VoteCard = ({ vote, busy, onVote }: Props) => {
   return (
     <section
       className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2"
-      aria-label="Vote for the next city"
+      aria-label={tr('Vote for the next city')}
     >
       <div className="flex items-baseline justify-between gap-2">
         <p className="font-display text-[17px] font-extrabold leading-tight">
-          Which city should we build next?
+          {tr('Which city should we build next?')}
         </p>
         <p className="shrink-0 text-[12px] font-extrabold text-ink-soft tabular">
-          {vote.total} {vote.total === 1 ? 'vote' : 'votes'}
+          {tr(vote.total === 1 ? '{n} vote' : '{n} votes', { n: vote.total })}
         </p>
       </div>
       <p className="text-[12px] text-ink-soft">
         {voted
           ? lead
-            ? `${lead.name} leads this week. Thanks for voting!`
-            : 'Neck and neck this week. Thanks for voting!'
-          : 'One vote a week for everyone who ran a stage.'}
+            ? tr('{city} leads this week. Thanks for voting!', {
+                city: tr(lead.name),
+              })
+            : tr('Neck and neck this week. Thanks for voting!')
+          : tr('One vote a week for everyone who ran a stage.')}
       </p>
       <ul className="mt-1.5 grid grid-cols-2 gap-1.5">
         {NEXT_CITIES.map((c) => {
@@ -46,7 +49,7 @@ export const VoteCard = ({ vote, busy, onVote }: Props) => {
               {voted ? (
                 <div
                   className={`relative overflow-hidden rounded-xl border-2 px-2 py-1 ${mine ? 'border-ink' : 'border-transparent bg-[var(--sky)]'}`}
-                  aria-label={`${c.name}: ${n} ${n === 1 ? 'vote' : 'votes'}${mine ? ', your vote' : ''}`}
+                  aria-label={`${tr(c.name)}: ${tr(n === 1 ? '{n} vote' : '{n} votes', { n })}${mine ? tr(', your vote') : ''}`}
                 >
                   <div
                     className="absolute inset-y-0 left-0 bg-[var(--accent)] opacity-25"

@@ -5,6 +5,7 @@ import { COIN } from '../../shared/economy';
 import { formatTime } from '../../shared/sim';
 import { Avatar } from '../components/Avatar';
 import { ComfortOptions } from '../components/ComfortOptions';
+import { currentLang, tr } from '../i18n';
 
 type Props = {
   me: MeResponse | null;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 const ordinal = (n: number) => {
+  if (currentLang() !== 'en') return `#${n}`;
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
@@ -22,7 +24,7 @@ export const MeScreen = ({ me, today }: Props) => {
   if (!me)
     return (
       <p className="px-4 pt-10 text-center font-display text-[20px] font-extrabold text-ink-soft">
-        Loading your profile…
+        {tr('Loading your profile…')}
       </p>
     );
   const { profile, history } = me;
@@ -30,7 +32,7 @@ export const MeScreen = ({ me, today }: Props) => {
     return (
       <div className="flex flex-col gap-3 px-4 pt-6 pb-6 max-w-[440px] mx-auto">
         <p className="text-center text-[15px] font-bold text-ink-soft">
-          Log in to Reddit to keep a profile.
+          {tr('Log in to Reddit to keep a profile.')}
         </p>
         <ComfortOptions />
       </div>
@@ -61,10 +63,12 @@ export const MeScreen = ({ me, today }: Props) => {
             u/{profile.username}
           </h1>
           <p className="text-[13px] font-extrabold text-ink-soft">
-            Bib #
-            {profile.bib === null
-              ? '----'
-              : String(profile.bib).padStart(4, '0')}{' '}
+            {tr('Bib #{n}', {
+              n:
+                profile.bib === null
+                  ? '----'
+                  : String(profile.bib).padStart(4, '0'),
+            })}{' '}
             · {COIN} {profile.badges}
           </p>
         </div>
@@ -72,13 +76,16 @@ export const MeScreen = ({ me, today }: Props) => {
 
       <section
         className="grid grid-cols-4 gap-1.5 text-center"
-        aria-label="Your numbers"
+        aria-label={tr('Your numbers')}
       >
         {[
-          [String(history.length), history.length === 1 ? 'stage' : 'stages'],
-          [String(history.length * KM_PER_STAGE), 'km run'],
-          [`${profile.bestStreak}`, 'best streak'],
-          [best === null ? '—' : ordinal(best), 'best place'],
+          [
+            String(history.length),
+            tr(history.length === 1 ? 'stage' : 'stages'),
+          ],
+          [String(history.length * KM_PER_STAGE), tr('km run')],
+          [`${profile.bestStreak}`, tr('best streak')],
+          [best === null ? '—' : ordinal(best), tr('best place')],
         ].map(([n, label]) => (
           <div
             key={label}
@@ -96,17 +103,17 @@ export const MeScreen = ({ me, today }: Props) => {
 
       <section
         className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-        aria-label="The last four weeks"
+        aria-label={tr('The last four weeks')}
       >
         <h2 className="font-display text-[17px] font-extrabold">
-          The last four weeks
+          {tr('The last four weeks')}
         </h2>
         <ol className="mt-1.5 grid grid-cols-7 gap-1">
           {days.map((d) => (
             <li
               key={d}
               title={d}
-              aria-label={`${d}: ${ran.has(d) ? 'ran' : 'no run'}`}
+              aria-label={`${d}: ${ran.has(d) ? tr('ran') : tr('no run')}`}
               className={`aspect-square rounded-md border-2 ${
                 ran.has(d)
                   ? 'border-ink bg-[var(--accent)]'
@@ -116,24 +123,26 @@ export const MeScreen = ({ me, today }: Props) => {
           ))}
         </ol>
         <p className="mt-1 text-[11px] text-ink-soft">
-          Every filled square is a stage you ran. Today has the gold ring.
+          {tr(
+            'Every filled square is a stage you ran. Today has the gold ring.'
+          )}
         </p>
       </section>
 
       <section
         className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-        aria-label="Best time in each city"
+        aria-label={tr('Best time in each city')}
       >
         <h2 className="font-display text-[17px] font-extrabold">
-          Best in each city
+          {tr('Best in each city')}
         </h2>
         <ul className="mt-1 flex flex-col gap-1">
           {perCity.map(({ city, stages, best: t }) => (
             <li key={city.id} className="flex items-center gap-2 text-[14px]">
               <span aria-hidden>{city.flag}</span>
-              <span className="flex-1 font-bold">{city.name}</span>
+              <span className="flex-1 font-bold">{tr(city.name)}</span>
               <span className="text-[12px] text-ink-soft">
-                {stages} {stages === 1 ? 'stage' : 'stages'}
+                {tr(stages === 1 ? '{n} stage' : '{n} stages', { n: stages })}
               </span>
               <span className="w-[58px] text-right font-display font-semibold tabular">
                 {t === null ? '—' : formatTime(t)}
@@ -143,11 +152,11 @@ export const MeScreen = ({ me, today }: Props) => {
         </ul>
       </section>
 
-      <section aria-label="Achievements">
+      <section aria-label={tr('Achievements')}>
         <h2 className="mb-1 flex items-baseline justify-between font-display text-[19px] font-extrabold">
-          Achievements
+          {tr('Achievements')}
           <span className="text-[13px] text-ink-soft">
-            {done} of {ACHIEVEMENTS.length}
+            {tr('{n} of {total}', { n: done, total: ACHIEVEMENTS.length })}
           </span>
         </h2>
         <ul className="grid grid-cols-2 gap-1.5">
@@ -169,22 +178,22 @@ export const MeScreen = ({ me, today }: Props) => {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-extrabold">
-                      {a.name}
+                      {tr(a.name)}
                     </span>
                     <span className="block text-[11px] leading-tight text-ink-soft">
-                      {a.goal}
+                      {tr(a.goal)}
                     </span>
                   </span>
                 </p>
                 {got ? (
                   <p className="mt-1 text-[11px] font-extrabold text-[#1f8f7f]">
-                    Earned · +{a.reward} {COIN}
+                    {tr('Earned · +{n}', { n: a.reward })} {COIN}
                   </p>
                 ) : (
                   <div
                     className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/10"
                     role="meter"
-                    aria-label={`${a.name} progress`}
+                    aria-label={tr('{name} progress', { name: tr(a.name) })}
                     aria-valuenow={value}
                     aria-valuemin={0}
                     aria-valuemax={a.target}

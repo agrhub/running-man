@@ -7,12 +7,13 @@ import {
   SLOTS,
   SLOT_LABEL,
   COIN,
-  unlockLabel,
   type Item,
   type Pet,
   type Slot,
 } from '../../shared/economy';
 import { RunnerPreview } from '../components/RunnerPreview';
+import { tr } from '../i18n';
+import { unlockText } from '../lib/labels';
 
 type Props = {
   day: DayInfo;
@@ -49,7 +50,9 @@ const ItemCard = ({
   let action: ReactNode;
   if (equipped)
     action = (
-      <span className="text-[12px] font-extrabold text-easy">Wearing</span>
+      <span className="text-[12px] font-extrabold text-easy">
+        {tr('Wearing')}
+      </span>
     );
   else if (owned)
     action = (
@@ -59,7 +62,7 @@ const ItemCard = ({
         onClick={onEquip}
         className="chunky rounded-full bg-white px-3 text-[12px] font-extrabold"
       >
-        Wear
+        {tr('Wear')}
       </button>
     );
   else if (buyable)
@@ -70,13 +73,13 @@ const ItemCard = ({
         onClick={onBuy}
         className="chunky rounded-full bg-gold px-3 text-[12px] font-extrabold"
       >
-        Buy {unlockLabel(item.unlock)}
+        {tr('Buy {price}', { price: unlockText(item.unlock) })}
       </button>
     );
   else
     action = (
       <span className="text-[11px] font-bold leading-tight text-ink-soft">
-        🔒 {unlockLabel(item.unlock)}
+        🔒 {unlockText(item.unlock)}
       </span>
     );
 
@@ -95,7 +98,7 @@ const ItemCard = ({
         aria-hidden
       />
       <span className="flex-1 text-[13px] font-extrabold leading-tight">
-        {item.name}
+        {tr(item.name)}
       </span>
       {action}
     </li>
@@ -116,10 +119,10 @@ export const LockerScreen = (p: Props) => {
           onClick={p.onBack}
           className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
         >
-          ← Back
+          {tr('← Back')}
         </button>
         <p className="font-display text-[20px] font-extrabold">
-          {COIN} {profile.badges} coins
+          {COIN} {tr('{n} coins', { n: profile.badges })}
         </p>
       </div>
       <div className="h-[34%] min-h-[170px]">
@@ -132,7 +135,7 @@ export const LockerScreen = (p: Props) => {
       </div>
       <nav
         className="flex gap-1 overflow-x-auto px-4 pb-2"
-        aria-label="Locker sections"
+        aria-label={tr('Locker sections')}
       >
         {[...SLOTS, 'pet' as const].map((s) => (
           <button
@@ -142,7 +145,7 @@ export const LockerScreen = (p: Props) => {
             onClick={() => setTab(s)}
             className={`shrink-0 rounded-full border-2 border-ink px-3 py-1 text-[13px] font-extrabold ${tab === s ? 'bg-ink text-white' : 'bg-white'}`}
           >
-            {s === 'pet' ? 'Pet' : SLOT_LABEL[s]}
+            {tr(s === 'pet' ? 'Pet' : SLOT_LABEL[s])}
           </button>
         ))}
       </nav>
@@ -153,11 +156,12 @@ export const LockerScreen = (p: Props) => {
               <div className="flex-1">
                 <p className="text-[14px] font-extrabold">
                   {pet
-                    ? `${pet.name} runs with you`
-                    : 'No pet yet: adopt one below'}
+                    ? tr('{pet} runs with you', { pet: tr(pet.name) })
+                    : tr('No pet yet: adopt one below')}
                 </p>
                 <p className="text-[12px] text-ink-soft">
-                  Friendship {'❤️'.repeat(Math.min(5, profile.petAffinity))}
+                  {tr('Friendship')}{' '}
+                  {'❤️'.repeat(Math.min(5, profile.petAffinity))}
                   {'🤍'.repeat(Math.max(0, 5 - profile.petAffinity))}{' '}
                   {profile.petAffinity > 5 ? `+${profile.petAffinity - 5}` : ''}
                 </p>
@@ -168,7 +172,7 @@ export const LockerScreen = (p: Props) => {
                 onClick={p.onCare}
                 className="chunky rounded-full bg-gold px-3 py-1 text-[13px] font-extrabold"
               >
-                {caredToday ? 'Happy today' : 'Give a treat'}
+                {caredToday ? tr('Happy today') : tr('Give a treat')}
               </button>
             </div>
             <ul className="flex flex-col gap-1.5">
@@ -177,14 +181,14 @@ export const LockerScreen = (p: Props) => {
                   className={`flex items-center gap-2 rounded-xl border-2 px-2 py-1.5 ${!pet ? 'border-ink bg-[var(--sky)]' : 'border-ink/20 bg-white'}`}
                 >
                   <div className="flex-1">
-                    <p className="text-[13px] font-extrabold">No pet</p>
+                    <p className="text-[13px] font-extrabold">{tr('No pet')}</p>
                     <p className="text-[11px] text-ink-soft">
-                      Run on your own today.
+                      {tr('Run on your own today.')}
                     </p>
                   </div>
                   {!pet ? (
                     <span className="text-[12px] font-extrabold text-easy">
-                      Chosen
+                      {tr('Chosen')}
                     </span>
                   ) : (
                     <button
@@ -193,7 +197,7 @@ export const LockerScreen = (p: Props) => {
                       onClick={() => p.onPet('none')}
                       className="chunky rounded-full bg-white px-3 text-[12px] font-extrabold"
                     >
-                      Leave at home
+                      {tr('Leave at home')}
                     </button>
                   )}
                 </li>
@@ -211,12 +215,12 @@ export const LockerScreen = (p: Props) => {
                     className={`flex items-center gap-2 rounded-xl border-2 px-2 py-1.5 ${active ? 'border-ink bg-[var(--sky)]' : 'border-ink/20 bg-white'}`}
                   >
                     <div className="flex-1">
-                      <p className="text-[13px] font-extrabold">{x.name}</p>
-                      <p className="text-[11px] text-ink-soft">{x.quirk}</p>
+                      <p className="text-[13px] font-extrabold">{tr(x.name)}</p>
+                      <p className="text-[11px] text-ink-soft">{tr(x.quirk)}</p>
                     </div>
                     {active ? (
                       <span className="text-[12px] font-extrabold text-easy">
-                        Running
+                        {tr('Running')}
                       </span>
                     ) : owned || x.unlock.kind === 'badges' ? (
                       <button
@@ -225,11 +229,15 @@ export const LockerScreen = (p: Props) => {
                         onClick={() => p.onPet(x.id)}
                         className={`chunky rounded-full px-3 text-[12px] font-extrabold ${owned ? 'bg-white' : 'bg-gold'}`}
                       >
-                        {owned ? 'Choose' : `Adopt ${unlockLabel(x.unlock)}`}
+                        {owned
+                          ? tr('Choose')
+                          : tr('Adopt {price}', {
+                              price: unlockText(x.unlock),
+                            })}
                       </button>
                     ) : (
                       <span className="text-[11px] font-bold text-ink-soft">
-                        🔒 {unlockLabel(x.unlock)}
+                        🔒 {unlockText(x.unlock)}
                       </span>
                     )}
                   </li>
@@ -237,9 +245,9 @@ export const LockerScreen = (p: Props) => {
               })}
             </ul>
             <h3 className="mt-3 mb-1 font-display text-[16px] font-extrabold">
-              Pet gear
+              {tr('Pet gear')}
             </h3>
-            <ul className="flex flex-col gap-1.5" aria-label="Pet gear">
+            <ul className="flex flex-col gap-1.5" aria-label={tr('Pet gear')}>
               {ITEMS.filter((i) => i.slot === 'petGear').map((item) => (
                 <ItemCard
                   key={item.id}
@@ -252,8 +260,9 @@ export const LockerScreen = (p: Props) => {
               ))}
             </ul>
             <p className="mt-2 text-[12px] text-ink-soft">
-              Pets and their gear are just for fun. They never change your race
-              time.
+              {tr(
+                'Pets and their gear are just for fun. They never change your race time.'
+              )}
             </p>
           </>
         ) : (

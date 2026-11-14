@@ -10,7 +10,11 @@ import {
   useState,
 } from 'react';
 import { createRoot } from 'react-dom/client';
-import { navigateToPost, showLoginPrompt, showToast } from '@devvit/web/client';
+import {
+  navigateToPost,
+  showLoginPrompt,
+  showToast as nativeToast,
+} from '@devvit/web/client';
 import type {
   InitResponse,
   ProfileResponse,
@@ -68,6 +72,7 @@ import { MeScreen } from './screens/MeScreen';
 import { achievementById } from '../shared/achievements';
 import { ClubSection } from './components/ClubSection';
 import type { DashMove } from '../shared/dash';
+import { tr, trServer, useLang } from './i18n';
 
 type Screen =
   | 'register'
@@ -99,7 +104,7 @@ const preloadRace = () => {
 const Warming = () => (
   <div className="grid h-full place-items-center">
     <p className="font-display text-[22px] font-extrabold text-ink-soft">
-      Warming up…
+      {tr('Warming up…')}
     </p>
   </div>
 );
@@ -136,7 +141,12 @@ const isPostId = (id: string | null): id is `t3_${string}` =>
 const message = (e: unknown) =>
   e instanceof Error ? e.message : 'Something went wrong.';
 
+/** Reddit's toast, in the player's language (server messages included). */
+const showToast = (text: string) => nativeToast(trServer(text));
+
 export const App = () => {
+  // The whole game re-renders in the new language when the player switches.
+  useLang();
   const [data, setData] = useState<InitResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>('plan');
@@ -574,15 +584,15 @@ export const App = () => {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
         <p className="font-display text-[22px] font-extrabold">
-          The course is not loading.
+          {tr('The course is not loading.')}
         </p>
-        <p className="text-[14px] text-ink-soft">{error}</p>
+        <p className="text-[14px] text-ink-soft">{tr(error)}</p>
         <button
           type="button"
           className="chunky rounded-2xl bg-white px-4 py-2 font-extrabold"
           onClick={() => void load()}
         >
-          Try again
+          {tr('Try again')}
         </button>
       </div>
     );
@@ -591,7 +601,9 @@ export const App = () => {
   if (!data || !day) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="font-display text-[22px] font-extrabold">Warming up…</p>
+        <p className="font-display text-[22px] font-extrabold">
+          {tr('Warming up…')}
+        </p>
       </div>
     );
   }
@@ -618,7 +630,10 @@ export const App = () => {
         setData((d) => (d ? { ...d, profile: r.profile } : d));
         for (const id of r.earned) {
           const a = achievementById(id);
-          if (a) showToast(`🏆 ${a.name}! +${a.reward} coins`);
+          if (a)
+            showToast(
+              tr('🏆 {name}! +{n} coins', { name: tr(a.name), n: a.reward })
+            );
         }
       })
       .catch((e: unknown) => showToast(message(e)));
@@ -652,14 +667,19 @@ export const App = () => {
         return (
           <div className="flex h-full flex-col gap-3 px-4 py-4 max-w-[440px] mx-auto">
             <p className="text-[13px] font-extrabold text-ink-soft">
-              {day.city.flag} {day.city.name}, stage {day.stageIndex + 1}
+              {day.city.flag}{' '}
+              {tr('{city}, stage {n}', {
+                city: tr(day.city.name),
+                n: day.stageIndex + 1,
+              })}
             </p>
             <h1 className="font-display text-[28px] font-extrabold leading-tight">
-              {day.stage.name} has closed.
+              {tr('{stage} has closed.', { stage: tr(day.stage.name) })}
             </h1>
             <p className="text-[14px]">
-              These were the fastest runners that day. Today’s stage is open
-              now.
+              {tr(
+                'These were the fastest runners that day. Today’s stage is open now.'
+              )}
             </p>
             {isPostId(data.todayPostId) && (
               <button
@@ -669,7 +689,7 @@ export const App = () => {
                 }
                 className="chunky rounded-2xl bg-[var(--accent)] py-3 font-display text-[20px] font-extrabold text-white"
               >
-                Go to today’s stage
+                {tr('Go to today’s stage')}
               </button>
             )}
             <section className="rounded-2xl border-2 border-ink bg-white/80 p-2">
@@ -832,7 +852,7 @@ export const App = () => {
             day={tourDayNow}
             profile={data.profile}
             tour={{
-              label: `${tourStopNow.flag} World Tour`,
+              label: `${tourStopNow.flag} ${tr('World Tour')}`,
               stopId: tourStopNow.id,
               onBack: () => setScreen('tour'),
             }}

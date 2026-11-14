@@ -4,6 +4,7 @@ import type { ClubRow, ClubView, Profile, RelayRow } from '../../shared/api';
 import { CLUB_ADJECTIVES, CLUB_NOUNS, clubName } from '../../shared/club';
 import { KM_PER_STAGE } from '../../shared/content';
 import { formatTime } from '../../shared/sim';
+import { tr } from '../i18n';
 
 type Props = {
   profile: Profile;
@@ -34,12 +35,12 @@ export const ClubSection = (p: Props) => {
       {p.club ? (
         <section
           className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-          aria-label="Your club"
+          aria-label={tr('Your club')}
         >
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[12px] font-extrabold text-ink-soft">
-                Your running club
+                {tr('Your running club')}
               </p>
               <h2 className="font-display text-[22px] font-extrabold leading-tight">
                 {p.club.name}
@@ -47,7 +48,7 @@ export const ClubSection = (p: Props) => {
             </div>
             <div className="text-right">
               <p className="text-[11px] font-extrabold text-ink-soft">
-                Join code
+                {tr('Join code')}
               </p>
               <p className="rounded-lg border-2 border-ink bg-gold px-2 font-display text-[18px] font-extrabold tracking-wider">
                 {p.club.code}
@@ -55,9 +56,12 @@ export const ClubSection = (p: Props) => {
             </div>
           </div>
           <p className="mt-1 text-[13px] font-bold">
-            {p.club.weekStages * KM_PER_STAGE} km this week together,{' '}
-            {p.club.members.length}{' '}
-            {p.club.members.length === 1 ? 'runner' : 'runners'}
+            {tr(
+              p.club.members.length === 1
+                ? '{km} km this week together, {n} runner'
+                : '{km} km this week together, {n} runners',
+              { km: p.club.weekStages * KM_PER_STAGE, n: p.club.members.length }
+            )}
           </p>
           <ul className="mt-2 flex flex-col gap-1">
             {p.club.members.map((m) => (
@@ -71,7 +75,9 @@ export const ClubSection = (p: Props) => {
                   {m.username === p.club?.owner ? ' 👑' : ''}
                 </span>
                 <span className="text-[11px] font-extrabold text-ink-soft tabular">
-                  {m.weekStages} {m.weekStages === 1 ? 'stage' : 'stages'}
+                  {tr(m.weekStages === 1 ? '{n} stage' : '{n} stages', {
+                    n: m.weekStages,
+                  })}
                 </span>
                 <span className="w-[54px] text-right font-display font-semibold tabular">
                   {m.seconds === null ? '—' : formatTime(m.seconds)}
@@ -81,14 +87,14 @@ export const ClubSection = (p: Props) => {
           </ul>
           <section
             className="mt-2 rounded-xl bg-[var(--sky)] px-2 py-1.5"
-            aria-label="Today’s relay"
+            aria-label={tr('Today’s relay')}
           >
             <p className="flex items-baseline justify-between text-[13px] font-extrabold">
-              <span>🤝 Today’s relay</span>
+              <span>{tr('🤝 Today’s relay')}</span>
               <span className="font-display tabular">
                 {p.club.relay.total !== null
                   ? `${formatTime(p.club.relay.total)} · #${p.club.relay.rank}`
-                  : `${p.club.relay.legs.length} of 3 legs`}
+                  : tr('{n} of 3 legs', { n: p.club.relay.legs.length })}
               </span>
             </p>
             <ol className="mt-1 grid grid-cols-3 gap-1">
@@ -100,7 +106,7 @@ export const ClubSection = (p: Props) => {
                     className={`flex flex-col items-center rounded-lg px-1 py-1 text-center ${leg ? 'bg-white' : 'border-2 border-dashed border-ink/25'}`}
                   >
                     <span className="text-[10px] font-extrabold text-ink-soft">
-                      Leg {i + 1}
+                      {tr('Leg {n}', { n: i + 1 })}
                     </span>
                     {leg ? (
                       <>
@@ -114,7 +120,7 @@ export const ClubSection = (p: Props) => {
                       </>
                     ) : (
                       <span className="py-2 text-[11px] text-ink-soft">
-                        open
+                        {tr('open')}
                       </span>
                     )}
                   </li>
@@ -122,13 +128,15 @@ export const ClubSection = (p: Props) => {
               })}
             </ol>
             <p className="mt-1 text-[11px] text-ink-soft">
-              The first three clubmates to run each day are the relay. When the
-              third leg finishes, all three get 25 coins.
+              {tr(
+                'The first three clubmates to run each day are the relay. When the third leg finishes, all three get 25 coins.'
+              )}
             </p>
           </section>
           <p className="mt-1 text-[11px] text-ink-soft">
-            Clubmates who ran today join your road with purple tags. Share the
-            code in the comments to invite people.
+            {tr(
+              'Clubmates who ran today join your road with purple tags. Share the code in the comments to invite people.'
+            )}
           </p>
           <button
             type="button"
@@ -136,19 +144,21 @@ export const ClubSection = (p: Props) => {
             onClick={p.onLeave}
             className="mt-2 text-[12px] font-extrabold text-ink-soft underline"
           >
-            Leave club
+            {tr('Leave club')}
           </button>
         </section>
       ) : (
         <section
           className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-          aria-label="Running clubs"
+          aria-label={tr('Running clubs')}
         >
           <h2 className="font-display text-[20px] font-extrabold">
-            Running clubs
+            {tr('Running clubs')}
           </h2>
           <p className="text-[12px] text-ink-soft">
-            Run as a group: clubmates share your road and a weekly total.
+            {tr(
+              'Run as a group: clubmates share your road and a weekly total.'
+            )}
           </p>
           <div className="mt-2 flex items-center gap-2">
             <p className="flex-1 rounded-xl bg-[var(--sky)] px-3 py-2 font-display text-[18px] font-extrabold">
@@ -161,7 +171,7 @@ export const ClubSection = (p: Props) => {
                 setNoun(roll(CLUB_NOUNS.length));
               }}
               className="chunky h-10 w-10 rounded-xl bg-white text-[18px]"
-              aria-label="Another name"
+              aria-label={tr('Another name')}
             >
               🎲
             </button>
@@ -172,17 +182,17 @@ export const ClubSection = (p: Props) => {
             onClick={() => p.onCreate(adj, noun)}
             className="chunky mt-2 w-full rounded-2xl bg-[var(--accent)] py-2 font-display text-[17px] font-extrabold text-white"
           >
-            Start this club
+            {tr('Start this club')}
           </button>
           <form className="mt-2 flex gap-2" onSubmit={join}>
             <label className="sr-only" htmlFor="club-code">
-              Club code
+              {tr('Club code')}
             </label>
             <input
               id="club-code"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="Have a code?"
+              placeholder={tr('Have a code?')}
               maxLength={6}
               autoComplete="off"
               disabled={guest}
@@ -193,7 +203,7 @@ export const ClubSection = (p: Props) => {
               disabled={p.busy || guest || code.trim().length !== 6}
               className="chunky rounded-xl bg-white px-4 font-display text-[16px] font-extrabold"
             >
-              Join
+              {tr('Join')}
             </button>
           </form>
         </section>
@@ -202,10 +212,10 @@ export const ClubSection = (p: Props) => {
       {(p.relays ?? []).length > 0 && (
         <section
           className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2"
-          aria-label="Fastest relays today"
+          aria-label={tr('Fastest relays today')}
         >
           <h2 className="px-2 font-display text-[17px] font-extrabold">
-            Fastest relays today
+            {tr('Fastest relays today')}
           </h2>
           <ol className="mt-1 flex flex-col gap-1">
             {(p.relays ?? []).map((r) => (
@@ -229,10 +239,10 @@ export const ClubSection = (p: Props) => {
       {p.top.length > 0 && (
         <section
           className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2"
-          aria-label="Top clubs this week"
+          aria-label={tr('Top clubs this week')}
         >
           <h2 className="px-2 font-display text-[17px] font-extrabold">
-            Top clubs this week
+            {tr('Top clubs this week')}
           </h2>
           <ol className="mt-1 flex flex-col gap-1">
             {p.top.map((c) => (

@@ -16,6 +16,7 @@ import { CrewBar } from './components/CrewBar';
 import { holidayShort } from '../shared/festive';
 import { request } from './lib/api';
 import { applyCityTheme } from './lib/theme';
+import { tr, useLang } from './i18n';
 
 /** Skyline + a little SVG chibi: the feed card stays light, no 3D here. */
 const Scene = ({ city }: { city: City }) => {
@@ -135,6 +136,7 @@ const Scene = ({ city }: { city: City }) => {
 };
 
 export const Splash = () => {
+  useLang();
   const [data, setData] = useState<SplashResponse | null>(null);
   const dateKey = data?.dateKey ?? toDateKey(new Date());
   const day = useMemo(() => dayInfo(dateKey), [dateKey]);
@@ -151,37 +153,42 @@ export const Splash = () => {
   }, []);
 
   const cta = closed
-    ? 'See the results'
+    ? tr('See the results')
     : data?.ran
-      ? 'See my result'
-      : 'Run today’s stage';
+      ? tr('See my result')
+      : tr('Run today’s stage');
 
   return (
     <div className="relative h-full overflow-hidden">
       <Scene city={day.city} />
       <div className="relative flex h-full flex-col gap-2 px-4 pt-3 pb-[132px] max-w-[460px] mx-auto">
         <p className="font-display text-[15px] font-extrabold text-[var(--accent)] [text-shadow:0_1.5px_0_#2a2340]">
-          Running Man
+          {tr('Running Man')}
         </p>
         <div>
           <p className="text-[13px] font-extrabold text-ink-soft">
-            {day.city.flag} {data ? `Day ${data.dayNumber}: ` : ''}
-            {day.city.name}, stage {day.stageIndex + 1} of 7
+            {day.city.flag}{' '}
+            {data ? `${tr('Day {n}', { n: data.dayNumber })}: ` : ''}
+            {tr('{city}, stage {n} of 7', {
+              city: tr(day.city.name),
+              n: day.stageIndex + 1,
+            })}
           </p>
           <h1 className="font-display text-[30px] font-extrabold leading-[1.02]">
-            {day.stage.name}
+            {tr(day.stage.name)}
           </h1>
           <p className="text-[13px] font-bold">
-            {TERRAIN[day.stage.terrain].icon} {TERRAIN[day.stage.terrain].label}{' '}
-            · {day.weather.icon} {day.weather.label} · {TIMES[day.time].icon}{' '}
-            {TIMES[day.time].label}
+            {TERRAIN[day.stage.terrain].icon}{' '}
+            {tr(TERRAIN[day.stage.terrain].label)} · {day.weather.icon}{' '}
+            {tr(day.weather.label)} · {TIMES[day.time].icon}{' '}
+            {tr(TIMES[day.time].label)}
             {data && data.streak > 0
-              ? `, and you are on a ${data.streak}-day streak 🔥`
+              ? tr(', and you are on a {n}-day streak 🔥', { n: data.streak })
               : ''}
           </p>
           {holidayShort(day.dateKey) && (
             <p className="mt-1 inline-block rounded-full border-2 border-ink bg-white px-2 text-[12px] font-extrabold">
-              {holidayShort(day.dateKey)}
+              {tr(holidayShort(day.dateKey) ?? '')}
             </p>
           )}
         </div>

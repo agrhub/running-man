@@ -1,4 +1,5 @@
 export type Tab = 'race' | 'quests' | 'play' | 'friends' | 'shop' | 'me';
+import { tr } from '../i18n';
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'race', icon: '🏃', label: 'Race' },
@@ -21,7 +22,7 @@ type Props = {
 export const TabBar = ({ active, dots, tabs, onTab }: Props) => (
   <nav
     className="shrink-0 border-t-2 border-ink bg-white/95 px-2 pb-[max(6px,env(safe-area-inset-bottom))] pt-1"
-    aria-label="Main"
+    aria-label={tr('Main')}
   >
     <ul className="mx-auto flex max-w-[440px] justify-around">
       {TABS.filter((t) => tabs.includes(t.id)).map((t) => {
@@ -40,11 +41,11 @@ export const TabBar = ({ active, dots, tabs, onTab }: Props) => (
               >
                 {t.icon}
               </span>
-              {t.label}
+              {tr(t.label)}
               {dots[t.id] && !on && (
                 <span
                   className="absolute right-[calc(50%-18px)] top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--color-push)]"
-                  aria-label="Something new"
+                  aria-label={tr('Something new')}
                 />
               )}
             </button>

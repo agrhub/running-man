@@ -1,5 +1,6 @@
 import type { CrewProgress } from '../../shared/api';
 import { CREW_MARATHONS, cityById } from '../../shared/content';
+import { tr } from '../i18n';
 
 type Props = { crew: CrewProgress; runners?: number; gained?: number };
 
@@ -14,8 +15,14 @@ export const CrewBar = ({ crew, runners, gained }: Props) => {
       <div className="flex items-baseline justify-between text-[13px] font-extrabold">
         <span>
           {crew.finished
-            ? `The crew ran ${CREW_MARATHONS} marathons in ${city?.name}! 🎉`
-            : `Crew goal: ${CREW_MARATHONS} marathons in ${city?.name}`}
+            ? tr('The crew ran {n} marathons in {city}! 🎉', {
+                n: CREW_MARATHONS,
+                city: tr(city?.name ?? ''),
+              })
+            : tr('Crew goal: {n} marathons in {city}', {
+                n: CREW_MARATHONS,
+                city: tr(city?.name ?? ''),
+              })}
         </span>
         <span className="tabular text-ink-soft">
           {Math.round(km)} / {Math.round(crew.target / 1000)} km
@@ -36,8 +43,13 @@ export const CrewBar = ({ crew, runners, gained }: Props) => {
       {runners !== undefined && (
         <p className="mt-1 text-[12px] text-ink-soft">
           {runners === 0
-            ? 'Be the first runner today.'
-            : `${runners} ${runners === 1 ? 'runner has' : 'runners have'} run today’s stage.`}
+            ? tr('Be the first runner today.')
+            : tr(
+                runners === 1
+                  ? '{n} runner has run today’s stage.'
+                  : '{n} runners have run today’s stage.',
+                { n: runners }
+              )}
         </p>
       )}
     </div>

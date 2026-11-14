@@ -13,6 +13,7 @@ import {
   type ItemKind,
 } from '../../shared/course';
 import { hashString, mulberry32 } from '../../shared/rng';
+import { tr } from '../i18n';
 
 type Props = {
   day: DayInfo;
@@ -86,7 +87,7 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
 
   const path = useMemo(() => {
     // Seven nodes (km 0 to 6) snake up the map; the stage name sets the bends.
-    const rand = mulberry32(hashString(`route:${stage.name}`));
+    const rand = mulberry32(hashString(`route:${tr(stage.name)}`));
     const nodes: Pt[] = [];
     for (let km = 0; km <= 6; km++) {
       const side = km % 2 === 0 ? 0.22 : 0.78;
@@ -146,7 +147,16 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-auto rounded-xl border-2 border-ink bg-[#f4f1ff]"
         role="img"
-        aria-label={`Route map of ${stage.name}: ${stage.landmark.name} at km ${stage.landmark.km}, water after km ${stage.waterAfterKm.join(' and ')}, ${boosters.length} boosters on the road.`}
+        aria-label={tr(
+          'Course map of {stage}: {landmark} at km {km}, water after km {water}, {n} boosters on the road.',
+          {
+            stage: tr(stage.name),
+            landmark: tr(stage.landmark.name),
+            km: stage.landmark.km,
+            water: stage.waterAfterKm.join(', '),
+            n: boosters.length,
+          }
+        )}
       >
         {/* Course, one coloured span per kilometre, over a dark casing. */}
         <polyline
@@ -210,7 +220,7 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
             strokeWidth={3}
             paintOrder="stroke"
           >
-            {stage.landmark.name}
+            {tr(stage.landmark.name)}
           </text>
         </g>
 
@@ -294,7 +304,7 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
                 textAnchor="middle"
                 fill="#fff"
               >
-                GO
+                {tr('GO')}
               </text>
               <text x={f.x - 8} y={f.y + 6} fontSize={17}>
                 🏁
@@ -320,21 +330,27 @@ export const RouteMap = ({ day, drinks, life }: Props) => {
             >
               {tri ? `${LEG_LABEL[legAt(true, i)].icon} ` : ''}km {i + 1}
             </span>
-            <span className="block" aria-label={`${k.hazards} obstacles`}>
+            <span
+              className="block"
+              aria-label={tr('{n} obstacles', { n: k.hazards })}
+            >
               ⚠️{k.hazards}
             </span>
-            <span className="block" aria-label={`${k.snacks} snacks`}>
+            <span
+              className="block"
+              aria-label={tr('{n} snacks', { n: k.snacks })}
+            >
               🍬{k.snacks}
             </span>
           </li>
         ))}
       </ol>
       <figcaption className="mt-1 text-[11px] leading-snug text-ink-soft">
-        <span style={{ color: '#3fae6a' }}>■</span> downhill{' '}
-        <span style={{ color: '#8c86ad' }}>■</span> flat{' '}
-        <span style={{ color: '#f0a030' }}>■</span> climb{' '}
-        <span style={{ color: '#e0524f' }}>■</span> steep · 💧 water · 🛼🛹🚲
-        boosters · ★ {stage.landmark.name}
+        <span style={{ color: '#3fae6a' }}>■</span> {tr('downhill')}{' '}
+        <span style={{ color: '#8c86ad' }}>■</span> {tr('flat')}{' '}
+        <span style={{ color: '#f0a030' }}>■</span> {tr('climb')}{' '}
+        <span style={{ color: '#e0524f' }}>■</span> {tr('steep')} · 💧{' '}
+        {tr('water')} · 🛼🛹🚲 {tr('boosters')} · ★ {tr(stage.landmark.name)}
       </figcaption>
     </figure>
   );

@@ -184,9 +184,10 @@ to 40 coins (score ÷ 8), and each game has its own daily top five.
 Waiting a day for the next stage is the point of the daily loop, so the next stage never opens early. For players who
 want more running, the Play tab has a World Tour: famous places outside the calendar, run any time.
 
-- Twelve stops in three kinds: ancient wonders (Great Wall, Pyramids of Giza, Machu Picchu, Colosseum, Angkor Wat,
-  Stonehenge, Petra, the Moai), natural wonders (Ha Long Bay, Grand Canyon, Niagara Falls) and world landmarks (Taj
-  Mahal). Each has a 6 km stage with its own grades, water stops, terrain, fixed weather and hour, and a low-poly
+- 24 stops in three kinds: ancient wonders (Great Wall, Pyramids of Giza, Machu Picchu, Colosseum, Angkor Wat,
+  Stonehenge, Petra, the Moai, Chichén Itzá, the Parthenon, Borobudur), natural wonders (Ha Long Bay, Grand Canyon,
+  Niagara Falls, Mount Fuji, Uluru, the Matterhorn, Cappadocia) and world landmarks (Taj Mahal, Statue of Liberty,
+  Sydney Opera House, Christ the Redeemer, Leaning Tower of Pisa, Golden Gate Bridge). Each has a 6 km stage with its own grades, water stops, terrain, fixed weather and hour, and a low-poly
   3D model of the place beside the road. Out in the open (`wild`), no hotels or skyline are built.
 - Unlock a stop once with coins (200 to 350). Then run it as often as you like with the same plan, route map, race
   and server replay as the daily stage. The fastest runs at a stop share the road as ghosts.

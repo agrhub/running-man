@@ -53,6 +53,32 @@ type Area = {
  */
 type Water = { pts: [number, number][]; km: number; lake?: boolean };
 const WATER: Record<string, Water[]> = {
+  fuji: [
+    {
+      km: 0,
+      lake: true,
+      pts: [
+        [35.52, 138.72],
+        [35.525, 138.76],
+        [35.51, 138.8],
+        [35.498, 138.79],
+        [35.505, 138.745],
+      ],
+    },
+  ],
+  pisa: [
+    {
+      km: 0.15,
+      pts: [
+        [43.68, 10.6],
+        [43.705, 10.47],
+        [43.715, 10.415],
+        [43.712, 10.39],
+        [43.7, 10.33],
+        [43.68, 10.28],
+      ],
+    },
+  ],
   paris: [
     {
       km: 0.15,
@@ -411,6 +437,18 @@ const TOUR_PAD: Record<string, number> = {
   petra: 1.5,
   'taj-mahal': 2,
   'great-wall': 1.5,
+  fuji: 0.4,
+  liberty: 0.12,
+  'sydney-opera': 0.08,
+  'christ-redeemer': 0.15,
+  'chichen-itza': 1.5,
+  parthenon: 0.3,
+  uluru: 2,
+  matterhorn: 0.5,
+  pisa: 0.4,
+  'golden-gate': 0.15,
+  borobudur: 0.8,
+  cappadocia: 1.2,
 };
 
 const areas: Record<string, Area> = {};

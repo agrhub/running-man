@@ -119,9 +119,11 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Three more mini games:** Hurdle Hop (tap to jump, faster and faster), Rhythm Steps (tap on a rising beat) and Pet
   Fetch (stop the power bar to throw for your pet, with wind), each scored on the server from its tap times, with
   coins for the first rounds and a daily top five.
-- **World Tour:** twelve famous places to run any time, outside the daily calendar: the Great Wall, the Pyramids of
+- **World Tour:** 24 famous places to run any time, outside the daily calendar: the Great Wall, the Pyramids of
   Giza, Machu Picchu, the Colosseum, the Taj Mahal, Angkor Wat, Stonehenge, Petra, Ha Long Bay, the Grand Canyon,
-  Niagara Falls and the Moai of Easter Island, each with its own low-poly 3D wonder, terrain, weather and hour.
+  Niagara Falls, the Moai of Easter Island, Mount Fuji, the Statue of Liberty, the Sydney Opera House, Christ the
+  Redeemer, Chichén Itzá, the Parthenon, Uluru, the Matterhorn, the Leaning Tower of Pisa, the Golden Gate Bridge,
+  Borobudur and Cappadocia, each with its own low-poly 3D wonder, terrain, weather, hour and real map.
   Unlock a place with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
   server replays every run), and the first finish stamps your passport for 60 coins. Tour runs never touch the daily
   leaderboard, streak or crew goal.

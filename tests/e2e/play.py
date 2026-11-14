@@ -198,7 +198,7 @@ with sync_playwright() as p:
     # World Tour: twelve places, unlocked with coins.
     page.get_by_role('button', name=re.compile('World Tour')).click()
     page.wait_for_selector('ul[aria-label="World Tour places"]')
-    check('World Tour lists twelve places', page.locator('ul[aria-label="World Tour places"] > li').count() == 12)
+    check('World Tour lists every place', page.locator('ul[aria-label="World Tour places"] > li').count() == 24)
     page.screenshot(path=f'{OUT}/09-world-tour.png')
     page.get_by_role('button', name='← Play').click()
     nav.get_by_role('button', name=re.compile('Friends')).click()

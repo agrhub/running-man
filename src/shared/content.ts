@@ -48,7 +48,19 @@ export type LandmarkKind =
   | 'karst'
   | 'canyon'
   | 'falls'
-  | 'moai';
+  | 'moai'
+  | 'volcano'
+  | 'liberty'
+  | 'shells'
+  | 'redeemer'
+  | 'stepped'
+  | 'parthenon'
+  | 'monolith'
+  | 'peak'
+  | 'leaning'
+  | 'suspension'
+  | 'stupa'
+  | 'chimneys';
 
 export type Landmark = {
   name: string;

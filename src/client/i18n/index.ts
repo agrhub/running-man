@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { VI } from './vi';
 
 /**
  * Translations, gettext style: the English text is the key, so English needs no
@@ -18,7 +17,17 @@ export const LANGS: { id: LangChoice; label: string }[] = [
   { id: 'vi', label: 'Tiếng Việt' },
 ];
 
-const DICTS: Record<Lang, Record<string, string>> = { en: {}, vi: VI };
+/**
+ * English needs no table. Other tables are loaded only on devices that use
+ * them, so English players never download them (the feed card stays light).
+ */
+const DICTS: Record<Lang, Record<string, string>> = { en: {}, vi: {} };
+const loaded = new Set<Lang>(['en']);
+const loadDict = async (l: Lang): Promise<void> => {
+  if (loaded.has(l)) return;
+  if (l === 'vi') DICTS.vi = (await import('./vi')).VI;
+  loaded.add(l);
+};
 const KEY = 'rm-lang';
 
 const fromDevice = (): Lang => {
@@ -55,9 +64,20 @@ applyDoc();
 export const currentLang = () => lang;
 export const langChoice = () => choice;
 
-export const setLang = (next: LangChoice) => {
+/** Loads the table for the current language. Render the app after it resolves. */
+export const i18nReady = (): Promise<void> =>
+  loadDict(lang).catch(() => {
+    // Offline or blocked: show English rather than nothing.
+    lang = 'en';
+    applyDoc();
+  });
+
+/** Switches language; the table loads first, then everything re-renders. */
+export const setLang = async (next: LangChoice): Promise<void> => {
   choice = next;
-  lang = next === 'auto' ? fromDevice() : next;
+  const want: Lang = next === 'auto' ? fromDevice() : next;
+  await loadDict(want).catch(() => undefined);
+  lang = loaded.has(want) ? want : 'en';
   try {
     if (next === 'auto') window.localStorage.removeItem(KEY);
     else window.localStorage.setItem(KEY, next);

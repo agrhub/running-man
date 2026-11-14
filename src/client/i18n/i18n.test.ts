@@ -6,23 +6,25 @@ const holes = (s: string) =>
   [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
 describe('i18n', () => {
-  afterEach(() => setLang('en'));
+  afterEach(async () => {
+    await setLang('en');
+  });
 
-  it('shows English by default and fills in values', () => {
-    setLang('en');
+  it('shows English by default and fills in values', async () => {
+    await setLang('en');
     expect(tr('Run today’s stage')).toBe('Run today’s stage');
     expect(tr('Day {n} of 7', { n: 3 })).toBe('Day 3 of 7');
   });
 
-  it('translates to Vietnamese, and falls back to English for unknown text', () => {
-    setLang('vi');
+  it('translates to Vietnamese, and falls back to English for unknown text', async () => {
+    await setLang('vi');
     expect(tr('Run today’s stage')).toBe('Chạy chặng hôm nay');
     expect(tr('Day {n} of 7', { n: 3 })).toBe('Ngày 3/7');
     expect(tr('Not a key yet')).toBe('Not a key yet');
   });
 
-  it('reads server messages that carry values', () => {
-    setLang('vi');
+  it('reads server messages that carry values', async () => {
+    await setLang('vi');
     expect(trServer('Day 4 check-in: +40 coins')).toBe(
       'Điểm danh ngày 4: +40 coin'
     );

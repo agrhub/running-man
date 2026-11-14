@@ -121,7 +121,7 @@ export const ComfortOptions = () => {
                 type="button"
                 role="radio"
                 aria-checked={langChoice() === l.id}
-                onClick={() => setLang(l.id)}
+                onClick={() => void setLang(l.id)}
                 className={`rounded-xl border-2 border-ink py-1 text-[13px] font-extrabold ${langChoice() === l.id ? 'bg-ink text-white' : 'bg-white'}`}
               >
                 {l.id === 'auto' ? tr(l.label) : l.label}

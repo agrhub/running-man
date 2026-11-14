@@ -379,6 +379,10 @@ Options (kept in the browser). Public Reddit posts and comments stay in English,
 them. `npm run i18n:check` collects every text the game can show (from `tr()` calls, the game data and the server's
 messages) and fails if one has no Vietnamese; a unit test checks that every translation keeps its `{values}`.
 
+Each table loads on its own only on devices that use it: the feed card and the game wait for it before their first
+render, so there is no flash of English, and English players never download it (the bundle the feed card shares
+with the game is about 79 KB gzipped instead of 97 KB).
+
 ## Technology
 
 - **Client:** React for the interface, three.js for the runners, pets, cities and terrains. All 3D is procedural

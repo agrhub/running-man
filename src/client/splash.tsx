@@ -17,7 +17,7 @@ import { CrewBar } from './components/CrewBar';
 import { holidayShort } from '../shared/festive';
 import { request } from './lib/api';
 import { applyCityTheme } from './lib/theme';
-import { tr, useLang } from './i18n';
+import { tr, useLang, i18nReady } from './i18n';
 
 /** Skyline + a little SVG chibi: the feed card stays light, no 3D here. */
 const Scene = ({ city }: { city: City }) => {
@@ -224,8 +224,10 @@ export const Splash = () => {
   );
 };
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Splash />
-  </StrictMode>
+void i18nReady().then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <Splash />
+    </StrictMode>
+  )
 );

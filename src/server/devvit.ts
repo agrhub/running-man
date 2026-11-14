@@ -109,6 +109,7 @@ export const devvitDeps: Deps = {
       ...flag('pinPosts'),
       ...flag('dailyRecap'),
       ...flag('appPosts'),
+      ...flag('runnerFlair'),
     };
   },
   avatarUrl: async (username) => {

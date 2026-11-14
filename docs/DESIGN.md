@@ -107,7 +107,7 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 - **Crew bar** on the feed card and the plan screen: "Crew goal: 10 marathons in Tokyo, 306 / 422 km".
 - **A season is one city:** seven days, seven stages. If the crew finishes early, the remaining stages stay open.
 - **City finish:** everyone who ran that week gets 200 coins and the city's hat (Tokyo hachimaki, Paris beret,
-  Hanoi leaf hat, Dubai sun visor). Runners get a "🏅 Tokyo Finisher" user flair.
+  Hanoi leaf hat, Dubai sun visor). The runner's user flair adds "🏅 Tokyo Finisher".
 - **Real runners on the road:** up to 12 of today's runners share the road with you.
 - **The comments are the strategy room:** each stage post pins a "Today's strategy?" comment, and sharing a result
   posts a compact result card as a comment.
@@ -374,7 +374,7 @@ messages) and fails if one has no Vietnamese; a unit test checks that every tran
   needs about 100 KB gzipped. In a race the world watches the frame rate and drops to a lower resolution, then no
   shadows, on slow phones.
 - **Devvit Journeys:** start, plan, finish and every interaction are tracked.
-- **Reddit API:** the Finisher user flair and result comments.
+- **Reddit API:** the runner user flair (`🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo Finisher`, refreshed on registration, every daily run and each new passport stamp; moderators can switch it off) and result comments.
 
 ### Redis keys
 

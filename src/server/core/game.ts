@@ -124,6 +124,7 @@ import type {
 } from '../../shared/api';
 import { DEFAULT_SETTINGS } from '../../shared/api';
 import type { Deps } from './deps';
+import { updateFlair } from './flair';
 import { keys } from './keys';
 import type { Store } from './store';
 
@@ -279,6 +280,7 @@ export const register = async (
   profile.registered = true;
   await ensureBib(deps.store, profile);
   await saveProfile(deps.store, profile);
+  await updateFlair(deps, profile);
   return profile;
 };
 
@@ -1104,11 +1106,7 @@ export const run = async (
   const myClubNow = await loadClub(store, profile.club);
   if (myClubNow) await updateClubWeek(store, myClubNow, today);
 
-  if (finisherNow) {
-    await deps
-      .setFlair(username, `🏅 ${day.city.name} Finisher`)
-      .catch(() => undefined);
-  }
+  await updateFlair(deps, profile);
   if (journeyId) {
     await deps.telemetry
       .end(journeyId, {

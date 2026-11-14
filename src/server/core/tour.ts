@@ -32,6 +32,7 @@ import {
   requireUser,
   saveProfile,
 } from './game';
+import { updateFlair } from './flair';
 import { keys } from './keys';
 
 const findStop = (id: unknown): TourStop => {
@@ -187,6 +188,7 @@ export const tourRun = async (
     profile.badges += TOUR_STAMP_REWARD;
   }
   await saveProfile(store, profile);
+  if (stamped) await updateFlair(deps, profile);
 
   const [rankIndex, total] = await Promise.all([
     store.zRank(board, username),

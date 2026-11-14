@@ -145,10 +145,10 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   Christmas Run with double coins on the 25th.
 - **Daily recap and celebrations:** the app comments a recap under each closed stage and posts when the crew
   finishes a city; the plan screen shows yesterday's podium.
-- **Moderator settings:** quick chat, road life, pinning, recaps and app posts can each be switched off.
+- **Moderator settings:** quick chat, road life, pinning, recaps, app posts and runner flair can each be switched off.
 - **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
   strategy thread, a how-to-play post pinned on install, result sharing as a
-  comment, a "City Finisher" user flair, and Devvit Journeys events for analytics.
+  comment, a live runner user flair (`🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo Finisher`), and Devvit Journeys events for analytics.
 
 ## Tech
 
@@ -174,7 +174,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 110 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 113 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

@@ -364,6 +364,9 @@ describe('game API', () => {
       top: 'tee-mint',
     });
     expect(first.json.message).toBe('Bib #0001 is yours!');
+    expect(h.flairs).toEqual([
+      { username: 'newbie', text: '🏃 #0001 · New runner' },
+    ]);
 
     const again = await call<ProfileResponse>(
       h.as('newbie'),
@@ -614,14 +617,19 @@ describe('game API', () => {
     expect(again.json.profile.badges).toBe(early.json.profile.badges);
   });
 
-  it('awards the Finisher flair after 5 stages in one city', async () => {
+  it('keeps the runner flair up to date and adds the Finisher title after 5 stages in one city', async () => {
     for (let i = 0; i < 5; i++) {
       const d = addDays('2026-11-09', i);
       await call(h.at(d), 'POST', '/run', { plan: planFor(d) });
     }
-    expect(h.flairs).toEqual([
-      { username: 'alice', text: '🏅 Tokyo Finisher' },
+    expect(h.flairs.map((f) => f.text)).toEqual([
+      '🏃 #0001 · 1 stage',
+      '🏃 #0001 · 2 stages',
+      '🏃 #0001 · 3 stages',
+      '🏃 #0001 · 4 stages',
+      '🏃 #0001 · 5 stages · 🏅 Tokyo Finisher',
     ]);
+    expect(h.flairs.every((f) => f.username === 'alice')).toBe(true);
     const init = await call<InitResponse>(h.at('2026-11-13'), 'GET', '/init');
     expect(init.json.profile.finisher).toBe(true);
     expect(init.json.profile.owned).toContain('finisher-tee');
@@ -1378,6 +1386,7 @@ describe('daily posts', () => {
       pinPosts: false,
       dailyRecap: false,
       appPosts: false,
+      runnerFlair: false,
     });
     const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
     await internal.request('/triggers/on-app-install', { method: 'POST' });
@@ -1392,6 +1401,7 @@ describe('daily posts', () => {
     });
     expect(ran.json.run.chat).toEqual([]);
     expect(ran.json.run.met.some((k) => isRoadLife(k))).toBe(false);
+    expect(h.flairs).toEqual([]);
     const page = await call<InitResponse>(h, 'GET', '/init');
     expect(page.json.settings).toEqual({ quickChat: false, roadLife: false });
 
@@ -1528,6 +1538,7 @@ describe('World Tour', () => {
     expect(first.json.reward).toBe(TOUR_STAMP_REWARD);
     expect(first.json.profile.badges).toBe(250 - wall.cost + TOUR_STAMP_REWARD);
     expect(first.json.rank).toBe(1);
+    expect(h.flairs.at(-1)?.text).toBe('🏃 #0001 · New runner · 🛂 1');
 
     // A slower run is not kept, and the stamp is paid once.
     const slow = await call<TourRunResponse>(h, 'POST', '/tour/run', {

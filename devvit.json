@@ -56,6 +56,12 @@
         "label": "How-to-play and celebration posts",
         "helpText": "The app posts a pinned how-to-play guide on install and a post when the crew finishes a city.",
         "defaultValue": true
+      },
+      "runnerFlair": {
+        "type": "boolean",
+        "label": "Runner user flair",
+        "helpText": "Sets each player's user flair to their bib, stages run, passport stamps and latest finished city. Turn off if your subreddit manages flair itself.",
+        "defaultValue": true
       }
     }
   },

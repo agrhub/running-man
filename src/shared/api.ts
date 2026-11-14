@@ -181,6 +181,7 @@ export type GameSettings = {
   pinPosts: boolean;
   dailyRecap: boolean;
   appPosts: boolean;
+  runnerFlair: boolean;
 };
 
 export const DEFAULT_SETTINGS: GameSettings = {
@@ -189,6 +190,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   pinPosts: true,
   dailyRecap: true,
   appPosts: true,
+  runnerFlair: true,
 };
 
 /** What happened on a closed stage: posted as a recap comment and shown in the game the next day. */

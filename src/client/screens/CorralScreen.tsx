@@ -8,6 +8,7 @@ import type { Lane } from '../../shared/course';
 import { startLane } from '../../shared/race';
 import { RunnerPreview } from '../components/RunnerPreview';
 import { tr } from '../i18n';
+import { Chip, Sheet } from '../components/Sheet';
 
 type Props = {
   day: DayInfo;
@@ -47,6 +48,8 @@ export const CorralScreen = ({
     );
   const lane = startLane(profile.username);
   const field = runners.length;
+  const [sheet, setSheet] = useState<null | 'road' | 'tips'>(null);
+  const closeSheet = () => setSheet(null);
   return (
     <div className="flex h-full flex-col max-w-[440px] mx-auto">
       <header className="flex items-center justify-between px-4 pt-3">
@@ -62,7 +65,7 @@ export const CorralScreen = ({
         </p>
       </header>
 
-      <div className="relative h-[34%] min-h-[180px]">
+      <div className="relative h-[34%] min-h-[180px] short:h-[22%] short:min-h-[110px]">
         <RunnerPreview
           day={day}
           look={profile.look}
@@ -100,29 +103,20 @@ export const CorralScreen = ({
           </p>
         </section>
 
-        {field > 0 && (
-          <section className="mt-3 rounded-2xl border-2 border-ink bg-white/80 px-3 py-2">
-            <h2 className="text-[13px] font-extrabold">
-              {tr('On the road with you')}
-            </h2>
-            <ul className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
-              {runners.slice(0, 12).map((r) => (
-                <li
-                  key={r.username}
-                  className="flex justify-between gap-2 truncate"
-                >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <Avatar name={r.username} size={18} />
-                    <span className="truncate">u/{r.username}</span>
-                  </span>
-                  <span className="tabular text-ink-soft">
-                    {bibText(r.bib)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+          {field > 0 && (
+            <Chip
+              icon="👟"
+              label={`${tr('On the road with you')} (${field})`}
+              onClick={() => setSheet('road')}
+            />
+          )}
+          <Chip
+            icon="❔"
+            label={tr('Race tips')}
+            onClick={() => setSheet('tips')}
+          />
+        </div>
 
         <section
           className="mt-3 rounded-2xl border-2 border-ink bg-white/85 px-3 py-2"
@@ -169,16 +163,6 @@ export const CorralScreen = ({
             ))}
           </div>
         </section>
-
-        <ul className="mt-3 flex flex-col gap-1 text-[13px]">
-          <li>{tr('◀ ▶ Swipe or tap to change lanes.')}</li>
-          <li>
-            {tr(
-              '🚧 Cones, puddles and cups cost seconds. 🍬 Snacks and 🙌 high fives speed you up.'
-            )}
-          </li>
-          <li>{tr('💥 Run into a runner and you both fall.')}</li>
-        </ul>
       </div>
 
       <div className="px-4 pt-2 pb-4">
@@ -190,6 +174,47 @@ export const CorralScreen = ({
           {tr('Line up at the start')}
         </button>
       </div>
+      <Sheet
+        open={sheet === 'road'}
+        title={tr('On the road with you')}
+        onClose={closeSheet}
+      >
+        {field > 0 && (
+          <section>
+            <ul className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[13px]">
+              {runners.map((r) => (
+                <li
+                  key={r.username}
+                  className="flex justify-between gap-2 truncate"
+                >
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Avatar name={r.username} size={18} />
+                    <span className="truncate">u/{r.username}</span>
+                  </span>
+                  <span className="tabular text-ink-soft">
+                    {bibText(r.bib)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </Sheet>
+      <Sheet
+        open={sheet === 'tips'}
+        title={tr('Race tips')}
+        onClose={closeSheet}
+      >
+        <ul className="flex flex-col gap-1.5 text-[14px]">
+          <li>{tr('◀ ▶ Swipe or tap to change lanes.')}</li>
+          <li>
+            {tr(
+              '🚧 Cones, puddles and cups cost seconds. 🍬 Snacks and 🙌 high fives speed you up.'
+            )}
+          </li>
+          <li>{tr('💥 Run into a runner and you both fall.')}</li>
+        </ul>
+      </Sheet>
     </div>
   );
 };

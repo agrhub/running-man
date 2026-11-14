@@ -13,6 +13,9 @@ import {
 import { WEATHER } from '../../shared/content';
 import { WorldMap } from '../components/PlaceMap';
 import { tr } from '../i18n';
+import { useState } from 'react';
+import { Chip, Sheet } from '../components/Sheet';
+import type { TourStop } from '../../shared/tour';
 
 type Props = {
   profile: Profile;
@@ -46,8 +49,16 @@ export const TourScreen = ({
   const free = featuredStop(today);
   const daysLeft = featuredDaysLeft(today);
   const freeOwned = profile.tourUnlocked.includes(free.id);
+  const [sheet, setSheet] = useState<null | 'map' | 'about' | 'free'>(null);
+  const [open, setOpen] = useState<TourStop | null>(null);
+  const closeSheet = () => setSheet(null);
+  const rowOf = (id: string) => stops?.find((r) => r.id === id);
+  const isUnlocked = (id: string) =>
+    rowOf(id)?.unlocked ??
+    (profile.tourUnlocked.includes(id) || id === free.id);
+
   return (
-    <div className="flex flex-col gap-3 px-4 pt-3 pb-6 max-w-[440px] mx-auto">
+    <div className="flex min-h-full flex-col justify-center gap-2.5 px-4 pt-3 pb-4 short:gap-2 short:pt-2 short:pb-2 max-w-[440px] mx-auto">
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -60,124 +71,40 @@ export const TourScreen = ({
           {COIN} {profile.badges}
         </p>
       </div>
-      <header>
-        <h1 className="font-display text-[26px] font-extrabold leading-tight">
-          {tr('🌍 World Tour')}
-        </h1>
-        <p className="text-[13px] leading-snug text-ink-soft">
-          {tr(
-            'Famous places to run any time, as often as you like. Unlock a place with coins; your first finish there stamps your passport (+{n} {coin}). Tour runs never count for the daily stage.',
-            { n: TOUR_STAMP_REWARD, coin: COIN }
-          )}
-        </p>
-        <p
-          className="mt-1 text-[13px] font-extrabold"
-          aria-label={tr('{n} of {total} passport stamps', {
-            n: stamps,
-            total: TOUR.length,
-          })}
-        >
-          🛂 {tr('Passport:')} {stamps} / {TOUR.length}{' '}
-          <span aria-hidden>
-            {TOUR.map((s) =>
-              profile.tourStamps.includes(s.id) ? s.flag : '·'
-            )}
-          </span>
-        </p>
+      <header className="flex items-end justify-between gap-2">
+        <div>
+          <h1 className="font-display text-[24px] font-extrabold leading-tight">
+            {tr('🌍 World Tour')}
+          </h1>
+          <p
+            className="text-[13px] font-extrabold"
+            aria-label={tr('{n} of {total} passport stamps', {
+              n: stamps,
+              total: TOUR.length,
+            })}
+          >
+            🛂 {tr('Passport:')} {stamps} / {TOUR.length}
+          </p>
+        </div>
+        <div className="flex gap-1.5">
+          <Chip icon="🗺️" label={tr('Map')} onClick={() => setSheet('map')} />
+          <Chip
+            icon="❔"
+            label={tr('How it works')}
+            onClick={() => setSheet('about')}
+          />
+        </div>
       </header>
 
-      <WorldMap
-        label={`World map of the ${TOUR.length} World Tour places; ${stamps} stamped.`}
-        pins={TOUR.flatMap((s) =>
-          s.stage.landmark.at
-            ? [
-                {
-                  at: s.stage.landmark.at,
-                  tone: profile.tourStamps.includes(s.id)
-                    ? ('done' as const)
-                    : profile.tourUnlocked.includes(s.id) || s.id === free.id
-                      ? ('now' as const)
-                      : ('other' as const),
-                  title: `${tr(s.stage.landmark.name)}, ${s.country}`,
-                },
-              ]
-            : []
-        )}
-      />
-      <p className="-mt-1 text-[11px] font-bold text-ink-soft">
-        <span style={{ color: '#3fae6a' }}>●</span> {tr('stamped')}{' '}
-        <span style={{ color: '#ff5d8f' }}>●</span> {tr('unlocked ○ locked')}
-      </p>
-
-      <section
-        className="chunky rounded-2xl bg-[#fff4cf] px-3 py-2"
-        aria-label={tr('Free this week')}
-      >
-        <p className="text-[12px] font-extrabold text-ink-soft">
-          ⭐ {tr('Free this week')} ·{' '}
-          {daysLeft === 1
-            ? tr('last day')
-            : tr('{n} days left', { n: daysLeft })}
-        </p>
-        <div className="flex items-center gap-2">
-          <span className="text-[30px] leading-none" aria-hidden>
-            {free.flag}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-[19px] font-extrabold leading-tight">
-              {tr(free.stage.landmark.name)}
-            </p>
-            <p className="text-[12px] leading-snug">
-              {freeOwned
-                ? tr('Yours to keep. The whole crew races here this week.')
-                : tr(
-                    'Everyone can run it this week without unlocking. Race the crew on one board.'
-                  )}
-            </p>
-          </div>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onRun(free.id)}
-            className="chunky rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
-          >
-            {tr('Run here')}
-          </button>
-        </div>
-        <p className="mt-1 text-[11px] font-bold text-ink-soft">
-          {tr(
-            'The fastest three this week win {a}, {b} and {c} {coin} on Monday.',
-            {
-              a: TOUR_WEEK_PRIZES[0]!,
-              b: TOUR_WEEK_PRIZES[1]!,
-              c: TOUR_WEEK_PRIZES[2]!,
-              coin: COIN,
-            }
-          )}
-        </p>
-        {week.length > 0 && (
-          <ol
-            className="mt-1 flex flex-wrap gap-x-3 text-[12px] font-extrabold"
-            aria-label={tr('This week’s leaders')}
-          >
-            {week.map((r, i) => (
-              <li key={r.username}>
-                {['🥇', '🥈', '🥉'][i]} u/{r.username} {formatTime(r.seconds)}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
-
-      {result && done && (
+      {result && done ? (
         <section
-          className="bib bib-pins px-3 pt-5 pb-3"
+          className="bib bib-pins px-3 pt-4 pb-2"
           aria-label={tr('Your World Tour run')}
         >
           <p className="text-[13px] font-extrabold text-ink-soft">
             {done.flag} {tr(done.stage.landmark.name)}
           </p>
-          <p className="font-display text-[34px] font-extrabold leading-none">
+          <p className="font-display text-[30px] font-extrabold leading-none">
             {formatTime(result.seconds)}
           </p>
           <p className="mt-1 text-[13px] font-bold">
@@ -191,115 +118,293 @@ export const TourScreen = ({
                   rank: result.rank,
                   total: result.total,
                 })}
+            {result.stamped && (
+              <span className="ml-1 font-extrabold text-easy">
+                🛂 {tr('Passport stamped: +{n}', { n: result.reward })} {COIN}
+              </span>
+            )}
           </p>
-          {result.stamped && (
-            <p className="mt-1 text-[13px] font-extrabold text-easy">
-              🛂 {tr('Passport stamped: +{n}', { n: result.reward })} {COIN}
-            </p>
-          )}
+        </section>
+      ) : (
+        <section
+          className="chunky rounded-2xl bg-[#fff4cf] px-3 py-2"
+          aria-label={tr('Free this week')}
+        >
+          <p className="text-[12px] font-extrabold text-ink-soft">
+            ⭐ {tr('Free this week')} ·{' '}
+            {daysLeft === 1
+              ? tr('last day')
+              : tr('{n} days left', { n: daysLeft })}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-[28px] leading-none" aria-hidden>
+              {free.flag}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSheet('free')}
+              className="min-w-0 flex-1 text-left"
+            >
+              <span className="block font-display text-[18px] font-extrabold leading-tight">
+                {tr(free.stage.landmark.name)}
+              </span>
+              <span className="block text-[12px] font-bold text-ink-soft underline">
+                {week.length > 0
+                  ? tr('This week’s leaders')
+                  : tr(
+                      'The fastest three this week win {a}, {b} and {c} {coin} on Monday.',
+                      {
+                        a: TOUR_WEEK_PRIZES[0]!,
+                        b: TOUR_WEEK_PRIZES[1]!,
+                        c: TOUR_WEEK_PRIZES[2]!,
+                        coin: COIN,
+                      }
+                    )}
+              </span>
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onRun(free.id)}
+              className="chunky shrink-0 rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
+            >
+              {tr('Run here')}
+            </button>
+          </div>
         </section>
       )}
 
-      <ul className="flex flex-col gap-2" aria-label={tr('World Tour places')}>
+      <ul
+        className="grid grid-cols-4 gap-1.5"
+        aria-label={tr('World Tour places')}
+      >
         {TOUR.map((stop) => {
-          const row = stops?.find((r) => r.id === stop.id);
-          const unlocked =
-            row?.unlocked ?? profile.tourUnlocked.includes(stop.id);
           const stamped = profile.tourStamps.includes(stop.id);
-          const isFree = stop.id === free.id;
-          const owned = profile.tourUnlocked.includes(stop.id);
-          const kind = TOUR_KIND[stop.kind];
-          const canBuy = profile.badges >= stop.cost;
+          const unlocked = isUnlocked(stop.id);
           return (
-            <li
-              key={stop.id}
-              className={`rounded-2xl border-2 px-3 py-2 ${unlocked ? 'border-ink bg-white' : 'border-ink/25 bg-white/70'}`}
-            >
-              <div className="flex items-start gap-2">
-                <span className="text-[26px] leading-none" aria-hidden>
+            <li key={stop.id}>
+              <button
+                type="button"
+                onClick={() => setOpen(stop)}
+                aria-label={`${tr(stop.stage.landmark.name)}: ${
+                  stamped
+                    ? tr('Stamped')
+                    : unlocked
+                      ? tr('Run here')
+                      : tr('Unlock {n}', { n: stop.cost })
+                }`}
+                className={`flex h-[58px] short:h-[52px] w-full flex-col items-center justify-center rounded-xl border-2 px-0.5 ${
+                  stop.id === free.id
+                    ? 'border-ink bg-[#fff4cf]'
+                    : unlocked
+                      ? 'border-ink bg-white'
+                      : 'border-ink/25 bg-white/60'
+                }`}
+              >
+                <span className="text-[18px] leading-none" aria-hidden>
                   {stop.flag}
+                  {stamped ? '🛂' : ''}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-[17px] font-extrabold leading-tight">
-                    {tr(stop.stage.landmark.name)}
-                    {isFree && (
-                      <span className="ml-1 rounded-full bg-gold px-1.5 text-[11px] align-middle">
-                        ⭐ {tr('Free this week')}
-                      </span>
-                    )}
-                    {stamped && (
-                      <span className="ml-1 text-[13px]" title={tr('Stamped')}>
-                        🛂
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[12px] font-bold text-ink-soft">
-                    {kind.icon} {tr(kind.label)} · {tr(stop.place)},{' '}
-                    {tr(stop.country)}
-                  </p>
-                  <p className="text-[12px] leading-snug">
-                    {tr(stop.stage.landmark.blurb)}
-                  </p>
-                  <p className="mt-0.5 text-[11px] font-bold text-ink-soft">
-                    {TERRAIN[stop.stage.terrain].icon}{' '}
-                    {tr(TERRAIN[stop.stage.terrain].label)} ·{' '}
-                    {WEATHER[stop.weather].icon}{' '}
-                    {tr(WEATHER[stop.weather].label)} · {TIMES[stop.time].icon}{' '}
-                    {tr(TIMES[stop.time].label)}
-                  </p>
-                  {row && (row.best !== null || row.top) && (
-                    <p className="mt-0.5 text-[11px] font-bold">
-                      {row.best !== null &&
-                        tr('Your best {time} (#{rank} of {total})', {
-                          time: formatTime(row.best),
-                          rank: row.rank ?? '',
-                          total: row.runners,
-                        })}
-                      {row.best !== null && row.top && ' · '}
-                      {row.top &&
-                        tr('Record {time} by u/{name}', {
-                          time: formatTime(row.top.seconds),
-                          name: row.top.username,
-                        })}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="mt-1.5 flex justify-end gap-2">
-                {isFree && !owned && (
-                  <button
-                    type="button"
-                    disabled={busy || !canBuy}
-                    onClick={() => onUnlock(stop.id)}
-                    className="chunky rounded-full bg-white px-3 py-1 text-[13px] font-extrabold"
-                  >
-                    {tr('Keep it {n}', { n: stop.cost })} {COIN}
-                  </button>
-                )}
-                {unlocked ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => onRun(stop.id)}
-                    className="chunky rounded-full bg-[var(--accent)] px-4 py-1 text-[14px] font-extrabold text-white"
-                  >
-                    {tr('Run here')}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={busy || !canBuy}
-                    onClick={() => onUnlock(stop.id)}
-                    className="chunky rounded-full bg-gold px-4 py-1 text-[14px] font-extrabold"
-                  >
-                    {tr('Unlock {n}', { n: stop.cost })} {COIN}
-                  </button>
-                )}
-              </div>
+                <span className="mt-0.5 w-full truncate text-center text-[10px] font-extrabold leading-tight">
+                  {tr(stop.stage.landmark.name)}
+                </span>
+                <span className="text-[10px] font-bold leading-tight text-ink-soft">
+                  {stop.id === free.id
+                    ? `⭐ ${tr('Free')}`
+                    : unlocked
+                      ? tr('Run here')
+                      : `${COIN} ${stop.cost}`}
+                </span>
+              </button>
             </li>
           );
         })}
       </ul>
+
+      <Sheet
+        open={sheet === 'map'}
+        title={tr('🌍 World Tour')}
+        onClose={closeSheet}
+      >
+        <WorldMap
+          label={`World map of the ${TOUR.length} World Tour places; ${stamps} stamped.`}
+          pins={TOUR.flatMap((s) =>
+            s.stage.landmark.at
+              ? [
+                  {
+                    at: s.stage.landmark.at,
+                    tone: profile.tourStamps.includes(s.id)
+                      ? ('done' as const)
+                      : isUnlocked(s.id)
+                        ? ('now' as const)
+                        : ('other' as const),
+                    title: `${tr(s.stage.landmark.name)}, ${s.country}`,
+                  },
+                ]
+              : []
+          )}
+        />
+        <p className="text-[11px] font-bold text-ink-soft">
+          <span style={{ color: '#3fae6a' }}>●</span> {tr('stamped')}{' '}
+          <span style={{ color: '#ff5d8f' }}>●</span> {tr('unlocked ○ locked')}
+        </p>
+        <p className="text-[13px] font-extrabold" aria-hidden>
+          {TOUR.map((s) => (profile.tourStamps.includes(s.id) ? s.flag : '·'))}
+        </p>
+      </Sheet>
+
+      <Sheet
+        open={sheet === 'about'}
+        title={tr('🌍 World Tour')}
+        onClose={closeSheet}
+      >
+        <p className="text-[14px] leading-snug">
+          {tr(
+            'Famous places to run any time, as often as you like. Unlock a place with coins; your first finish there stamps your passport (+{n} {coin}). Tour runs never count for the daily stage.',
+            { n: TOUR_STAMP_REWARD, coin: COIN }
+          )}
+        </p>
+        <p className="text-[14px] leading-snug">
+          {tr(
+            'Everyone can run it this week without unlocking. Race the crew on one board.'
+          )}{' '}
+          {tr(
+            'The fastest three this week win {a}, {b} and {c} {coin} on Monday.',
+            {
+              a: TOUR_WEEK_PRIZES[0]!,
+              b: TOUR_WEEK_PRIZES[1]!,
+              c: TOUR_WEEK_PRIZES[2]!,
+              coin: COIN,
+            }
+          )}
+        </p>
+      </Sheet>
+
+      <Sheet
+        open={sheet === 'free'}
+        title={tr('Free this week')}
+        onClose={closeSheet}
+      >
+        <p className="font-display text-[18px] font-extrabold">
+          {free.flag} {tr(free.stage.landmark.name)}
+        </p>
+        <p className="text-[13px] leading-snug">
+          {freeOwned
+            ? tr('Yours to keep. The whole crew races here this week.')
+            : tr(
+                'Everyone can run it this week without unlocking. Race the crew on one board.'
+              )}
+        </p>
+        <p className="text-[12px] font-bold text-ink-soft">
+          {tr(
+            'The fastest three this week win {a}, {b} and {c} {coin} on Monday.',
+            {
+              a: TOUR_WEEK_PRIZES[0]!,
+              b: TOUR_WEEK_PRIZES[1]!,
+              c: TOUR_WEEK_PRIZES[2]!,
+              coin: COIN,
+            }
+          )}
+        </p>
+        {week.length > 0 && (
+          <ol
+            className="flex flex-col gap-0.5 text-[14px] font-extrabold"
+            aria-label={tr('This week’s leaders')}
+          >
+            {week.map((r, i) => (
+              <li key={r.username}>
+                {['🥇', '🥈', '🥉'][i]} u/{r.username} {formatTime(r.seconds)}
+              </li>
+            ))}
+          </ol>
+        )}
+      </Sheet>
+
+      <Sheet
+        open={open !== null}
+        title={open ? `${open.flag} ${tr(open.stage.landmark.name)}` : ''}
+        onClose={() => setOpen(null)}
+      >
+        {open &&
+          (() => {
+            const stop = open;
+            const row = rowOf(stop.id);
+            const unlocked = isUnlocked(stop.id);
+            const owned = profile.tourUnlocked.includes(stop.id);
+            const isFree = stop.id === free.id;
+            const kind = TOUR_KIND[stop.kind];
+            const canBuy = profile.badges >= stop.cost;
+            return (
+              <>
+                <p className="text-[12px] font-bold text-ink-soft">
+                  {kind.icon} {tr(kind.label)} · {tr(stop.place)},{' '}
+                  {tr(stop.country)}
+                  {profile.tourStamps.includes(stop.id) &&
+                    ` · 🛂 ${tr('Stamped')}`}
+                </p>
+                <p className="text-[14px] leading-snug">
+                  {tr(stop.stage.landmark.blurb)}
+                </p>
+                <p className="text-[12px] font-bold text-ink-soft">
+                  {TERRAIN[stop.stage.terrain].icon}{' '}
+                  {tr(TERRAIN[stop.stage.terrain].label)} ·{' '}
+                  {WEATHER[stop.weather].icon} {tr(WEATHER[stop.weather].label)}{' '}
+                  · {TIMES[stop.time].icon} {tr(TIMES[stop.time].label)}
+                </p>
+                {row && (row.best !== null || row.top) && (
+                  <p className="text-[12px] font-bold">
+                    {row.best !== null &&
+                      tr('Your best {time} (#{rank} of {total})', {
+                        time: formatTime(row.best),
+                        rank: row.rank ?? '',
+                        total: row.runners,
+                      })}
+                    {row.best !== null && row.top && ' · '}
+                    {row.top &&
+                      tr('Record {time} by u/{name}', {
+                        time: formatTime(row.top.seconds),
+                        name: row.top.username,
+                      })}
+                  </p>
+                )}
+                <div className="mt-1 flex justify-end gap-2">
+                  {isFree && !owned && (
+                    <button
+                      type="button"
+                      disabled={busy || !canBuy}
+                      onClick={() => onUnlock(stop.id)}
+                      className="chunky rounded-full bg-white px-3 py-1.5 text-[13px] font-extrabold"
+                    >
+                      {tr('Keep it {n}', { n: stop.cost })} {COIN}
+                    </button>
+                  )}
+                  {unlocked ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setOpen(null);
+                        onRun(stop.id);
+                      }}
+                      className="chunky rounded-full bg-[var(--accent)] px-5 py-1.5 text-[15px] font-extrabold text-white"
+                    >
+                      {tr('Run here')}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy || !canBuy}
+                      onClick={() => onUnlock(stop.id)}
+                      className="chunky rounded-full bg-gold px-5 py-1.5 text-[15px] font-extrabold"
+                    >
+                      {tr('Unlock {n}', { n: stop.cost })} {COIN}
+                    </button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+      </Sheet>
     </div>
   );
 };

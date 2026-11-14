@@ -43,9 +43,6 @@ export const ChallengeResults = ({ run }: { run: RunRecord }) => {
       className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2"
       aria-label={tr('Challenge results')}
     >
-      <h2 className="font-display text-[17px] font-extrabold">
-        🏁 {tr('Challenges')}
-      </h2>
       <ul className="text-[13px] font-bold">
         {run.challenges.map((c) => (
           <li key={c.from}>
@@ -87,9 +84,6 @@ export const ChallengeBox = ({
       className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2"
       aria-label={tr('Challenge a friend')}
     >
-      <h2 className="font-display text-[17px] font-extrabold">
-        🏁 {tr('Challenge a friend')}
-      </h2>
       <p className="text-[12px] leading-snug text-ink-soft">
         {tr(
           'Mention someone in a comment on today’s post. If they beat {time}, they win {n} coins.',

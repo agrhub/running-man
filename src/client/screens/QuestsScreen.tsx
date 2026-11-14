@@ -4,6 +4,8 @@ import { COIN, CHECKIN_REWARDS, nextCheckInDay } from '../../shared/economy';
 import { addDays } from '../../shared/content';
 import type { QuestState } from '../../shared/quests';
 import { tr } from '../i18n';
+import { useState } from 'react';
+import { Sheet } from '../components/Sheet';
 
 type Props = {
   today: string;
@@ -21,6 +23,7 @@ export const CheckInCard = ({
   busy,
   onCheckIn,
 }: Omit<Props, 'children'>) => {
+  const [help, setHelp] = useState(false);
   const done = profile.checkInDate === today;
   const guest = profile.username === 'guest';
   // The day that is (or would be) today's check-in.
@@ -33,18 +36,26 @@ export const CheckInCard = ({
       );
   return (
     <section
-      className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
+      className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5 short:py-1.5"
       aria-label={tr('Daily check-in')}
     >
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-[19px] font-extrabold">
           {tr('Daily check-in')}
         </h2>
-        <span className="text-[12px] font-extrabold text-ink-soft">
+        <span className="flex items-center gap-1.5 text-[12px] font-extrabold text-ink-soft">
           {tr('Day {n} of 7', { n: current })}
+          <button
+            type="button"
+            onClick={() => setHelp(true)}
+            aria-label={tr('How check-in works')}
+            className="chunky grid h-6 w-6 place-items-center rounded-full bg-white text-[12px] text-ink"
+          >
+            ?
+          </button>
         </span>
       </div>
-      <ol className="mt-2 grid grid-cols-7 gap-1">
+      <ol className="mt-2 grid grid-cols-7 gap-1 short:mt-1">
         {CHECKIN_REWARDS.map((coins, i) => {
           const day = i + 1;
           const claimed = day < current || (done && day === current);
@@ -70,7 +81,7 @@ export const CheckInCard = ({
         type="button"
         disabled={busy || done || guest}
         onClick={onCheckIn}
-        className="chunky mt-2 w-full rounded-2xl bg-[var(--accent)] py-2 font-display text-[17px] font-extrabold text-white"
+        className="chunky mt-2 w-full rounded-2xl bg-[var(--accent)] py-2 short:mt-1.5 short:py-1.5 font-display text-[17px] font-extrabold text-white"
       >
         {guest
           ? tr('Log in to check in')
@@ -81,17 +92,23 @@ export const CheckInCard = ({
                 coin: COIN,
               })}
       </button>
-      <p className="mt-1 text-[11px] text-ink-soft">
-        {tr(
-          'Check in on days in a row to climb the calendar. Miss a day and it starts again from day 1.'
-        )}
-      </p>
+      <Sheet
+        open={help}
+        title={tr('How check-in works')}
+        onClose={() => setHelp(false)}
+      >
+        <p className="text-[14px] leading-snug">
+          {tr(
+            'Check in on days in a row to climb the calendar. Miss a day and it starts again from day 1.'
+          )}
+        </p>
+      </Sheet>
     </section>
   );
 };
 
 export const QuestsScreen = (p: Props) => (
-  <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
+  <div className="flex min-h-full flex-col justify-center gap-2.5 px-4 pt-3 pb-4 short:gap-1.5 short:pt-2 short:pb-2 max-w-[440px] mx-auto">
     <header className="flex items-baseline justify-between">
       <h1 className="font-display text-[26px] font-extrabold">
         {tr('Quests')}
@@ -117,7 +134,7 @@ const QuestRow = ({
   const done = q.progress >= q.goal;
   return (
     <li
-      className={`flex items-center gap-2 rounded-xl border-2 px-2.5 py-2 ${q.claimed ? 'border-transparent bg-[var(--sky)]' : done ? 'border-ink bg-white' : 'border-ink/20 bg-white'}`}
+      className={`flex items-center gap-2 rounded-xl border-2 px-2.5 py-1.5 short:py-1 ${q.claimed ? 'border-transparent bg-[var(--sky)]' : done ? 'border-ink bg-white' : 'border-ink/20 bg-white'}`}
     >
       <div className="min-w-0 flex-1">
         <p
@@ -201,7 +218,7 @@ export const QuestList = ({
                 : tr('Resets with the new city')}
             </span>
           </div>
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col gap-1.5 short:gap-1">
             {quests
               .filter((q) => q.scope === scope)
               .map((q) => (

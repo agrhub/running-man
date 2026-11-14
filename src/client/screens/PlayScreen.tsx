@@ -56,7 +56,7 @@ export const PlayScreen = ({
   const paidLeft = Math.max(0, paid - plays);
   const left = max - plays;
   return (
-    <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
+    <div className="flex flex-col gap-3 px-4 pt-4 pb-6 short:gap-2 short:pt-2 short:pb-3 max-w-[440px] mx-auto">
       <header className="flex items-baseline justify-between">
         <h1 className="font-display text-[26px] font-extrabold">
           {tr('Play')}
@@ -77,7 +77,7 @@ export const PlayScreen = ({
           <span className="block font-display text-[19px] font-extrabold leading-tight">
             {tr('World Tour')}
           </span>
-          <span className="block text-[12px] leading-snug text-ink-soft">
+          <span className="block text-[12px] leading-snug text-ink-soft short:hidden">
             {tr(
               'The Great Wall, the Pyramids, Machu Picchu and more. Unlock with coins, run any time'
             )}{' '}
@@ -188,7 +188,7 @@ export const PlayScreen = ({
                   })
                 : tr('Play round {n} for fun', { n: plays + 1 })}
         </button>
-        <p className="mt-1 text-[11px] text-ink-soft">
+        <p className="mt-1 text-[11px] text-ink-soft short:hidden">
           {tr(
             'Everyone gets the same course for each round, and the server checks every score.'
           )}

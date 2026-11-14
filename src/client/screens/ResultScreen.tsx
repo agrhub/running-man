@@ -17,6 +17,7 @@ import { VoteCard } from '../components/VoteCard';
 import type { CityVote, NextCityId } from '../../shared/vote';
 import { Leaderboard, WeeklyStandings } from '../components/Leaderboard';
 import { useState } from 'react';
+import { Chip, Sheet, Tile } from '../components/Sheet';
 import { PACE_COLOR } from '../lib/theme';
 import { tr } from '../i18n';
 
@@ -96,6 +97,10 @@ export const ResultScreen = (p: Props) => {
     .sort((a, b) => a.seconds - b.seconds)
     .map((r, i) => ({ ...r, rank: i + 1 }));
   const [board, setBoard] = useState<'today' | 'week' | 'friends'>('today');
+  const [sheet, setSheet] = useState<
+    null | 'rewards' | 'report' | 'challenges' | 'challenge' | 'board' | 'vote'
+  >(null);
+  const closeSheet = () => setSheet(null);
   const rank = p.myRank ?? run.rank;
   const rewards: [string, number][] = [
     [tr('Finished the stage'), run.reward.finish],
@@ -115,10 +120,17 @@ export const ResultScreen = (p: Props) => {
     }),
   ];
 
+  const earned = rewards.filter(([, n]) => n > 0);
+  const coins = earned.reduce((t, [, n]) => t + n, 0);
+  const hasReport =
+    (run.incidents ?? []).length > 0 || (run.met ?? []).length > 0;
+  const challengeWins = (run.challenges ?? []).filter((c) => c.beaten).length;
+  const today = run.dateKey === p.today;
+
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto px-4 pt-4 pb-6 max-w-[440px] mx-auto">
+    <div className="flex min-h-full flex-col justify-center gap-2.5 px-4 pt-3 pb-4 short:gap-2 short:pt-2 short:pb-2 max-w-[440px] mx-auto">
       <section
-        className="bib bib-pins pop-in px-4 pt-6 pb-4 text-center"
+        className="bib bib-pins pop-in px-4 pt-5 pb-3 text-center"
         aria-label={tr('Your race bib')}
       >
         <p className="text-[13px] font-extrabold text-ink-soft">
@@ -129,11 +141,11 @@ export const ResultScreen = (p: Props) => {
             stage: tr(day.stage.name),
           })}
         </p>
-        <p className="font-display text-[92px] font-extrabold leading-[0.9] tabular text-[var(--accent)] [text-shadow:0_4px_0_#2a2340]">
+        <p className="font-display text-[64px] short:text-[48px] font-extrabold leading-[0.95] tabular text-[var(--accent)] [text-shadow:0_4px_0_#2a2340]">
           #{rank}
         </p>
-        <p className="flex flex-wrap items-center justify-center gap-x-2 font-display text-[18px] font-extrabold">
-          <Avatar name={profile.username} size={32} ring />
+        <p className="flex flex-wrap items-center justify-center gap-x-2 font-display text-[16px] font-extrabold">
+          <Avatar name={profile.username} size={26} ring />
           u/{profile.username}
           {profile.bib ? (
             <span className="text-ink-soft">
@@ -144,19 +156,19 @@ export const ResultScreen = (p: Props) => {
         </p>
         <div className="mt-2 flex items-center justify-center gap-4">
           <div>
-            <p className="font-display text-[28px] font-extrabold leading-none tabular">
+            <p className="font-display text-[24px] font-extrabold leading-none tabular">
               {formatTime(run.seconds)}
             </p>
             <p className="text-[12px] text-ink-soft">{tr('finish time')}</p>
           </div>
           <div>
-            <p className="font-display text-[28px] font-extrabold leading-none tabular">
+            <p className="font-display text-[24px] font-extrabold leading-none tabular">
               {run.totalRunners}
             </p>
             <p className="text-[12px] text-ink-soft">{tr('runners today')}</p>
           </div>
           <div>
-            <p className="font-display text-[28px] font-extrabold leading-none tabular">
+            <p className="font-display text-[24px] font-extrabold leading-none tabular">
               🔥{run.streak}
             </p>
             <p className="text-[12px] text-ink-soft">{tr('day streak')}</p>
@@ -172,7 +184,7 @@ export const ResultScreen = (p: Props) => {
                 })}
           </p>
         ) : null}
-        <div className="mt-3 flex gap-1" aria-label={tr('Splits per km')}>
+        <div className="mt-2 flex gap-1" aria-label={tr('Splits per km')}>
           {run.splits.map((s) => (
             <div key={s.km} className="flex-1">
               <div
@@ -196,7 +208,106 @@ export const ResultScreen = (p: Props) => {
         )}
       </section>
 
-      {p.justFinished && (
+      <div className="flex flex-wrap gap-1.5" aria-label={tr('Your run')}>
+        {coins > 0 && (
+          <Chip
+            icon="🪙"
+            label={`+${coins}`}
+            tone="gold"
+            onClick={() => setSheet('rewards')}
+          />
+        )}
+        {hasReport && (
+          <Chip
+            icon="📋"
+            label={tr('Race report')}
+            onClick={() => setSheet('report')}
+          />
+        )}
+        {(run.challenges ?? []).length > 0 && (
+          <Chip
+            icon="🏁"
+            label={`${tr('Challenges')} ${challengeWins}/${(run.challenges ?? []).length}`}
+            onClick={() => setSheet('challenges')}
+          />
+        )}
+        {run.unlocked.length > 0 && (
+          <Chip
+            icon="🎁"
+            label={tr('Something new')}
+            tone="blue"
+            onClick={() => setSheet('rewards')}
+          />
+        )}
+      </div>
+
+      <CrewBar crew={p.crew} {...(p.justFinished ? { gained: 6000 } : {})} />
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={p.onShare}
+          disabled={p.sharing || run.shared}
+          className="chunky rounded-2xl bg-[var(--accent)] py-2.5 font-display text-[16px] font-extrabold text-white"
+        >
+          {run.shared
+            ? tr('Shared in comments')
+            : p.sharing
+              ? tr('Posting…')
+              : tr('Share to comments')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setSheet('challenge')}
+          disabled={!today}
+          className="chunky rounded-2xl bg-white py-2.5 font-display text-[16px] font-extrabold"
+        >
+          🏁 {tr('Challenge a friend')}
+        </button>
+      </div>
+
+      <section
+        className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-1.5"
+        aria-label={tr('Today’s top 3')}
+      >
+        <Leaderboard
+          rows={p.leaderboard.slice(0, 3)}
+          me={profile.username}
+          myRank={null}
+          canCheer={canCheer}
+          onCheer={p.onCheer}
+        />
+      </section>
+
+      <div className="flex gap-1.5">
+        <Tile
+          icon="🏆"
+          label={tr('Leaderboard')}
+          onClick={() => setSheet('board')}
+        />
+        <Tile
+          icon="🗳️"
+          label={tr('Vote')}
+          note={p.vote.mine === null ? tr('open') : '✓'}
+          onClick={() => setSheet('vote')}
+        />
+        <Tile
+          icon="🛍️"
+          label={tr('Shop')}
+          note={`🪙 ${profile.badges}`}
+          onClick={p.onLocker}
+        />
+        <Tile icon="🔁" label={tr('Replay')} onClick={p.onReplay} />
+      </div>
+      <p className="text-center text-[11px] text-ink-soft">
+        {tr('A new stage opens every day at 00:00 UTC.')}
+      </p>
+
+      <Sheet
+        open={sheet === 'rewards'}
+        title={tr('Coins from this run')}
+        onClose={closeSheet}
+      >
         <section className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2">
           <ul className="flex flex-col gap-0.5 text-[14px]">
             {rewards
@@ -231,9 +342,13 @@ export const ResultScreen = (p: Props) => {
             </p>
           )}
         </section>
-      )}
+      </Sheet>
 
-      {((run.incidents ?? []).length > 0 || (run.met ?? []).length > 0) && (
+      <Sheet
+        open={sheet === 'report'}
+        title={tr('Race report')}
+        onClose={closeSheet}
+      >
         <section
           className="rounded-2xl border-2 border-ink bg-white/80 px-3 py-2"
           aria-label={tr('Race report')}
@@ -271,136 +386,125 @@ export const ResultScreen = (p: Props) => {
             ))}
           </ul>
         </section>
-      )}
+      </Sheet>
 
-      <ChallengeResults run={run} />
-
-      <CrewBar crew={p.crew} {...(p.justFinished ? { gained: 6000 } : {})} />
-
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={p.onShare}
-          disabled={p.sharing || run.shared}
-          className="chunky rounded-2xl bg-[var(--accent)] py-2.5 font-display text-[17px] font-extrabold text-white"
-        >
-          {run.shared
-            ? tr('Shared in comments')
-            : p.sharing
-              ? tr('Posting…')
-              : tr('Share to comments')}
-        </button>
-        <button
-          type="button"
-          onClick={p.onLocker}
-          className="chunky rounded-2xl bg-white py-2.5 font-display text-[17px] font-extrabold"
-        >
-          {tr('Shop')} 🪙 {profile.badges}
-        </button>
-      </div>
-
-      {run.dateKey === p.today && (
-        <ChallengeBox
-          run={run}
-          friends={p.friends}
-          busy={p.challenging}
-          onChallenge={p.onChallenge}
-        />
-      )}
-
-      <section className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2">
-        <div className="flex items-center justify-between gap-2 px-2">
-          <h2 className="font-display text-[19px] font-extrabold">
-            {board === 'today'
-              ? tr('Today’s top 10')
-              : board === 'week'
-                ? tr('This week in {city}', { city: tr(day.city.name) })
-                : tr('You and your friends')}
-          </h2>
-          <div
-            className="flex shrink-0 rounded-full border-2 border-ink p-0.5 text-[12px] font-extrabold"
-            role="group"
-            aria-label={tr('Leaderboard')}
-          >
-            {(['today', 'week', 'friends'] as const).map((b) => (
-              <button
-                key={b}
-                type="button"
-                onClick={() => setBoard(b)}
-                aria-pressed={board === b}
-                className={`rounded-full px-2.5 py-0.5 ${board === b ? 'bg-ink text-white' : ''}`}
-              >
-                {tr(
-                  b === 'today' ? 'Today' : b === 'week' ? 'Week' : 'Friends'
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        {board === 'today' ? (
-          <>
-            <p className="px-2 text-[12px] text-ink-soft">
-              {canCheer
-                ? tr('Send one cheer a day to another runner for +5 coins.')
-                : tr('Cheer sent today. Thanks for being a good sport!')}
-              {p.cheersReceived > 0 &&
-                ` ${tr(
-                  p.cheersReceived === 1
-                    ? '👏 {n} cheer for you.'
-                    : '👏 {n} cheers for you.',
-                  { n: p.cheersReceived }
-                )}`}
-            </p>
-            <div className="mt-1">
-              <Leaderboard
-                rows={p.leaderboard}
-                me={profile.username}
-                myRank={p.myRank}
-                canCheer={canCheer}
-                onCheer={p.onCheer}
-              />
-            </div>
-          </>
-        ) : board === 'friends' ? (
-          <div className="mt-1">
-            {p.friends.length === 0 ? (
-              <p className="px-2 text-[13px] text-ink-soft">
-                {tr('Add friends in the Friends tab to race them here.')}
-              </p>
-            ) : (
-              <Leaderboard
-                rows={friendBoard}
-                me={profile.username}
-                myRank={null}
-                canCheer={canCheer}
-                onCheer={p.onCheer}
-              />
-            )}
-          </div>
-        ) : (
-          <>
-            <p className="px-2 text-[12px] text-ink-soft">
-              {tr('Most stages this week first, then the lowest total time.')}
-            </p>
-            <div className="mt-1">
-              <WeeklyStandings board={p.weekly} me={profile.username} />
-            </div>
-          </>
-        )}
-      </section>
-
-      <VoteCard vote={p.vote} busy={p.voting} onVote={p.onVote} />
-
-      <button
-        type="button"
-        onClick={p.onReplay}
-        className="text-[13px] font-extrabold text-ink-soft underline"
+      <Sheet
+        open={sheet === 'challenges'}
+        title={tr('Challenge results')}
+        onClose={closeSheet}
       >
-        {tr('Watch my run again')}
-      </button>
-      <p className="text-center text-[12px] text-ink-soft">
-        {tr('A new stage opens every day at 00:00 UTC.')}
-      </p>
+        <ChallengeResults run={run} />
+      </Sheet>
+
+      <Sheet
+        open={sheet === 'challenge'}
+        title={tr('Challenge a friend')}
+        onClose={closeSheet}
+      >
+        {today && (
+          <ChallengeBox
+            run={run}
+            friends={p.friends}
+            busy={p.challenging}
+            onChallenge={p.onChallenge}
+          />
+        )}
+      </Sheet>
+
+      <Sheet
+        open={sheet === 'board'}
+        title={tr('Leaderboard')}
+        onClose={closeSheet}
+      >
+        <section className="rounded-2xl border-2 border-ink bg-white/80 px-2 py-2">
+          <div className="flex items-center justify-between gap-2 px-2">
+            <h2 className="font-display text-[19px] font-extrabold">
+              {board === 'today'
+                ? tr('Today’s top 10')
+                : board === 'week'
+                  ? tr('This week in {city}', { city: tr(day.city.name) })
+                  : tr('You and your friends')}
+            </h2>
+            <div
+              className="flex shrink-0 rounded-full border-2 border-ink p-0.5 text-[12px] font-extrabold"
+              role="group"
+              aria-label={tr('Leaderboard')}
+            >
+              {(['today', 'week', 'friends'] as const).map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => setBoard(b)}
+                  aria-pressed={board === b}
+                  className={`rounded-full px-2.5 py-0.5 ${board === b ? 'bg-ink text-white' : ''}`}
+                >
+                  {tr(
+                    b === 'today' ? 'Today' : b === 'week' ? 'Week' : 'Friends'
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          {board === 'today' ? (
+            <>
+              <p className="px-2 text-[12px] text-ink-soft">
+                {canCheer
+                  ? tr('Send one cheer a day to another runner for +5 coins.')
+                  : tr('Cheer sent today. Thanks for being a good sport!')}
+                {p.cheersReceived > 0 &&
+                  ` ${tr(
+                    p.cheersReceived === 1
+                      ? '👏 {n} cheer for you.'
+                      : '👏 {n} cheers for you.',
+                    { n: p.cheersReceived }
+                  )}`}
+              </p>
+              <div className="mt-1">
+                <Leaderboard
+                  rows={p.leaderboard}
+                  me={profile.username}
+                  myRank={p.myRank}
+                  canCheer={canCheer}
+                  onCheer={p.onCheer}
+                />
+              </div>
+            </>
+          ) : board === 'friends' ? (
+            <div className="mt-1">
+              {p.friends.length === 0 ? (
+                <p className="px-2 text-[13px] text-ink-soft">
+                  {tr('Add friends in the Friends tab to race them here.')}
+                </p>
+              ) : (
+                <Leaderboard
+                  rows={friendBoard}
+                  me={profile.username}
+                  myRank={null}
+                  canCheer={canCheer}
+                  onCheer={p.onCheer}
+                />
+              )}
+            </div>
+          ) : (
+            <>
+              <p className="px-2 text-[12px] text-ink-soft">
+                {tr('Most stages this week first, then the lowest total time.')}
+              </p>
+              <div className="mt-1">
+                <WeeklyStandings board={p.weekly} me={profile.username} />
+              </div>
+            </>
+          )}
+        </section>
+      </Sheet>
+
+      <Sheet
+        open={sheet === 'vote'}
+        title={tr('Vote for the next city')}
+        onClose={closeSheet}
+      >
+        <VoteCard vote={p.vote} busy={p.voting} onVote={p.onVote} />
+      </Sheet>
     </div>
   );
 };

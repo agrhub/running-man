@@ -6,6 +6,8 @@ import { formatTime } from '../../shared/sim';
 import { Avatar } from '../components/Avatar';
 import { ComfortOptions } from '../components/ComfortOptions';
 import { currentLang, tr } from '../i18n';
+import { Sheet, Tile } from '../components/Sheet';
+import { useState } from 'react';
 
 type Props = {
   me: MeResponse | null;
@@ -21,6 +23,10 @@ const ordinal = (n: number) => {
 
 /** Your runner's page: stats, the last four weeks, bests per city and achievements. */
 export const MeScreen = ({ me, today }: Props) => {
+  const [sheet, setSheet] = useState<
+    null | 'cities' | 'achievements' | 'options'
+  >(null);
+  const closeSheet = () => setSheet(null);
   if (!me)
     return (
       <p className="px-4 pt-10 text-center font-display text-[20px] font-extrabold text-ink-soft">
@@ -55,7 +61,7 @@ export const MeScreen = ({ me, today }: Props) => {
   const done = me.achievements.filter((a) => a.done).length;
 
   return (
-    <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
+    <div className="flex min-h-full flex-col justify-center gap-3 px-4 pt-4 pb-4 max-w-[440px] mx-auto">
       <header className="flex items-center gap-3">
         <Avatar name={profile.username} size={56} ring />
         <div className="min-w-0 flex-1">
@@ -129,87 +135,119 @@ export const MeScreen = ({ me, today }: Props) => {
         </p>
       </section>
 
-      <section
-        className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
-        aria-label={tr('Best time in each city')}
-      >
-        <h2 className="font-display text-[17px] font-extrabold">
-          {tr('Best in each city')}
-        </h2>
-        <ul className="mt-1 flex flex-col gap-1">
-          {perCity.map(({ city, stages, best: t }) => (
-            <li key={city.id} className="flex items-center gap-2 text-[14px]">
-              <span aria-hidden>{city.flag}</span>
-              <span className="flex-1 font-bold">{tr(city.name)}</span>
-              <span className="text-[12px] text-ink-soft">
-                {tr(stages === 1 ? '{n} stage' : '{n} stages', { n: stages })}
-              </span>
-              <span className="w-[58px] text-right font-display font-semibold tabular">
-                {t === null ? '—' : formatTime(t)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="flex gap-1.5">
+        <Tile
+          icon="🏙️"
+          label={tr('Best in each city')}
+          onClick={() => setSheet('cities')}
+        />
+        <Tile
+          icon="🏆"
+          label={tr('Achievements')}
+          note={tr('{n} of {total}', { n: done, total: ACHIEVEMENTS.length })}
+          onClick={() => setSheet('achievements')}
+        />
+        <Tile
+          icon="⚙️"
+          label={tr('Options')}
+          onClick={() => setSheet('options')}
+        />
+      </div>
 
-      <section aria-label={tr('Achievements')}>
-        <h2 className="mb-1 flex items-baseline justify-between font-display text-[19px] font-extrabold">
-          {tr('Achievements')}
-          <span className="text-[13px] text-ink-soft">
-            {tr('{n} of {total}', { n: done, total: ACHIEVEMENTS.length })}
-          </span>
-        </h2>
-        <ul className="grid grid-cols-2 gap-1.5">
-          {ACHIEVEMENTS.map((a) => {
-            const st = me.achievements.find((s) => s.id === a.id);
-            const got = st?.done ?? false;
-            const value = st?.value ?? 0;
-            return (
-              <li
-                key={a.id}
-                className={`rounded-2xl border-2 px-2 py-1.5 ${got ? 'border-ink bg-[#fff6d6]' : 'border-ink/25 bg-white/70'}`}
-              >
-                <p className="flex items-center gap-1.5">
-                  <span
-                    className={`text-[22px] ${got ? '' : 'grayscale opacity-50'}`}
-                    aria-hidden
-                  >
-                    {a.icon}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-extrabold">
-                      {tr(a.name)}
-                    </span>
-                    <span className="block text-[11px] leading-tight text-ink-soft">
-                      {tr(a.goal)}
-                    </span>
-                  </span>
-                </p>
-                {got ? (
-                  <p className="mt-1 text-[11px] font-extrabold text-[#1f8f7f]">
-                    {tr('Earned · +{n}', { n: a.reward })} {COIN}
-                  </p>
-                ) : (
-                  <div
-                    className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/10"
-                    role="meter"
-                    aria-label={tr('{name} progress', { name: tr(a.name) })}
-                    aria-valuenow={value}
-                    aria-valuemin={0}
-                    aria-valuemax={a.target}
-                  >
-                    <div
-                      className="h-full bg-gold"
-                      style={{ width: `${(value / a.target) * 100}%` }}
-                    />
-                  </div>
-                )}
+      <Sheet
+        open={sheet === 'cities'}
+        title={tr('Best in each city')}
+        onClose={closeSheet}
+      >
+        <section
+          className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2.5"
+          aria-label={tr('Best time in each city')}
+        >
+          <ul className="mt-1 flex flex-col gap-1">
+            {perCity.map(({ city, stages, best: t }) => (
+              <li key={city.id} className="flex items-center gap-2 text-[14px]">
+                <span aria-hidden>{city.flag}</span>
+                <span className="flex-1 font-bold">{tr(city.name)}</span>
+                <span className="text-[12px] text-ink-soft">
+                  {tr(stages === 1 ? '{n} stage' : '{n} stages', { n: stages })}
+                </span>
+                <span className="w-[58px] text-right font-display font-semibold tabular">
+                  {t === null ? '—' : formatTime(t)}
+                </span>
               </li>
-            );
-          })}
-        </ul>
-      </section>
-      <ComfortOptions />
+            ))}
+          </ul>
+        </section>
+      </Sheet>
+      <Sheet
+        open={sheet === 'achievements'}
+        title={tr('Achievements')}
+        onClose={closeSheet}
+      >
+        <section aria-label={tr('Achievements')}>
+          <p className="mb-1 text-right font-extrabold">
+            <span className="text-[13px] text-ink-soft">
+              {tr('{n} of {total}', { n: done, total: ACHIEVEMENTS.length })}
+            </span>
+          </p>
+          <ul className="grid grid-cols-2 gap-1.5">
+            {ACHIEVEMENTS.map((a) => {
+              const st = me.achievements.find((s) => s.id === a.id);
+              const got = st?.done ?? false;
+              const value = st?.value ?? 0;
+              return (
+                <li
+                  key={a.id}
+                  className={`rounded-2xl border-2 px-2 py-1.5 ${got ? 'border-ink bg-[#fff6d6]' : 'border-ink/25 bg-white/70'}`}
+                >
+                  <p className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[22px] ${got ? '' : 'grayscale opacity-50'}`}
+                      aria-hidden
+                    >
+                      {a.icon}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-extrabold">
+                        {tr(a.name)}
+                      </span>
+                      <span className="block text-[11px] leading-tight text-ink-soft">
+                        {tr(a.goal)}
+                      </span>
+                    </span>
+                  </p>
+                  {got ? (
+                    <p className="mt-1 text-[11px] font-extrabold text-[#1f8f7f]">
+                      {tr('Earned · +{n}', { n: a.reward })} {COIN}
+                    </p>
+                  ) : (
+                    <div
+                      className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink/10"
+                      role="meter"
+                      aria-label={tr('{name} progress', { name: tr(a.name) })}
+                      aria-valuenow={value}
+                      aria-valuemin={0}
+                      aria-valuemax={a.target}
+                    >
+                      <div
+                        className="h-full bg-gold"
+                        style={{ width: `${(value / a.target) * 100}%` }}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </Sheet>
+      <Sheet
+        open={sheet === 'options'}
+        title={tr('Options')}
+        onClose={closeSheet}
+      >
+        <ComfortOptions heading={false} />
+      </Sheet>
     </div>
   );
 };

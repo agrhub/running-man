@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+
+/* Short phone screens (or a short Reddit webview): tighter spacing. */
+@custom-variant short (@media (max-height: 700px));
 @import '@fontsource/baloo-2/latin-600.css';
 @import '@fontsource/baloo-2/latin-800.css';
 @import '@fontsource/nunito/latin-600.css';
@@ -142,7 +145,22 @@ body {
   outline-offset: 2px;
 }
 
+@keyframes sheet-in {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sheet-in {
+  animation: sheet-in 200ms ease-out both;
+}
+
 /* Calm motion, chosen in the profile's options. */
+[data-calm] .sheet-in,
 [data-calm] .pop-in,
 [data-calm] .stamp,
 [data-calm] .coach-pulse {
@@ -150,6 +168,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sheet-in,
   .pop-in,
   .stamp,
   .coach-pulse {

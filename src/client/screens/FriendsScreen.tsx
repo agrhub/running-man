@@ -27,7 +27,7 @@ export const FriendsScreen = (p: Props) => {
   };
   const ran = p.friends.filter((f) => f.seconds !== null).length;
   return (
-    <div className="flex flex-col gap-3 px-4 pt-4 pb-6 max-w-[440px] mx-auto">
+    <div className="flex flex-col gap-3 px-4 pt-4 pb-6 short:gap-2 short:pt-2 short:pb-3 max-w-[440px] mx-auto">
       <header className="flex items-baseline justify-between">
         <h1 className="font-display text-[26px] font-extrabold">
           {tr('Friends')}
@@ -67,7 +67,7 @@ export const FriendsScreen = (p: Props) => {
             {tr('Add')}
           </button>
         </form>
-        <p className="mt-1 text-[11px] text-ink-soft">
+        <p className="mt-1 text-[11px] text-ink-soft short:hidden">
           {tr(
             'Friends run on your road first, get their own tag colour and a Friends tab on the leaderboard.'
           )}

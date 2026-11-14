@@ -185,7 +185,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (55 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+Browser end-to-end check (58 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
 vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 

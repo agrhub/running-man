@@ -41,7 +41,7 @@ const HANDS: { id: Hand; label: string }[] = [
 ];
 
 /** Sound and comfort options; they stay in this browser. */
-export const ComfortOptions = () => {
+export const ComfortOptions = ({ heading = true }: { heading?: boolean }) => {
   const p = usePrefs();
   useLang();
   const [sound, setSoundState] = useState(soundOn);
@@ -51,9 +51,11 @@ export const ComfortOptions = () => {
       className="rounded-2xl border-2 border-ink bg-white/85 px-3 py-2"
       aria-label={tr('Options')}
     >
-      <h2 className="font-display text-[17px] font-extrabold">
-        {tr('Options')}
-      </h2>
+      {heading && (
+        <h2 className="font-display text-[17px] font-extrabold">
+          {tr('Options')}
+        </h2>
+      )}
       <ul className="divide-y-2 divide-ink/10">
         <Toggle
           label={tr('Sound')}

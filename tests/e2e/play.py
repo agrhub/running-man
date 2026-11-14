@@ -25,6 +25,17 @@ def post(path):
 def state():
     return json.loads(urllib.request.urlopen(BASE + '/__dev/state').read())
 
+FITS_JS = """() => [...document.querySelectorAll('*'), document.scrollingElement].every((el) => {
+  const cs = getComputedStyle(el);
+  const scrolls = el === document.scrollingElement || cs.overflowY === 'auto' || cs.overflowY === 'scroll';
+  return !scrolls || el.scrollHeight <= el.clientHeight + 2;
+})"""
+
+def fits(page):
+    """True when nothing on the screen needs scrolling."""
+    page.wait_for_timeout(400)
+    return page.evaluate(FITS_JS)
+
 def new_page(browser, w=390, h=844):
     ctx = browser.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2)
     # Count the sounds the game schedules, so the checks can tell sound is really playing.
@@ -129,21 +140,27 @@ with sync_playwright() as p:
     page.get_by_role('button', name='Move right').dispatch_event('pointerdown')
     time.sleep(3)
     page.screenshot(path=f'{OUT}/05-run-steer.png')
+    page.wait_for_selector('text=Finish without steering', timeout=60000)
     page.click('text=Finish without steering')
-    page.wait_for_selector('text=Today’s top 10', timeout=90000)
+    page.wait_for_selector('section[aria-label="Your race bib"]', timeout=90000)
     time.sleep(0.8)
     page.screenshot(path=f'{OUT}/06-result.png', full_page=True)
     st = state()
     check('server recorded lane changes', True)
-    body = page.inner_text('body')
-    check('result bib shows rank and rewards', '#' in body and 'Finished the stage' in body and '+50' in body)
     check('crew bar shows contribution', page.locator('.bg-gold.absolute').count() == 1)
+    check('the result fits on one screen', fits(page))
+    page.get_by_role('button', name=re.compile(r'^\+\d+$')).click()
+    sheet = page.get_by_role('dialog', name='Coins from this run')
+    check('result bib shows rank and rewards', '#' in page.inner_text('section[aria-label="Your race bib"]') and 'Finished the stage' in sheet.inner_text() and '+50' in sheet.inner_text())
+    page.screenshot(path=f'{OUT}/06a-rewards.png')
+    sheet.get_by_role('button', name='Close').click()
 
     # 4. Share + cheer
     page.click('text=Share to comments')
     page.wait_for_selector('text=Shared in comments')
     s = state()
     check('share posted one comment as the player', len(s['comments']) == 1 and s['comments'][0]['user'] == 'you', s['comments'][-1]['text'][:80] if s['comments'] else '')
+    page.get_by_role('button', name=re.compile('Challenge a friend')).click()
     box = page.locator('section[aria-label="Challenge a friend"]')
     box.locator('input').fill('u/speedy_sam')
     box.get_by_role('button', name='Challenge', exact=True).click()
@@ -159,10 +176,19 @@ with sync_playwright() as p:
     check('the challenged runner sees it on the feed card', feed.get_by_text('challenged you').is_visible())
     feed.screenshot(path=f'{OUT}/06e-splash-challenge.png')
     feed_ctx.close()
-    cheer = page.locator('button[aria-label^="Cheer for"]').first
+    page.get_by_role('dialog', name='Challenge a friend').get_by_role('button', name='Close').click()
+    page.get_by_role('button', name='Leaderboard', exact=True).click()
+    cheer = page.get_by_role('dialog', name='Leaderboard').locator('button[aria-label^="Cheer for"]').first
     cheer.click()
     page.wait_for_selector('text=Cheer sent today')
     check('cheer sent once a day', page.locator('button[aria-label^="Cheer for"]').count() == 0)
+    page.get_by_role('group', name='Leaderboard').get_by_role('button', name='Week', exact=True).click()
+    page.wait_for_selector('text=This week in Tokyo')
+    weekly = page.inner_text('[role=dialog]')
+    page.screenshot(path=f'{OUT}/06c-week.png')
+    check('weekly standings list stages and totals', 'Most stages this week first' in weekly and '1 stage' in weekly)
+    page.get_by_role('dialog', name='Leaderboard').get_by_role('button', name='Close').click()
+    page.get_by_role('button', name=re.compile('^Vote')).click()
     vote = page.get_by_role('region', name='Vote for the next city')
     check('result shows the next-city vote', vote.is_visible() and vote.get_by_role('button').count() == 4)
     vote.get_by_role('button', name=re.compile('Seoul')).click()
@@ -170,13 +196,8 @@ with sync_playwright() as p:
     vote.scroll_into_view_if_needed()
     page.screenshot(path=f'{OUT}/06b-vote.png')
     check('vote is counted once and shows the result', vote.get_by_role('button').count() == 0 and 'Seoul leads' in vote.inner_text())
-    page.get_by_role('group', name='Leaderboard').get_by_role('button', name='Week', exact=True).click()
-    page.wait_for_selector('text=This week in Tokyo')
-    weekly = page.inner_text('body')
-    page.screenshot(path=f'{OUT}/06c-week.png', full_page=True)
-    check('weekly standings list stages and totals', 'Most stages this week first' in weekly and '1 stage' in weekly)
-    page.get_by_role('group', name='Leaderboard').get_by_role('button', name='Today', exact=True).click()
-    page.wait_for_selector('text=Today’s top 10')
+    page.get_by_role('dialog', name='Vote for the next city').get_by_role('button', name='Close').click()
+    page.wait_for_selector('section[aria-label="Your race bib"]')
     page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Quests')).click()
     page.wait_for_selector('text=Today’s quests')
     page.get_by_role('button', name=re.compile('Claim 40 coins for Run today')).click()
@@ -216,7 +237,8 @@ with sync_playwright() as p:
     check('World Tour lists every place', page.locator('ul[aria-label="World Tour places"] > li').count() == 24)
     check('World Tour has a free stop of the week',
           page.locator('section[aria-label="Free this week"]').count() == 1
-          and page.locator('ul[aria-label="World Tour places"] > li', has_text='Run here').count() == 1)
+          and page.locator('ul[aria-label="World Tour places"] > li', has_text='Free').count() == 1)
+    check('the World Tour fits on one screen', fits(page))
     page.screenshot(path=f'{OUT}/09-world-tour.png')
     page.get_by_role('button', name='← Play').click()
     nav.get_by_role('button', name=re.compile('Friends')).click()
@@ -237,25 +259,32 @@ with sync_playwright() as p:
     check('club started with a join code and you as owner', bool(code) and 'u/you 👑' in club, club.replace('\n', ' ')[:120])
     check('top clubs board lists the club', page.locator('section[aria-label="Top clubs this week"]').count() == 1)
     nav.get_by_role('button', name=re.compile('Race')).click()
+    page.get_by_role('button', name='Leaderboard', exact=True).click()
     page.get_by_role('group', name='Leaderboard').get_by_role('button', name='Friends', exact=True).click()
     page.wait_for_selector('text=You and your friends')
-    check('leaderboard has a Friends tab with you and your friend', page.locator(f'text=u/{friend}').count() >= 1 and page.locator('text=u/you').count() >= 1)
-    page.get_by_role('group', name='Leaderboard').get_by_role('button', name='Today', exact=True).click()
-    page.wait_for_selector('text=Today’s top 10')
+    dialog = page.get_by_role('dialog', name='Leaderboard')
+    check('leaderboard has a Friends tab with you and your friend', dialog.locator(f'text=u/{friend}').count() >= 1 and dialog.locator('text=u/you').count() >= 1)
+    dialog.get_by_role('button', name='Close').click()
+    page.wait_for_selector('section[aria-label="Your race bib"]')
     page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Race')).click()
-    page.wait_for_selector('text=Today’s top 10')
+    page.wait_for_selector('section[aria-label="Your race bib"]')
 
     # 4b. Profile: history, achievements and options
     page.get_by_role('navigation', name='Main').get_by_role('button', name='Me', exact=True).click()
-    page.wait_for_selector('section[aria-label="Achievements"]')
+    page.wait_for_selector('section[aria-label="Your numbers"]')
+    check('the profile fits on one screen', fits(page))
     numbers = page.inner_text('section[aria-label="Your numbers"]')
+    page.get_by_role('button', name=re.compile('^Achievements')).click()
     earned = page.inner_text('section[aria-label="Achievements"]')
+    page.get_by_role('dialog', name='Achievements').get_by_role('button', name='Close').click()
     check('profile shows the run and the first achievement', numbers.split()[0] == '1' and 'First Steps' in earned and 'Earned' in earned, numbers.replace('\n', ' '))
+    page.get_by_role('button', name='Options', exact=True).click()
     page.get_by_role('switch', name='Bigger steering buttons').click()
     check('comfort options are saved in the browser', 'bigControls":true' in (page.evaluate("localStorage.getItem('rm-prefs')") or ''))
-    page.screenshot(path=f'{OUT}/12-me.png', full_page=True)
+    page.screenshot(path=f'{OUT}/12-me.png')
+    page.get_by_role('dialog', name='Options').get_by_role('button', name='Close').click()
     page.get_by_role('navigation', name='Main').get_by_role('button', name=re.compile('Race')).click()
-    page.wait_for_selector('text=Today’s top 10')
+    page.wait_for_selector('section[aria-label="Your race bib"]')
 
     # 5. Shop
     page.get_by_role('button', name=re.compile(r'^Shop 🪙')).click()
@@ -290,11 +319,11 @@ with sync_playwright() as p:
     time.sleep(1)
     page.screenshot(path=f'{OUT}/08-locker-pet.png')
     page.click('text=← Back')
-    page.wait_for_selector('text=Today’s top 10')
+    page.wait_for_selector('section[aria-label="Your race bib"]')
 
     # 6. Replay after reload keeps the result
     page.reload()
-    page.wait_for_selector('text=Today’s top 10')
+    page.wait_for_selector('section[aria-label="Your race bib"]')
     check('result persists after reload (one run a day)', page.is_visible('text=Shared in comments'))
     ctx.close()
 
@@ -304,7 +333,7 @@ with sync_playwright() as p:
     page.wait_for_selector('text=has closed')
     page.screenshot(path=f'{OUT}/09-closed.png')
     page.click('text=Go to today’s stage')
-    page.wait_for_selector('text=Today’s top 10', timeout=10000)
+    page.wait_for_selector('section[aria-label="Your race bib"]', timeout=10000)
     check('closed post links to today', True)
     ctx.close()
 
@@ -325,13 +354,14 @@ with sync_playwright() as p:
     page.screenshot(path=f'{OUT}/10-plan-desktop.png')
     page.click('text=Start the race')
     page.click('text=Line up at the start')
+    page.wait_for_selector('text=Finish without steering', timeout=60000)
     page.click('text=Finish without steering')
-    page.wait_for_selector('text=Today’s top 10', timeout=60000)
-    check('streak grows to 2 on the next day', page.is_visible('text=2-day streak'))
-    page.click('text=Watch my run again')
+    page.wait_for_selector('section[aria-label="Your race bib"]', timeout=60000)
+    check('streak grows to 2 on the next day', page.locator('section[aria-label="Your race bib"]').inner_text().split('day streak')[0].strip().endswith('2'))
+    page.get_by_role('button', name='Replay', exact=True).click()
     page.wait_for_selector('text=Fast-forward')
     page.click('text=Skip to results')
-    page.wait_for_selector('text=Today’s top 10', timeout=60000)
+    page.wait_for_selector('section[aria-label="Your race bib"]', timeout=60000)
     check('replay of my run plays and returns to results', True)
     ctx.close()
 
@@ -363,6 +393,7 @@ with sync_playwright() as p:
     page.click('text=Nhận số áo')
     page.wait_for_selector('text=Bắt đầu chạy')
     page.locator('nav').last.get_by_role('button', name=re.compile('Tôi')).click()
+    page.get_by_role('button', name='Tùy chọn', exact=True).click()
     page.get_by_role('radio', name='English').click()
     page.wait_for_selector('text=Options')
     check('the language can be switched in Options', page.is_visible('text=Language'))

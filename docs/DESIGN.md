@@ -35,11 +35,14 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 
 ### Plan (about 30 seconds)
 
+The plan screen fits one phone screen: the stage, a row of chips, the race plan, the crew goal and the start button.
+The chips (weather, start time, Triathlon, holiday, Maps, Yesterday) open sheets with the detail.
+
 - See where you run on real maps: the world with the five-city rotation, then the city with its real coastline and
   rivers and the week's seven stages pinned at their real landmarks. Below, today's 6 km as a course map (coloured by
   grade, km marks, water stops, the landmark, boosters, and how many obstacles and snacks each km holds), the
   elevation profile, the terrain, today's weather and the start time.
-- Yesterday's podium sits under the start button: the same recap the app posts in the comments.
+- Yesterday's podium is behind the Yesterday chip: the same recap the app posts in the comments.
 - Tap each kilometre to switch between Easy, Steady and Push, and choose where to drink. The default is all Steady,
   so a new player can run straight away.
 - A gold stamina line shows where you would run out. Run out and you walk.
@@ -94,9 +97,9 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 ### Result (one screen)
 
 - A race bib: time, rank among today's runners, splits, streak and the kilometres you added to the crew.
-- A race report of every crash, who ran into whom.
-- Badges earned and progress to the next item.
-- Share to the comments, cheer another runner, open the locker, watch the replay.
+- Chips for the coins earned, the race report (every crash, who ran into whom) and challenge results.
+- Share to the comments or challenge a friend, today's top 3 with cheers, and tiles for the full leaderboard, the
+  city vote, the shop and the replay.
 - One counted run per person per day.
 
 ## Community
@@ -142,6 +145,12 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 The game view has a bottom tab bar: **Race** (plan or result), **Quests**, **Play**, **Friends**, **Shop** and **Me**. The
 race itself, registration and the corral stay full screen. A dot on Quests means a check-in or a finished quest is
 waiting.
+
+Every screen fits one phone screen without scrolling (checked at 390×760 and 390×660 in the browser test). Secondary
+detail lives in bottom sheets opened from chips and tiles: maps, conditions, yesterday's podium, rewards, the race
+report, the full leaderboard, the vote, achievements, best times, options and each World Tour place. On short screens
+(under 700 px tall) spacing tightens. Only lists that are lists by nature, such as the shop's items, scroll inside
+their own panel.
 
 ### Daily check-in
 

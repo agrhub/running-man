@@ -148,7 +148,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   finishes a city; the plan screen shows yesterday's podium.
 - **Challenge a friend:** after your run, call out up to three redditors by name. The app comments in today's post as
   you ("u/bob, I challenge you!"), so Reddit notifies them; the feed card and their plan screen show the challenge, and beating your time
-  pays them 30 coins.
+  pays them 30 coins. When they finish, the app replies with the outcome and mentions you back.
 - **Moderator settings:** quick chat, road life, pinning, recaps, app posts and runner flair can each be switched off.
 - **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
   strategy thread, a how-to-play post pinned on install, result sharing as a

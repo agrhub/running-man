@@ -54,7 +54,7 @@
       "appPosts": {
         "type": "boolean",
         "label": "How-to-play and celebration posts",
-        "helpText": "The app posts a pinned how-to-play guide on install and a post when the crew finishes a city.",
+        "helpText": "The app posts a pinned how-to-play guide on install, a post when the crew finishes a city, and a reply naming the challengers when a challenged runner finishes.",
         "defaultValue": true
       },
       "runnerFlair": {

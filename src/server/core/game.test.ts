@@ -664,6 +664,9 @@ describe('game API', () => {
       expect.objectContaining({ from: 'alice', beaten: true }),
     ]);
     expect(bob.json.run.reward.challenge).toBe(CHALLENGE_REWARD);
+    expect(h.appComments.at(-1)?.text).toMatch(
+      /^🏁 \*\*u\/bob answered the challenge\*\* in \*\*\d+:\d\d\*\*:\n\n- ✅ beat u\/alice/
+    );
     const after = await call<SplashResponse>(h.as('bob'), 'GET', '/splash');
     expect(after.json.challenges).toEqual([]);
 

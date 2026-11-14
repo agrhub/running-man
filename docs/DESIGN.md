@@ -186,7 +186,7 @@ your run you can challenge up to three redditors (friends who have not run yet a
 in today's post as you, "🏁 u/bob, I challenge you! I ran … in 18:20", which notifies them. The feed card ("🏁 u/alice challenged you: beat 18:20!" with a "Take the challenge" button) and their plan screen show
 who challenged them and the time to beat; their run reports each challenge as beaten or not, and each beaten one pays
 30 coins (three at most per run). You cannot challenge yourself, the same runner twice, or someone who already ran
-today. Challenges live in `challenges:{date}` (lower-case username → list of challengers and times).
+today. When a challenged runner finishes, the app comments the outcome and mentions each challenger ("🏁 u/bob answered the challenge in 17:50: ✅ beat u/alice"), so the challenger is pulled back in too; the app-posts setting switches this off. Challenges live in `challenges:{date}` (lower-case username → list of challengers and times).
 
 ### World Tour
 

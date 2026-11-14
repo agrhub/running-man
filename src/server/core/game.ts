@@ -1176,6 +1176,14 @@ export const run = async (
   if (myClubNow) await updateClubWeek(store, myClubNow, today);
 
   await updateFlair(deps, profile);
+  if (challenges.length)
+    await answerChallenges(
+      deps,
+      dateKey,
+      username,
+      result.totalSeconds,
+      challenges
+    );
   if (journeyId) {
     await deps.telemetry
       .end(journeyId, {
@@ -2022,6 +2030,42 @@ export const challengeText = (
     '',
     `Think you can beat me? Open the game in this post and race today's stage. Beat my time and you win ${CHALLENGE_REWARD} coins.`,
   ].join('\n');
+
+/** The app's reply when a challenged runner finishes: it mentions every challenger. */
+export const answerText = (
+  username: string,
+  seconds: number,
+  results: ChallengeResult[]
+): string =>
+  [
+    `🏁 **u/${username} answered the challenge** in **${formatTime(seconds)}**:`,
+    '',
+    ...results.map((c) =>
+      c.beaten
+        ? `- ✅ beat u/${c.from} (${formatTime(c.seconds)})`
+        : `- ❌ u/${c.from} held on (${formatTime(c.seconds)})`
+    ),
+  ].join('\n');
+
+/** Tells the challengers how it went, as the app. Best-effort, and moderators can switch it off with app posts. */
+const answerChallenges = async (
+  deps: Deps,
+  dateKey: string,
+  username: string,
+  seconds: number,
+  results: ChallengeResult[]
+): Promise<void> => {
+  try {
+    if (!deps.appComment) return;
+    if (!(await gameSettings(deps)).appPosts) return;
+    const postId =
+      deps.postId() ?? (await deps.store.get(keys.dayPost(dateKey)));
+    if (!postId) return;
+    await deps.appComment(postId, answerText(username, seconds, results));
+  } catch (error) {
+    console.error('Could not answer the challenges', error);
+  }
+};
 
 /**
  * Calls out another redditor in today's post after your run. The comment

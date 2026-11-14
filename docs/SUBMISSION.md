@@ -168,17 +168,19 @@ sub-communities racing as clubs, and premium cosmetics through Reddit's payments
 
 ## 3. Demo video script (about 2 minutes)
 
-A captioned 1:56 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
-order: feed card, runner, pace plan, the corral with a call-your-time guess, a first race in Hanoi (the coach, a chicken
-in the road, roller skates and a skateboard, the landmark, the finish), race bib, quests, the four mini games, friends,
-a club and its relay, the profile, the shop, a thunderstorm, the Triathlon Finale, the Amazon week and a Christmas Run.
+A captioned 2:23 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
+order: feed card, runner, pace plan with the real world and city maps, the corral with a call-your-time guess, a first
+race in Hanoi (the coach, a chicken in the road, roller skates and a skateboard, the landmark, the finish), race bib,
+quests, the four mini games, friends, a club and its relay, the profile, the shop (adopting a corgi), the World Tour
+(unlocking the Pyramids of Giza and running past them), the switch to Vietnamese, a thunderstorm, the Triathlon
+Finale, the Amazon week and a Christmas Run.
 The table below is the script for re-recording it
 on Reddit once the demo subreddit is live.
 
 | Time | Show                                                | Say                                                                                         |
 | ---- | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | 0:00 | The feed card in the subreddit                      | "Every day, one new stage of a city marathon, right in your Reddit feed."                   |
-| 0:05 | Make your runner, get bib #0019                     | "Make your chibi, pick a buddy, get your race bib."                                         |
+| 0:05 | Make your runner, get bib #0019                     | "Make your chibi and get your race bib."                                                    |
 | 0:10 | The plan screen                                     | "Each stage has hills, water stops and the day's weather. Same for everyone."               |
 | 0:20 | Tap km buttons, gold line drops, "walking!" appears | "Push is fast but drains stamina. Push too much and you walk."                              |
 | 0:35 | Countdown, steering past cones, a high five         | "Then you run it. Swipe to change lanes, dodge cones, high-five the crowd."                 |

@@ -19,6 +19,7 @@ Everything needed to submit Running Man to
 - [ ] Open the demo post on a phone and in a desktop browser, logged in and logged out. Everything should fit in
       the post without scrolling sideways.
 - [x] Record the demo video (script below) and upload it to YouTube: https://youtu.be/CTI8BU9ABzw
+- [ ] Upload the 2:39 v3 cut (challenges, the free World Tour week, rest days, four languages) and swap the Devpost video link.
 - [ ] Update the Devpost page with the text below (it now covers challenges, the free World Tour week, rest days,
       flair and the four languages) and add screenshots 27 to 31 to the gallery.
 - [ ] Fill in the optional [developer satisfaction survey](https://forms.gle/dW45UgK6SctevE756) for the
@@ -195,11 +196,11 @@ payments once eligible.
 
 ## 3. Demo video script (about 2 minutes)
 
-A captioned 2:23 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
+A captioned 2:39 cut with an English voiceover, music and game sound, recorded from the local harness, follows this
 order: feed card, runner, pace plan with the real world and city maps, the corral with a call-your-time guess, a first
 race in Hanoi (the coach, a chicken in the road, roller skates and a skateboard, the landmark, the finish), race bib,
-quests, the four mini games, friends, a club and its relay, the profile, the shop (adopting a corgi), the World Tour
-(unlocking the Pyramids of Giza and running past them), the switch to Vietnamese, a thunderstorm, the Triathlon
+challenging a friend and the challenge on their feed card, quests, the four mini games, friends, a club and its relay, the profile, the shop (adopting a corgi) and a rest day, the World Tour
+(this week's free place, unlocking the Pyramids of Giza and running past them), the switch to Spanish, Portuguese and Vietnamese, a thunderstorm, the Triathlon
 Finale, the Amazon week and a Christmas Run.
 The table below is the script for re-recording it
 on Reddit once the demo subreddit is live.

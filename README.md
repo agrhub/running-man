@@ -15,19 +15,19 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 
 | Feed card                                       | Make your runner                              | Start corral                                    | Race                                        |
 | ----------------------------------------------- | --------------------------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| ![Feed card](docs/screenshots/01-feed-card.png) | ![Register](docs/screenshots/08-register.png) | ![Corral](docs/screenshots/09-start-corral.png) | ![Race](docs/screenshots/03-race-tokyo.png) |
+| ![Feed card](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/01-feed-card.png) | ![Register](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/08-register.png) | ![Corral](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/09-start-corral.png) | ![Race](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/03-race-tokyo.png) |
 
 | Quick chat                                  | Beach stage, Dubai                            | Desert stage, Dubai                             | Result                                        |
 | ------------------------------------------- | --------------------------------------------- | ----------------------------------------------- | --------------------------------------------- |
-| ![Chat](docs/screenshots/10-quick-chat.png) | ![Beach](docs/screenshots/11-beach-dubai.png) | ![Desert](docs/screenshots/12-desert-dubai.png) | ![Result](docs/screenshots/06-result-bib.png) |
+| ![Chat](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/10-quick-chat.png) | ![Beach](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/11-beach-dubai.png) | ![Desert](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/12-desert-dubai.png) | ![Result](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/06-result-bib.png) |
 
 | Quests                                            | Snack Dash                                        | Friends and club                                 | Shop                                       |
 | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ------------------------------------------ |
-| ![Quests](docs/screenshots/15-checkin-quests.png) | ![Snack Dash](docs/screenshots/16-snack-dash.png) | ![Friends](docs/screenshots/17-friends-club.png) | ![Shop](docs/screenshots/07-shop-pets.png) |
+| ![Quests](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/15-checkin-quests.png) | ![Snack Dash](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/16-snack-dash.png) | ![Friends](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/17-friends-club.png) | ![Shop](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/07-shop-pets.png) |
 
 | Triathlon Finale                                     | Thunderstorm at dusk                            | Christmas Run                                       | Profile                                     |
 | ---------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------- | ------------------------------------------- |
-| ![Triathlon](docs/screenshots/19-triathlon-swim.png) | ![Storm](docs/screenshots/20-storm-evening.png) | ![Christmas](docs/screenshots/21-christmas-run.png) | ![Profile](docs/screenshots/23-profile.png) |
+| ![Triathlon](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/19-triathlon-swim.png) | ![Storm](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/20-storm-evening.png) | ![Christmas](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/21-christmas-run.png) | ![Profile](https://raw.githubusercontent.com/agrhub/running-man/main/docs/screenshots/23-profile.png) |
 
 | World Tour                                        | Pyramids of Giza                                 | Route map                                       | Amazon week                                             |
 | ------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------- |

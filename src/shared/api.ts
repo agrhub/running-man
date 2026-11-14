@@ -29,6 +29,8 @@ export type Profile = {
   streak: number;
   bestStreak: number;
   lastRunDate: string | null;
+  /** Rest days held: each covers one missed day so the streak carries on. */
+  restDays: number;
   owned: string[];
   ownedPets: PetId[];
   /** World Tour stops unlocked with coins, and the ones finished (stamped). */
@@ -161,6 +163,8 @@ export type RunRecord = {
   totalRunners: number;
   reward: RewardBreakdown;
   streak: number;
+  /** Rest days this run used up to keep the streak going. */
+  restUsed?: number;
   /** Item and pet ids whose unlock condition became true with this run. */
   unlocked: string[];
   crewFinishedNow: boolean;

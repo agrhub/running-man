@@ -158,6 +158,16 @@ export const ResultScreen = (p: Props) => {
             <p className="text-[12px] text-ink-soft">{tr('day streak')}</p>
           </div>
         </div>
+        {run.restUsed ? (
+          <p className="mt-2 text-center text-[12px] font-extrabold">
+            🛌{' '}
+            {run.restUsed === 1
+              ? tr('A rest day covered the day you missed. Streak kept!')
+              : tr('{n} rest days covered the days you missed. Streak kept!', {
+                  n: run.restUsed,
+                })}
+          </p>
+        ) : null}
         <div className="mt-3 flex gap-1" aria-label={tr('Splits per km')}>
           {run.splits.map((s) => (
             <div key={s.km} className="flex-1">

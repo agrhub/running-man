@@ -108,7 +108,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   board, each with the players' own Reddit avatars.
 - **Coins and the shop:** coins come from races, the check-in, quests, achievements and the mini games. The shop has 33 outfit items,
   7 pets to adopt with coins (corgi, bunny, tabby cat, shiba, fox, penguin, panda; nobody starts with one) and pet
-  gear (collar, bandana, bow, cap, shades, crown) drawn on every pet. Some outfit items are earned by streaks, city finishes and weather instead. Nothing you buy
+  gear (collar, bandana, bow, cap, shades, crown) drawn on every pet, plus rest days (150 coins, hold up to 2) that are
+  used up on their own when you miss a day so your streak carries on. Some outfit items are earned by streaks, city finishes and weather instead. Nothing you buy
   changes race times.
 - **Daily check-in and quests:** a 7-day check-in calendar (20 to 150 coins), three daily quests that are the same
   for everyone (run today, grab snacks, high-five fans, finish without a crash…) and weekly quests. The server checks
@@ -174,7 +175,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 117 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 119 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -184,7 +185,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (50 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+Browser end-to-end check (51 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
 vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 

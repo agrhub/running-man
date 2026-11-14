@@ -125,6 +125,12 @@ import type {
 import { DEFAULT_SETTINGS } from '../../shared/api';
 import type { Deps } from './deps';
 import { updateFlair } from './flair';
+import {
+  MAX_REST_DAYS,
+  REST_DAY_COST,
+  missedDays,
+  streakAlive,
+} from '../../shared/streak';
 import { featuredStop } from '../../shared/tour';
 import { keys } from './keys';
 import type { Store } from './store';
@@ -158,6 +164,7 @@ export const freshProfile = (username: string): Profile => ({
   streak: 0,
   bestStreak: 0,
   lastRunDate: null,
+  restDays: 0,
   owned: ITEMS.filter((i) => i.unlock.kind === 'free').map((i) => i.id),
   ownedPets: PETS.filter((p) => p.unlock.kind === 'free').map((p) => p.id),
   tourUnlocked: [],
@@ -494,9 +501,7 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
     username ? loadProfile(store, username) : null,
   ]);
   const number = await dayNumber(deps, dateKey);
-  const streakAlive =
-    profile?.lastRunDate === today ||
-    profile?.lastRunDate === addDays(today, -1);
+  const alive = profile ? streakAlive(profile, today) : false;
   return {
     type: 'splash',
     dateKey,
@@ -505,7 +510,7 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
     crew,
     totalRunners: total,
     ran: ran !== undefined,
-    streak: streakAlive ? (profile?.streak ?? 0) : 0,
+    streak: alive ? (profile?.streak ?? 0) : 0,
     username: username ?? '',
   };
 };
@@ -979,8 +984,16 @@ export const run = async (
   const rank = (rankIndex ?? 0) + 1;
   const percentile = total > 0 ? (rank - 1) / total : 0;
 
-  profile.streak =
-    profile.lastRunDate === addDays(today, -1) ? profile.streak + 1 : 1;
+  // Missed days are covered by rest days when you hold enough of them.
+  const missed = missedDays(profile.lastRunDate, today);
+  const restUsed =
+    profile.lastRunDate !== today && missed > 0 && missed <= profile.restDays
+      ? missed
+      : 0;
+  profile.restDays -= restUsed;
+  const continues =
+    profile.lastRunDate !== today && (missed === 0 || restUsed > 0);
+  profile.streak = continues ? profile.streak + 1 : 1;
   profile.bestStreak = Math.max(profile.bestStreak, profile.streak);
   profile.lastRunDate = today;
   profile.totalRuns += 1;
@@ -1090,6 +1103,7 @@ export const run = async (
     totalRunners: total,
     reward,
     streak: profile.streak,
+    ...(restUsed ? { restUsed } : {}),
     unlocked,
     crewFinishedNow,
     finisherNow,
@@ -1157,6 +1171,20 @@ export const buyItem = async (deps: Deps, itemId: string): Promise<Profile> => {
   profile.badges -= item.unlock.cost;
   profile.owned.push(item.id);
   profile.look = { ...profile.look, [item.slot]: item.id };
+  await saveProfile(deps.store, profile);
+  return profile;
+};
+
+/** Buys a rest day that keeps your streak alive through one missed day. */
+export const buyRestDay = async (deps: Deps): Promise<Profile> => {
+  const username = await requireUser(deps);
+  const profile = await loadProfile(deps.store, username);
+  if (profile.restDays >= MAX_REST_DAYS)
+    throw new GameError('You already hold as many rest days as you can.', 409);
+  if (profile.badges < REST_DAY_COST)
+    throw new GameError('Not enough coins yet. Keep running!');
+  profile.badges -= REST_DAY_COST;
+  profile.restDays += 1;
   await saveProfile(deps.store, profile);
   return profile;
 };
@@ -1524,8 +1552,7 @@ export const friendRows = async (
         store.zScore(keys.leaderboard(today), username),
         store.zRank(keys.leaderboard(today), username),
       ]);
-      const active =
-        p.lastRunDate === today || p.lastRunDate === addDays(today, -1);
+      const active = streakAlive(p, today);
       return {
         username,
         bib: p.bib,

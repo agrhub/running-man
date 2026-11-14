@@ -289,6 +289,11 @@ One currency, coins 🪙, earned only by playing. (Profiles store it under the o
 | Snack Dash (first 3 rounds a day)                               | up to 50 each                   |
 | Hurdle Hop, Rhythm Steps, Pet Fetch (first 3 rounds a day each) | up to 40 each                   |
 
+**Rest days.** A missed day ends a streak, unless you hold a rest day: 150 coins each in the shop, two at most. When
+you come back after missing days you have rest days for, they are used up on their own and the streak carries on
+(the result card says so). With too few for the gap, the streak starts again and you keep them. The cap keeps a streak
+meaning that you show up (`src/shared/streak.ts`).
+
 A regular player who runs, checks in and does the quests earns about 250 to 400 coins a day and can buy a
 mid-priced item every day or two; the crown and the panda take about a week.
 

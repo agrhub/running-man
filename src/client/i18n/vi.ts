@@ -1076,4 +1076,17 @@ export const VI: Record<string, string> = {
     'Địa điểm này đã là của bạn. Tuần này cả nhóm cùng đua ở đây.',
   'last day': 'ngày cuối',
   '{n} days left': 'còn {n} ngày',
+  'A rest day covered the day you missed. Streak kept!':
+    'Một ngày nghỉ đã bù cho ngày bạn bỏ lỡ. Chuỗi vẫn giữ!',
+  'Full': 'Đã đủ',
+  'Miss a day and one is used up, so your streak carries on.':
+    'Lỡ một ngày thì tự dùng một ngày nghỉ, chuỗi ngày chạy vẫn tiếp tục.',
+  'Rest days': 'Ngày nghỉ',
+  'Rest days: {n} of {max}': 'Ngày nghỉ: {n}/{max}',
+  'You already hold as many rest days as you can.':
+    'Bạn đã có số ngày nghỉ tối đa.',
+  '{n} rest days covered the days you missed. Streak kept!':
+    '{n} ngày nghỉ đã bù cho những ngày bạn bỏ lỡ. Chuỗi vẫn giữ!',
+  'Rest day saved. Your streak is safe for one missed day.':
+    'Đã mua ngày nghỉ. Chuỗi của bạn an toàn nếu lỡ một ngày.',
 };

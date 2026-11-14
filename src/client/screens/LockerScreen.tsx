@@ -11,6 +11,7 @@ import {
   type Pet,
   type Slot,
 } from '../../shared/economy';
+import { MAX_REST_DAYS, REST_DAY_COST } from '../../shared/streak';
 import { RunnerPreview } from '../components/RunnerPreview';
 import { tr } from '../i18n';
 import { unlockText } from '../lib/labels';
@@ -25,6 +26,7 @@ type Props = {
   onBuy: (itemId: string) => void;
   onPet: (petId: Pet['id'] | 'none') => void;
   onCare: () => void;
+  onRest: () => void;
 };
 
 const ItemCard = ({
@@ -125,6 +127,37 @@ export const LockerScreen = (p: Props) => {
           {COIN} {tr('{n} coins', { n: profile.badges })}
         </p>
       </div>
+      <section
+        className="mx-4 mt-2 flex items-center gap-2 rounded-2xl border-2 border-ink bg-white px-3 py-1.5"
+        aria-label={tr('Rest days')}
+      >
+        <span className="text-[24px] leading-none" aria-hidden>
+          🛌
+        </span>
+        <p className="min-w-0 flex-1 text-[12px] leading-snug">
+          <span className="block font-extrabold">
+            {tr('Rest days: {n} of {max}', {
+              n: profile.restDays,
+              max: MAX_REST_DAYS,
+            })}
+          </span>
+          {tr('Miss a day and one is used up, so your streak carries on.')}
+        </p>
+        <button
+          type="button"
+          disabled={
+            p.busy ||
+            profile.restDays >= MAX_REST_DAYS ||
+            profile.badges < REST_DAY_COST
+          }
+          onClick={p.onRest}
+          className="chunky shrink-0 rounded-full bg-gold px-3 py-0.5 text-[12px] font-extrabold"
+        >
+          {profile.restDays >= MAX_REST_DAYS
+            ? tr('Full')
+            : `${tr('Buy {price}', { price: `${REST_DAY_COST} ${COIN}` })}`}
+        </button>
+      </section>
       <div className="h-[34%] min-h-[170px]">
         <RunnerPreview
           day={p.day}

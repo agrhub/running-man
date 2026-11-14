@@ -5,6 +5,7 @@ import {
   featuredStop,
   tourById,
 } from '../../shared/tour';
+import { streakAlive } from '../../shared/streak';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -570,6 +571,48 @@ describe('game API', () => {
     });
     expect(later.json.run.streak).toBe(1);
     expect(later.json.profile.bestStreak).toBe(3);
+  });
+
+  it('sells rest days that keep a streak through missed days', async () => {
+    await h.deps.store.set(keys.user('alice'), JSON.stringify({ badges: 400 }));
+    const one = await call<ProfileResponse>(h, 'POST', '/shop/rest', {});
+    expect(one.json.profile).toMatchObject({ restDays: 1, badges: 250 });
+    await call(h, 'POST', '/shop/rest', {});
+    const full = await call(h, 'POST', '/shop/rest', {});
+    expect(full.status).toBe(409);
+
+    for (const d of ['2026-11-10', '2026-11-11']) {
+      await call(h.at(d), 'POST', '/run', { plan: planFor(d) });
+    }
+    // Skip the 12th: one rest day covers it.
+    const kept = await call<RunResponse>(h.at('2026-11-13'), 'POST', '/run', {
+      plan: planFor('2026-11-13'),
+    });
+    expect(kept.json.run.streak).toBe(3);
+    expect(kept.json.run.restUsed).toBe(1);
+    expect(kept.json.profile.restDays).toBe(1);
+
+    // Two missed days with one rest day left: the streak starts again, and the
+    // rest day is kept for next time.
+    const reset = await call<RunResponse>(h.at('2026-11-16'), 'POST', '/run', {
+      plan: planFor('2026-11-16'),
+    });
+    expect(reset.json.run.streak).toBe(1);
+    expect(reset.json.run.restUsed).toBeUndefined();
+    expect(reset.json.profile.restDays).toBe(1);
+  });
+
+  it('shows a streak as alive while rest days cover the gap', () => {
+    expect(streakAlive({ lastRunDate: '2026-11-10' }, '2026-11-11')).toBe(true);
+    expect(streakAlive({ lastRunDate: '2026-11-10' }, '2026-11-12')).toBe(
+      false
+    );
+    expect(
+      streakAlive({ lastRunDate: '2026-11-10', restDays: 1 }, '2026-11-12')
+    ).toBe(true);
+    expect(streakAlive({ lastRunDate: null, restDays: 2 }, '2026-11-12')).toBe(
+      false
+    );
   });
 
   it('puts the other runners on the road, but not yourself', async () => {

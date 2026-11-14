@@ -391,7 +391,12 @@ export const App = () => {
       });
       patch({ profile: res.profile });
       if (res.message) showToast(res.message);
-      if (path === '/shop/buy' || path === '/pet/choose' || path === '/checkin')
+      if (
+        path === '/shop/buy' ||
+        path === '/shop/rest' ||
+        path === '/pet/choose' ||
+        path === '/checkin'
+      )
         sfx.snack();
       else if (path === '/pet/care' || path === '/cheer') sfx.highFive();
       else sfx.chat();
@@ -805,6 +810,7 @@ export const App = () => {
               void profileCall('/pet/choose', { petId })
             }
             onCare={() => void profileCall('/pet/care', {})}
+            onRest={() => void profileCall('/shop/rest', {})}
           />
         );
       case 'me':

@@ -38,6 +38,7 @@ import { toDateKey } from '../../shared/content';
 import {
   GameError,
   buyItem,
+  buyRestDay,
   castVote,
   checkIn,
   claimQuest,
@@ -172,6 +173,21 @@ export const createApi = (deps: Deps): Hono => {
         type: 'profile',
         profile,
         message: 'Unlocked!',
+      });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/shop/rest', async (c) => {
+    try {
+      const body = await readJson<{ journeyId?: string }>(c);
+      const profile = await buyRestDay(deps);
+      await track(deps, body.journeyId, 'rest_day_bought');
+      return c.json<ProfileResponse>({
+        type: 'profile',
+        profile,
+        message: 'Rest day saved. Your streak is safe for one missed day.',
       });
     } catch (e) {
       return fail(c, e);

@@ -3,6 +3,7 @@ import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import type { Deps } from '../core/deps';
 import { toDateKey, addDays, dayInfo } from '../../shared/content';
 import {
+  dayNumber,
   ensureDailyPost,
   ensureWelcomePost,
   postRecap,
@@ -17,15 +18,20 @@ export const createInternal = (
 ): Hono => {
   const internal = new Hono();
 
-  const stageLink = (postId: string): StageLink => ({
-    postId,
-    title: postTitle(dayInfo(toDateKey(deps.now()))),
-    url: postUrl(postId.replace(/^t3_/, '')),
-  });
+  const stageLink = async (postId: string): Promise<StageLink> => {
+    const dateKey = toDateKey(deps.now());
+    return {
+      postId,
+      title: postTitle(dayInfo(dateKey), await dayNumber(deps, dateKey)),
+      url: postUrl(postId.replace(/^t3_/, '')),
+    };
+  };
   const pointGuide = (postId: string) =>
-    refreshWelcomePost(deps, stageLink(postId)).catch((error: unknown) => {
-      console.error('Could not update the how-to-play link', error);
-    });
+    stageLink(postId)
+      .then((link) => refreshWelcomePost(deps, link))
+      .catch((error: unknown) => {
+        console.error('Could not update the how-to-play link', error);
+      });
 
   internal.post('/menu/post-today', async (c) => {
     try {
@@ -62,7 +68,7 @@ export const createInternal = (
   const setUp = (label: string) => async (c: Context) => {
     try {
       const postId = await ensureDailyPost(deps);
-      await ensureWelcomePost(deps, stageLink(postId)).catch(
+      await ensureWelcomePost(deps, await stageLink(postId)).catch(
         (error: unknown) => {
           console.error('Could not post the how-to-play guide', error);
         }

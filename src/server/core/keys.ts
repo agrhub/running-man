@@ -10,6 +10,8 @@ export const keys = {
   cheers: (dateKey: string) => `cheers:${dateKey}`,
   postDate: (postId: string) => `post:${postId}`,
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
+  /** The date of this subreddit's first stage post: its Day 1. */
+  firstDay: () => 'sub:firstDay',
   /** Counters for the day's recap: crashes per runner, snacks, high fives, chat lines. */
   dayStats: (dateKey: string) => `stats:${dateKey}`,
   /** Set once the day's recap comment is posted. */

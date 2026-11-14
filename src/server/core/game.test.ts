@@ -1292,10 +1292,12 @@ describe('daily posts', () => {
       navigateTo: 'https://reddit.com/t3_post1',
     });
     expect(h.posts).toHaveLength(1);
-    expect(h.posts[0]?.title).toMatch(/^Day 4 · .* Tokyo 4\/7: Meiji Forest/);
+    // The shared calendar is on Tokyo stage 4, but this subreddit's count starts at 1.
+    expect(h.posts[0]?.title).toMatch(/^Day 1 · .* Tokyo 4\/7: Meiji Forest/);
 
     h.on('t3_post1').at('2026-11-13');
     await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.posts[1]?.title).toMatch(/^Day 2 · .* Tokyo 5\/7/);
     const old = await call<InitResponse>(h, 'GET', '/init');
     expect(old.json.dateKey).toBe('2026-11-12');
     expect(old.json.todayPostId).toBe('t3_post2');
@@ -1413,6 +1415,18 @@ describe('daily posts', () => {
       /^## ▶️ \[Play today’s stage\]\(https:\/\/reddit\.com\/post1\)/
     );
     expect(h.edits).toHaveLength(0);
+  });
+
+  it('counts days from a subreddit’s first stage, even one posted before the count existed', async () => {
+    const h = makeHarness();
+    // Stage posts from before the first-day key was stored.
+    await h.deps.store.set(keys.dayPost('2026-11-13'), 't3_old13');
+    await h.deps.store.set(keys.dayPost('2026-11-14'), 't3_old14');
+    h.at('2026-11-15');
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+    expect(h.posts[0]?.title).toMatch(/^.*Day 3 · .* Tokyo 7\/7/);
+    expect(await h.deps.store.get(keys.firstDay())).toBe('2026-11-13');
   });
 
   it('sets up the stage and the guide link on upgrade', async () => {

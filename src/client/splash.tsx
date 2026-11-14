@@ -165,8 +165,8 @@ export const Splash = () => {
         </p>
         <div>
           <p className="text-[13px] font-extrabold text-ink-soft">
-            {day.city.flag} Day {day.dayIndex + 1}: {day.city.name}, stage{' '}
-            {day.stageIndex + 1} of 7
+            {day.city.flag} {data ? `Day ${data.dayNumber}: ` : ''}
+            {day.city.name}, stage {day.stageIndex + 1} of 7
           </p>
           <h1 className="font-display text-[30px] font-extrabold leading-[1.02]">
             {day.stage.name}

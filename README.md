@@ -34,7 +34,7 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 1. **Make your runner.** The first time you open the game you pick skin, hair style and colour, a shirt and a running
    buddy, and get your own race bib number. Your Reddit username is your account; there is nothing else to sign up for.
 2. **Read the stage.** Each stage is 6 km with its own terrain (city streets, park, forest, zoo, hills, beach or
-   desert), hills, water stations, landmark and weather. Everyone gets the same stage and the same weather that day.
+   desert), hills, water stations, landmark and weather. Everyone gets the same stage and the same weather that day. The stage calendar is shared by every subreddit (a city week runs Monday to Sunday), while the day count in post titles starts at Day 1 on a subreddit's first stage.
 3. **Plan your pace.** Tap each kilometre to switch between Easy, Steady and Push, and choose where to stop for water.
    The gold line shows your stamina. Push too hard and you will walk.
 4. **Line up and race.** The start corral shows your bib, your start lane and who is on the road with you. Then a

@@ -7,6 +7,7 @@ import {
   KM_PER_STAGE,
   STAGES_PER_CITY,
   addDays,
+  dayIndexOf,
   dayInfo,
   toDateKey,
   type DayInfo,
@@ -484,6 +485,7 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
     username ? store.zScore(keys.leaderboard(dateKey), username) : undefined,
     username ? loadProfile(store, username) : null,
   ]);
+  const number = await dayNumber(deps, dateKey);
   const streakAlive =
     profile?.lastRunDate === today ||
     profile?.lastRunDate === addDays(today, -1);
@@ -491,6 +493,7 @@ export const splash = async (deps: Deps): Promise<SplashResponse> => {
     type: 'splash',
     dateKey,
     today,
+    dayNumber: number,
     crew,
     totalRunners: total,
     ran: ran !== undefined,
@@ -1910,8 +1913,37 @@ export const share = async (
   return { commentPosted: posted, text };
 };
 
-export const postTitle = (day: DayInfo): string =>
-  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${day.dayIndex + 1} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
+/**
+ * The date of this subreddit's first stage. Stages follow one shared calendar
+ * (every subreddit runs the same stage on the same day), but the day count in
+ * titles starts at 1 where the game was installed. A subreddit that had stage
+ * posts before this was stored finds its first one by walking back.
+ */
+export const firstDay = async (
+  deps: Deps,
+  dateKey: string
+): Promise<string> => {
+  const stored = await deps.store.get(keys.firstDay());
+  if (stored) return stored;
+  let first = dateKey;
+  for (let i = 1; i <= 120; i++) {
+    const earlier = addDays(dateKey, -i);
+    if (!(await deps.store.get(keys.dayPost(earlier)))) break;
+    first = earlier;
+  }
+  await deps.store.set(keys.firstDay(), first);
+  return first;
+};
+
+/** This subreddit's day count for a date: 1 on its first stage. */
+export const dayNumber = async (deps: Deps, dateKey: string): Promise<number> =>
+  Math.max(
+    1,
+    dayIndexOf(dateKey) - dayIndexOf(await firstDay(deps, dateKey)) + 1
+  );
+
+export const postTitle = (day: DayInfo, number = day.dayIndex + 1): string =>
+  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${number} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
 
 /** Creates the post for a day once; later calls return the same post. */
 export const gameSettings = async (deps: Deps): Promise<GameSettings> => ({
@@ -1927,7 +1959,7 @@ export const ensureDailyPost = async (
   if (existing) return existing;
   const day = dayInfo(dateKey);
   const postId = await deps.createPost({
-    title: postTitle(day),
+    title: postTitle(day, await dayNumber(deps, dateKey)),
     fallbackText: `Today's 6 km stage runs through ${day.city.name}: ${day.stage.name}. Weather: ${day.weather.label}. Plan your pace, then race the crew.`,
     pinnedComment: `**Strategy talk for ${day.stage.name}** ${day.weather.icon}\n\n${day.weather.hint} Where do you push, and where do you save your legs? Share your plan below.`,
   });

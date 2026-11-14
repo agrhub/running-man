@@ -236,6 +236,8 @@ export type SplashResponse = {
   type: 'splash';
   dateKey: string;
   today: string;
+  /** This subreddit's day count for the post's date (1 on its first stage). */
+  dayNumber: number;
   crew: CrewProgress;
   totalRunners: number;
   ran: boolean;

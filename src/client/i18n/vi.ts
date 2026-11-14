@@ -1142,4 +1142,5 @@ export const VI: Record<string, string> = {
   'Vote': 'Bình chọn',
   'Yesterday': 'Hôm qua',
   'Your run': 'Lượt chạy của bạn',
+  'Next stage in {time}': 'Chặng sau sau {time}',
 };

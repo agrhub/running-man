@@ -1153,4 +1153,5 @@ export const ES: Record<string, string> = {
   'Vote': 'Votar',
   'Yesterday': 'Ayer',
   'Your run': 'Tu carrera',
+  'Next stage in {time}': 'Próxima etapa en {time}',
 };

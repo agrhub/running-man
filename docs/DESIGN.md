@@ -100,6 +100,7 @@ The chips (weather, start time, Triathlon, holiday, Maps, Yesterday) open sheets
 - Chips for the coins earned, the race report (every crash, who ran into whom) and challenge results.
 - Share to the comments or challenge a friend, today's top 3 with cheers, and tiles for the full leaderboard, the
   city vote, the shop and the replay.
+- A live countdown to the next stage ("⏱️ Next stage in 5:07:09"), also on the feed card once you have run.
 - One counted run per person per day.
 
 ## Community

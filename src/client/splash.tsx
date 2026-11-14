@@ -1,3 +1,4 @@
+import { NextStage } from './components/Countdown';
 import { formatTime } from '../shared/sim';
 import './index.css';
 
@@ -219,6 +220,9 @@ export const Splash = () => {
         >
           {cta}
         </button>
+        {data?.ran && !closed && (
+          <NextStage className="relative -mt-1 self-start rounded-full bg-white/90 px-2.5 py-0.5 text-[12px] font-extrabold text-ink tabular" />
+        )}
       </div>
     </div>
   );

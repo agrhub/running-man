@@ -18,6 +18,7 @@ import type { CityVote, NextCityId } from '../../shared/vote';
 import { Leaderboard, WeeklyStandings } from '../components/Leaderboard';
 import { useState } from 'react';
 import { Chip, Sheet, Tile } from '../components/Sheet';
+import { NextStage } from '../components/Countdown';
 import { PACE_COLOR } from '../lib/theme';
 import { tr } from '../i18n';
 
@@ -299,9 +300,13 @@ export const ResultScreen = (p: Props) => {
         />
         <Tile icon="🔁" label={tr('Replay')} onClick={p.onReplay} />
       </div>
-      <p className="text-center text-[11px] text-ink-soft">
-        {tr('A new stage opens every day at 00:00 UTC.')}
-      </p>
+      {today ? (
+        <NextStage className="text-center text-[12px] font-extrabold text-ink-soft tabular" />
+      ) : (
+        <p className="text-center text-[11px] text-ink-soft">
+          {tr('A new stage opens every day at 00:00 UTC.')}
+        </p>
+      )}
 
       <Sheet
         open={sheet === 'rewards'}

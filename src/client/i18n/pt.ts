@@ -1152,4 +1152,5 @@ export const PT: Record<string, string> = {
   'Vote': 'Votar',
   'Yesterday': 'Ontem',
   'Your run': 'Sua corrida',
+  'Next stage in {time}': 'Próxima etapa em {time}',
 };

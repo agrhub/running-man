@@ -149,6 +149,7 @@ with sync_playwright() as p:
     check('server recorded lane changes', True)
     check('crew bar shows contribution', page.locator('.bg-gold.absolute').count() == 1)
     check('the result fits on one screen', fits(page))
+    check('the result counts down to the next stage', re.search(r'Next stage in \d+:\d\d:\d\d', page.inner_text('body')) is not None)
     page.get_by_role('button', name=re.compile(r'^\+\d+$')).click()
     sheet = page.get_by_role('dialog', name='Coins from this run')
     check('result bib shows rank and rewards', '#' in page.inner_text('section[aria-label="Your race bib"]') and 'Finished the stage' in sheet.inner_text() and '+50' in sheet.inner_text())

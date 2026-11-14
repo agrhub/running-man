@@ -834,8 +834,10 @@ export const buildCity = (
         terrain,
         cityId: city.id,
         inPlaza,
-        hotel: (x0, x1, z0, z1, floors, face) =>
-          building({ x0, x1, z0, z1, floors, face, front: true }),
+        hotel: (x0, x1, z0, z1, floors, face) => {
+          if (!stage.wild)
+            building({ x0, x1, z0, z1, floors, face, front: true });
+        },
         shadows,
       });
   if (shopGeos.length > 0) {
@@ -846,8 +848,9 @@ export const buildCity = (
   }
 
   // Far skyline: big simple blocks swallowed by fog (only where a city is in sight)
-  const skyline =
-    urban || terrain === 'beach'
+  const skyline = stage.wild
+    ? 0
+    : urban || terrain === 'beach'
       ? 40
       : terrain === 'park' || terrain === 'zoo'
         ? 16
@@ -1181,7 +1184,11 @@ export const buildCity = (
   plazaTiles.position.set(FRONT_X + 20, 0.1, (plaza.z0 + plaza.z1) / 2);
   plazaTiles.receiveShadow = true;
   group.add(plazaTiles);
-  const lm = buildLandmark(stage.landmark, city.palette.accent);
+  const lm = buildLandmark(
+    stage.landmark,
+    city.palette.accent,
+    stage.wild ?? false
+  );
   lm.position.copy(lmPos);
   lm.traverse((o) => {
     if (o instanceof THREE.Mesh) {
@@ -1219,7 +1226,26 @@ export const buildCity = (
     },
   };
 };
-const buildLandmark = (lm: Landmark, accent: string): THREE.Group => {
+const TOUR_LANDMARKS: Landmark['kind'][] = [
+  'wall',
+  'pyramid',
+  'terraces',
+  'colosseum',
+  'mausoleum',
+  'angkor',
+  'stones',
+  'treasury',
+  'karst',
+  'canyon',
+  'falls',
+  'moai',
+];
+
+const buildLandmark = (
+  lm: Landmark,
+  accent: string,
+  wild = false
+): THREE.Group => {
   const g = new THREE.Group();
   const std = (
     c: string,
@@ -1742,6 +1768,498 @@ const buildLandmark = (lm: Landmark, accent: string): THREE.Group => {
       add(new THREE.ConeGeometry(0.3, 2, 8), acc, 4, 15.8, 0);
       break;
     }
+    // ---------------------------------------------------------------- World Tour
+    case 'wall': {
+      // Ramparts snaking over the hills, with square watchtowers.
+      const stone = std('#cdb88f');
+      const top = std('#b39e74');
+      for (let i = -6; i <= 6; i++) {
+        const z = i * 4;
+        const y = 4.2 - Math.abs(i) * 0.55 + Math.sin(i * 0.9) * 0.6;
+        // Solid from the ground up, so the wall rises and dips with the hill.
+        const seg = add(
+          new THREE.BoxGeometry(2.6, y + 1.1, 4.2),
+          stone,
+          3 + Math.sin(i * 0.5) * 2,
+          (y + 1.1) / 2,
+          z
+        );
+        seg.rotation.y = Math.sin(i * 0.5) * 0.35;
+        for (let k = -1; k <= 1; k += 2)
+          add(
+            new THREE.BoxGeometry(0.5, 0.6, 0.8),
+            top,
+            seg.position.x + k * 1.1,
+            y + 1.4,
+            z
+          );
+        if (i % 4 === 0) {
+          add(
+            new THREE.BoxGeometry(3.6, 4.2, 3.6),
+            stone,
+            seg.position.x,
+            y + 1.6,
+            z
+          );
+          add(
+            new THREE.BoxGeometry(4, 0.5, 4),
+            top,
+            seg.position.x,
+            y + 3.9,
+            z
+          );
+          add(
+            new THREE.ConeGeometry(2.6, 1.6, 4),
+            std('#7a3b2e'),
+            seg.position.x,
+            y + 4.9,
+            z
+          ).rotation.y = Math.PI / 4;
+        }
+      }
+      break;
+    }
+    case 'pyramid': {
+      const sand = std('#e2c286');
+      const cone = (r: number, h: number, x: number, z: number) =>
+        (add(new THREE.ConeGeometry(r, h, 4), sand, x, h / 2, z).rotation.y =
+          Math.PI / 4);
+      cone(13, 17, 12, -4);
+      cone(10, 13, 6, 14);
+      cone(6, 8, 2, 26);
+      // The Sphinx, lying in front.
+      const lion = std('#d4b075');
+      add(new THREE.BoxGeometry(2.4, 2, 6), lion, -1, 1, -18);
+      add(new THREE.BoxGeometry(2, 2.6, 2), lion, -1, 2.4, -14.6);
+      add(new THREE.BoxGeometry(2.6, 1.6, 0.6), std('#3b5e8c'), -1, 2.8, -14.2);
+      break;
+    }
+    case 'terraces': {
+      // Stepped green terraces up a peak, stone houses, and Huayna Picchu behind.
+      const grass = std('#7fbf5f');
+      const stone = std('#bdb6a3');
+      for (let i = 0; i < 6; i++) {
+        add(
+          new THREE.BoxGeometry(14 - i * 1.6, 1.2, 26 - i * 2.4),
+          grass,
+          6 + i * 0.8,
+          0.6 + i * 1.2,
+          0
+        );
+        add(
+          new THREE.BoxGeometry(14.2 - i * 1.6, 0.5, 26.2 - i * 2.4),
+          stone,
+          6 + i * 0.8,
+          0.1 + i * 1.2,
+          0
+        );
+      }
+      for (let k = -2; k <= 2; k++) {
+        add(new THREE.BoxGeometry(2, 1.6, 2.4), stone, 9, 8, k * 3.2);
+        add(
+          new THREE.ConeGeometry(1.7, 1.4, 4),
+          std('#a07a4a'),
+          9,
+          9.5,
+          k * 3.2
+        ).rotation.y = Math.PI / 4;
+      }
+      const peak = add(
+        new THREE.ConeGeometry(7, 26, 7),
+        std('#5f8f4a'),
+        22,
+        13,
+        6
+      );
+      peak.scale.set(1, 1, 0.8);
+      add(new THREE.ConeGeometry(2.4, 6, 7), std('#6d6a60'), 22, 24, 6);
+      break;
+    }
+    case 'colosseum': {
+      const tufa = std('#e0bf8f');
+      const shade = std('#7a5a3c');
+      const ring = new THREE.Group();
+      for (let i = 0; i < 28; i++) {
+        const a = (i / 28) * Math.PI * 2;
+        const tall = Math.cos(a) > -0.2;
+        const h = tall ? 11 : 7;
+        const x = Math.cos(a) * 10;
+        const z = Math.sin(a) * 13;
+        const pier = new THREE.Mesh(new THREE.BoxGeometry(1.1, h, 1.4), tufa);
+        pier.position.set(x, h / 2, z);
+        pier.rotation.y = -a;
+        ring.add(pier);
+        for (let f = 0; f < (tall ? 3 : 2); f++) {
+          const arch = new THREE.Mesh(
+            new THREE.BoxGeometry(0.4, 1.6, 1.1),
+            shade
+          );
+          arch.position.set(
+            Math.cos(a + 0.11) * 10.2,
+            1.6 + f * 3.4,
+            Math.sin(a + 0.11) * 13.2
+          );
+          arch.rotation.y = -a;
+          ring.add(arch);
+        }
+      }
+      ring.position.set(12, 0, 0);
+      g.add(ring);
+      // Cornices: oval rings (a torus laid flat, stretched along the road).
+      for (const y of [3.4, 6.8, 10.4]) {
+        const band = add(
+          new THREE.TorusGeometry(10.4, 0.35, 6, 40),
+          tufa,
+          12,
+          y,
+          0
+        );
+        band.rotation.x = Math.PI / 2;
+        band.scale.set(1, 1.27, 1);
+      }
+      add(
+        new THREE.CylinderGeometry(8, 8, 0.4, 28),
+        std('#d9c09a'),
+        12,
+        0.2,
+        0
+      ).scale.set(1, 1, 1.3);
+      break;
+    }
+    case 'mausoleum': {
+      // White marble, onion dome, four minarets and the reflecting pool.
+      const marble = std('#fbf8f2', { roughness: 0.4 });
+      add(new THREE.BoxGeometry(22, 1.2, 22), marble, 12, 0.6, 0);
+      add(new THREE.BoxGeometry(12, 9, 12), marble, 12, 5.7, 0);
+      add(new THREE.BoxGeometry(0.4, 6, 5), std('#e4dccd'), 5.9, 4.6, 0);
+      add(new THREE.CylinderGeometry(3.6, 3.6, 2.6, 20), marble, 12, 11.4, 0);
+      const dome = add(
+        new THREE.SphereGeometry(4.4, 22, 16),
+        marble,
+        12,
+        14.6,
+        0
+      );
+      dome.scale.set(1, 1.15, 1);
+      add(new THREE.ConeGeometry(0.5, 3.2, 10), std('#d4b04a'), 12, 20.4, 0);
+      for (const [dx, dz] of [
+        [-9, -9],
+        [-9, 9],
+        [9, -9],
+        [9, 9],
+      ] as const) {
+        add(
+          new THREE.CylinderGeometry(0.7, 0.9, 14, 12),
+          marble,
+          12 + dx,
+          7.6,
+          dz
+        );
+        add(new THREE.SphereGeometry(1.1, 12, 8), marble, 12 + dx, 15.4, dz);
+      }
+      for (const dz of [-4, 4]) {
+        add(
+          new THREE.CylinderGeometry(1.4, 1.4, 1.4, 14),
+          marble,
+          12,
+          10.6,
+          dz * 1.1
+        );
+        add(new THREE.SphereGeometry(1.6, 12, 8), marble, 12, 12, dz * 1.1);
+      }
+      // The long reflecting pool runs from the garden towards the road.
+      const pool = add(
+        new THREE.PlaneGeometry(8, 3),
+        std('#7fc8e6', { roughness: 0.15 }),
+        1.5,
+        0.08,
+        0
+      );
+      pool.rotation.x = -Math.PI / 2;
+      break;
+    }
+    case 'angkor': {
+      // Five lotus-bud towers over a stepped base, with the moat in front.
+      const sand = std('#b8a07a');
+      const dark = std('#8f7a58');
+      add(new THREE.BoxGeometry(22, 2, 26), sand, 12, 1, 0);
+      add(new THREE.BoxGeometry(16, 2, 20), dark, 12, 3, 0);
+      add(new THREE.BoxGeometry(10, 2, 13), sand, 12, 5, 0);
+      const bud = (x: number, z: number, h: number) => {
+        for (let i = 0; i < 5; i++)
+          add(
+            new THREE.CylinderGeometry(
+              1.9 - i * 0.35,
+              2.1 - i * 0.35,
+              h / 5,
+              8
+            ),
+            i % 2 ? dark : sand,
+            x,
+            6 + (h / 5) * (i + 0.5),
+            z
+          );
+        add(new THREE.ConeGeometry(0.5, 2.4, 8), sand, x, 6 + h + 1.2, z);
+      };
+      bud(12, 0, 13);
+      for (const [dx, dz] of [
+        [-4, -6],
+        [-4, 6],
+        [4, -6],
+        [4, 6],
+      ] as const)
+        bud(12 + dx, dz, 8);
+      const moat = add(
+        new THREE.PlaneGeometry(5, 30),
+        std('#5aa8b8', { roughness: 0.2 }),
+        -0.5,
+        0.06,
+        0
+      );
+      moat.rotation.x = -Math.PI / 2;
+      break;
+    }
+    case 'stones': {
+      // Sarsen circle with lintels, and the inner trilithons.
+      const stone = std('#a9a497');
+      const r = 8;
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2;
+        if (i === 5 || i === 11) continue; // fallen stones
+        const s = add(
+          new THREE.BoxGeometry(1.2, 4.6, 2),
+          stone,
+          10 + Math.cos(a) * r,
+          2.3,
+          Math.sin(a) * r
+        );
+        s.rotation.y = -a;
+        if (i % 2 === 0 && i !== 4 && i !== 10) {
+          const l = add(
+            new THREE.BoxGeometry(1, 0.8, 4.4),
+            stone,
+            10 + Math.cos(a + 0.2) * r,
+            5,
+            Math.sin(a + 0.2) * r
+          );
+          l.rotation.y = -a - 0.2;
+        }
+      }
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI + Math.PI / 2;
+        const x = 10 + Math.cos(a) * 4;
+        const z = Math.sin(a) * 4;
+        add(new THREE.BoxGeometry(1.4, 6, 1.4), stone, x, 3, z - 1);
+        add(new THREE.BoxGeometry(1.4, 6, 1.4), stone, x, 3, z + 1);
+        add(new THREE.BoxGeometry(1.6, 1, 3.6), stone, x, 6.5, z);
+      }
+      const fallen = add(
+        new THREE.BoxGeometry(1.2, 4.6, 2),
+        stone,
+        10 + r * 0.6,
+        0.6,
+        r * 0.9
+      );
+      fallen.rotation.z = Math.PI / 2;
+      break;
+    }
+    case 'treasury': {
+      // A temple front carved into a rose cliff.
+      const rock = std('#d1866a');
+      const carved = std('#e3a184');
+      const deep = std('#7a3f30');
+      add(new THREE.BoxGeometry(8, 30, 40), rock, 14, 15, 0);
+      add(new THREE.BoxGeometry(1, 22, 14), carved, 9.6, 11, 0);
+      for (let k = -3; k <= 3; k++)
+        if (k !== 0)
+          add(
+            new THREE.CylinderGeometry(0.55, 0.55, 8, 10),
+            carved,
+            8.8,
+            4.6,
+            k * 1.9
+          );
+      add(new THREE.BoxGeometry(1.4, 1, 14), carved, 8.8, 9, 0);
+      add(new THREE.ConeGeometry(7.4, 3, 4, 1), carved, 8.9, 11.2, 0).scale.set(
+        0.2,
+        1,
+        1
+      );
+      add(new THREE.CylinderGeometry(1.8, 1.8, 6, 12), carved, 9, 16.4, 0);
+      add(new THREE.ConeGeometry(2, 1.8, 12), carved, 9, 20.3, 0);
+      for (const dz of [-5.2, 5.2])
+        add(new THREE.BoxGeometry(1.2, 6, 3), carved, 9, 16.2, dz);
+      add(new THREE.BoxGeometry(0.4, 4.2, 2.4), deep, 9, 2.1, 0);
+      break;
+    }
+    case 'karst': {
+      // Limestone towers rising from green water, and a junk with a red sail.
+      const sea = add(
+        new THREE.PlaneGeometry(40, 60),
+        std('#3fb3a5', { roughness: 0.15 }),
+        16,
+        0.05,
+        0
+      );
+      sea.rotation.x = -Math.PI / 2;
+      const rock = std('#8a9a8a');
+      const green = std('#5f9a5a');
+      const towers: [number, number, number, number][] = [
+        [8, -12, 3.2, 11],
+        [14, -2, 4, 15],
+        [10, 9, 2.6, 9],
+        [22, 12, 4.4, 17],
+        [24, -14, 3.6, 13],
+        [30, 2, 5, 19],
+      ];
+      for (const [x, z, r, h] of towers) {
+        const t = add(
+          new THREE.CylinderGeometry(r * 0.75, r, h, 8),
+          rock,
+          x,
+          h / 2,
+          z
+        );
+        t.rotation.y = x;
+        add(new THREE.SphereGeometry(r * 0.8, 8, 6), green, x, h, z).scale.set(
+          1,
+          0.55,
+          1
+        );
+      }
+      add(new THREE.BoxGeometry(1.6, 0.8, 4.2), std('#7a4a2a'), 5, 0.5, 2);
+      add(
+        new THREE.PlaneGeometry(3.2, 3.4),
+        std('#c0392b', { side: THREE.DoubleSide }),
+        5,
+        2.8,
+        2
+      ).rotation.y = Math.PI / 2;
+      break;
+    }
+    case 'canyon': {
+      // Banded buttes and mesas, red and gold, like the view from the rim.
+      const bands = ['#9c3d22', '#c1562a', '#e3a36f', '#b5482a', '#d9824f'];
+      const butte = (x: number, z: number, w: number, d: number, n: number) => {
+        for (let i = 0; i < n; i++) {
+          const k = 1 - i * 0.12;
+          add(
+            new THREE.BoxGeometry(w * k, 2.4, d * k),
+            std(bands[i % bands.length]!),
+            x,
+            1.2 + i * 2.4,
+            z
+          );
+        }
+      };
+      butte(12, -6, 12, 22, 5);
+      butte(22, 12, 9, 14, 7);
+      butte(30, -14, 14, 12, 4);
+      butte(8, 16, 6, 8, 3);
+      add(new THREE.BoxGeometry(3, 9, 3), std('#b5482a'), 20, 4.5, -18);
+      add(new THREE.BoxGeometry(1.6, 1.4, 30), std('#8a6a4a'), 3, 0.7, 0);
+      break;
+    }
+    case 'falls': {
+      // A curved cliff with white water pouring over, mist and a rainbow.
+      const cliff = std('#6f7c6a');
+      const water = std('#d9f2ff', {
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.9,
+      });
+      for (let i = -5; i <= 5; i++) {
+        const a = i * 0.16;
+        const x = 18 - Math.cos(a) * 10;
+        const z = Math.sin(a) * 20;
+        const rock = add(
+          new THREE.BoxGeometry(3, 10, 4.2),
+          cliff,
+          x + 1.4,
+          5,
+          z
+        );
+        rock.rotation.y = a;
+        const fall = add(
+          new THREE.BoxGeometry(0.6, 9.6, 4.2),
+          water,
+          x - 0.4,
+          5,
+          z
+        );
+        fall.rotation.y = a;
+      }
+      const basin = add(
+        new THREE.PlaneGeometry(12, 44),
+        std('#4fa6c8', { roughness: 0.2 }),
+        4,
+        0.06,
+        0
+      );
+      basin.rotation.x = -Math.PI / 2;
+      for (let k = 0; k < 6; k++)
+        add(
+          new THREE.SphereGeometry(2.4, 8, 6),
+          std('#ffffff', { transparent: true, opacity: 0.55 }),
+          6 + (k % 2),
+          1.4,
+          -12 + k * 5
+        );
+      const colors = [
+        '#ff6b6b',
+        '#ffb347',
+        '#ffe66d',
+        '#6bd47a',
+        '#5ab0ff',
+        '#9b7bff',
+      ];
+      colors.forEach((c, i) => {
+        const arc = add(
+          new THREE.TorusGeometry(12 - i * 0.45, 0.22, 6, 30, Math.PI),
+          std(c, { transparent: true, opacity: 0.7 }),
+          4,
+          0,
+          0
+        );
+        arc.rotation.y = Math.PI / 2;
+      });
+      break;
+    }
+    case 'moai': {
+      // A row of stone heads on their platform, backs to the sea.
+      const tuff = std('#7d7466');
+      const hat = std('#a5523b');
+      add(new THREE.BoxGeometry(4, 1.2, 34), std('#9a927f'), 8, 0.6, 0);
+      for (let i = 0; i < 9; i++) {
+        const z = -14 + i * 3.5;
+        const h = 5.4 + ((i * 7) % 3) * 0.6;
+        add(new THREE.BoxGeometry(2, h, 2.4), tuff, 8, 1.2 + h / 2, z);
+        add(new THREE.BoxGeometry(0.9, 2.2, 1.6), tuff, 6.8, 1.2 + h * 0.62, z);
+        add(new THREE.BoxGeometry(0.8, 0.5, 2.6), tuff, 7.1, 1.2 + h * 0.8, z);
+        if (i % 3 === 1)
+          add(new THREE.CylinderGeometry(1, 1, 1, 10), hat, 8, 1.7 + h, z);
+      }
+      const sea = add(
+        new THREE.PlaneGeometry(30, 70),
+        std('#3d8fc4', { roughness: 0.15 }),
+        26,
+        0.04,
+        0
+      );
+      sea.rotation.x = -Math.PI / 2;
+      break;
+    }
+  }
+  if (TOUR_LANDMARKS.includes(lm.kind)) {
+    // World Tour wonders are big and set further back: pull them towards the
+    // road and scale them up so they fill the view as you run in.
+    for (const c of g.children) {
+      c.position.x -= 4;
+      // Out in the open, set it a little further on so it sits in view as you
+      // approach; in a town it stays on its plaza.
+      if (wild) c.position.z -= 10;
+    }
+    g.scale.setScalar(1.45);
   }
   return g;
 };

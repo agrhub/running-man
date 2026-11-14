@@ -25,8 +25,11 @@ import { PACE_COLOR, PACE_HINT } from '../lib/theme';
 type Props = {
   day: DayInfo;
   profile: Profile;
-  crew: CrewProgress;
-  totalRunners: number;
+  /** The daily crew goal; a World Tour run has none. */
+  crew?: CrewProgress;
+  totalRunners?: number;
+  /** World Tour: the place's name replaces the daily stage line. */
+  tour?: { label: string; onBack: () => void };
   yesterday?: DayRecap | null;
   /** Whether people, traffic and animals are on the road today. */
   roadLife: boolean;
@@ -63,6 +66,7 @@ export const PlanScreen = ({
   crew,
   totalRunners,
   yesterday,
+  tour,
   roadLife,
   starting,
   onStart,
@@ -101,10 +105,21 @@ export const PlanScreen = ({
     <div className="flex min-h-full flex-col justify-center gap-3 px-4 pt-3 pb-4 max-w-[440px] mx-auto">
       <header className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-[13px] font-extrabold text-ink-soft">
-            {city.flag} {city.name}, stage {day.stageIndex + 1} of 7 ·{' '}
-            {TERRAIN[stage.terrain].icon} {TERRAIN[stage.terrain].label}
-          </p>
+          {tour ? (
+            <button
+              type="button"
+              onClick={tour.onBack}
+              className="text-[13px] font-extrabold text-ink-soft"
+            >
+              ← {tour.label} · {TERRAIN[stage.terrain].icon}{' '}
+              {TERRAIN[stage.terrain].label}
+            </button>
+          ) : (
+            <p className="text-[13px] font-extrabold text-ink-soft">
+              {city.flag} {city.name}, stage {day.stageIndex + 1} of 7 ·{' '}
+              {TERRAIN[stage.terrain].icon} {TERRAIN[stage.terrain].label}
+            </p>
+          )}
           <h1 className="font-display text-[30px] leading-[1.05] font-extrabold">
             {stage.name}
           </h1>
@@ -236,7 +251,7 @@ export const PlanScreen = ({
       </section>
 
       <div className="flex flex-col gap-3">
-        <CrewBar crew={crew} runners={totalRunners} />
+        {crew && <CrewBar crew={crew} runners={totalRunners ?? 0} />}
         <button
           type="button"
           disabled={starting}

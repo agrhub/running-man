@@ -35,7 +35,8 @@ One session takes 2 to 3 minutes: about 30 seconds to plan, 60 to 90 seconds to 
 
 ### Plan (about 30 seconds)
 
-- See the 6 km elevation profile, the water stations, the terrain, today's weather and the start time.
+- See the route map (the course coloured by grade, km marks, water stops, the landmark, boosters, and how many
+  obstacles and snacks each km holds), the 6 km elevation profile, the terrain, today's weather and the start time.
 - Yesterday's podium sits under the start button: the same recap the app posts in the comments.
 - Tap each kilometre to switch between Easy, Steady and Push, and choose where to drink. The default is all Steady,
   so a new player can run straight away.
@@ -175,6 +176,21 @@ to 40 coins (score ÷ 8), and each game has its own daily top five.
 - **Pet Fetch:** five throws. A power bar sweeps up and down, faster each throw; tap to throw, and your pet runs to
   the ball and brings it back. Wind adds or takes off metres. Up to 100 points a throw, by how close the ball lands
   to the ring.
+
+### World Tour
+
+Waiting a day for the next stage is the point of the daily loop, so the next stage never opens early. For players who
+want more running, the Play tab has a World Tour: famous places outside the calendar, run any time.
+
+- Twelve stops in three kinds: ancient wonders (Great Wall, Pyramids of Giza, Machu Picchu, Colosseum, Angkor Wat,
+  Stonehenge, Petra, the Moai), natural wonders (Ha Long Bay, Grand Canyon, Niagara Falls) and world landmarks (Taj
+  Mahal). Each has a 6 km stage with its own grades, water stops, terrain, fixed weather and hour, and a low-poly
+  3D model of the place beside the road. Out in the open (`wild`), no hotels or skyline are built.
+- Unlock a stop once with coins (200 to 350). Then run it as often as you like with the same plan, route map, race
+  and server replay as the daily stage. The fastest runs at a stop share the road as ghosts.
+- Only your best time per stop is kept, on that stop's own board. The first finish stamps your passport and pays 60
+  coins; later runs pay nothing, so the tour cannot be farmed for coins.
+- Tour runs never touch the daily leaderboard, streak, quests, crew goal or weekly standings.
 
 ### Me: profile and achievements
 
@@ -375,6 +391,9 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 | `recap:{date}`           | string     | The recap comment, once posted                                      |
 | `welcome:post`           | string     | The pinned how-to-play post                                         |
 | `celebrate:{season}`     | string     | The city celebration post                                           |
+| `sub:firstDay`           | string     | The date of this subreddit's first stage (its Day 1)                |
+| `tour:{id}:board`        | sorted set | Best World Tour time per runner at that stop                        |
+| `tour:{id}:tracks`       | hash       | Each runner's best run at that stop, replayed as a ghost            |
 
 ### Stage simulation (deterministic, runs on client and server)
 

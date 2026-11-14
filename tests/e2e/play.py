@@ -195,6 +195,12 @@ with sync_playwright() as p:
     fetched = page.inner_text('section[aria-label="Your last round"]')
     check('Pet Fetch round is scored by the server', 'Pet Fetch: round 1 done' in fetched, fetched.replace('\n', ' '))
     check('Pet Fetch board lists you', page.locator('section[aria-label="Today’s best Pet Fetch scores"] >> text=u/you').count() == 1)
+    # World Tour: twelve places, unlocked with coins.
+    page.get_by_role('button', name=re.compile('World Tour')).click()
+    page.wait_for_selector('ul[aria-label="World Tour places"]')
+    check('World Tour lists twelve places', page.locator('ul[aria-label="World Tour places"] > li').count() == 12)
+    page.screenshot(path=f'{OUT}/09-world-tour.png')
+    page.get_by_role('button', name='← Play').click()
     nav.get_by_role('button', name=re.compile('Friends')).click()
     page.wait_for_selector('section[aria-label="Runners from today"]')
     first = page.locator('section[aria-label="Runners from today"] button').first

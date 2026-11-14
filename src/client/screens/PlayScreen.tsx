@@ -12,6 +12,7 @@ import {
 } from '../../shared/arcade';
 import { COIN } from '../../shared/economy';
 import { GAME_INFO, PLAY_GAMES } from '../lib/games';
+import { TOUR } from '../../shared/tour';
 
 export type DashResult = { score: number; reward: number };
 export type { PlayGame } from '../lib/games';
@@ -26,6 +27,7 @@ type Props = {
   busy: boolean;
   onSelect: (game: PlayGame) => void;
   onPlay: () => void;
+  onTour: () => void;
 };
 
 const dayOf = (p: Profile, g: PlayGame, today: string) => {
@@ -42,6 +44,7 @@ export const PlayScreen = ({
   busy,
   onSelect,
   onPlay,
+  onTour,
 }: Props) => {
   const guest = profile.username === 'guest';
   const info = GAME_INFO[game];
@@ -59,6 +62,27 @@ export const PlayScreen = ({
           {COIN} {profile.badges}
         </p>
       </header>
+      <button
+        type="button"
+        onClick={onTour}
+        className="chunky flex items-center gap-3 rounded-2xl bg-[#e3f6ff] px-3 py-2 text-left"
+      >
+        <span className="text-[34px] leading-none" aria-hidden>
+          🌍
+        </span>
+        <span className="flex-1">
+          <span className="block font-display text-[19px] font-extrabold leading-tight">
+            World Tour
+          </span>
+          <span className="block text-[12px] leading-snug text-ink-soft">
+            The Great Wall, the Pyramids, Machu Picchu and more. Unlock with
+            coins, run any time · 🛂 {profile.tourStamps.length}/{TOUR.length}
+          </span>
+        </span>
+        <span className="font-display text-[22px] font-extrabold" aria-hidden>
+          ›
+        </span>
+      </button>
 
       <div
         className="grid grid-cols-2 gap-1.5"

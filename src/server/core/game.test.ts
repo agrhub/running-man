@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { TOUR, TOUR_STAMP_REWARD, tourById } from '../../shared/tour';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -10,6 +11,9 @@ import { courseItems, isRoadLife } from '../../shared/course';
 import { replayRace, startLane, type Move } from '../../shared/race';
 import type {
   InitResponse,
+  TourResponse,
+  TourRunResponse,
+  TourStopResponse,
   ProfileResponse,
   RunResponse,
   ShareResponse,
@@ -1483,5 +1487,79 @@ describe('daily posts', () => {
     expect(res.status).toBe(200);
     expect(h.posts).toHaveLength(1);
     expect(h.texts).toHaveLength(1);
+  });
+});
+
+describe('World Tour', () => {
+  let h: Harness;
+  beforeEach(() => {
+    h = makeHarness();
+  });
+  const wall = tourById('great-wall')!;
+
+  it('unlocks a stop with coins, stamps the first finish and keeps the best time', async () => {
+    await h.deps.store.set(keys.user('alice'), JSON.stringify({ badges: 250 }));
+    const list = await call<TourResponse>(h, 'GET', '/tour');
+    expect(list.json.stops).toHaveLength(TOUR.length);
+    expect(list.json.stops.every((s) => !s.unlocked)).toBe(true);
+
+    const locked = await call(h, 'POST', '/tour/run', {
+      id: wall.id,
+      plan: defaultPlan(wall.stage),
+      moves: [],
+    });
+    expect(locked.status).toBe(400);
+
+    const open = await call<TourResponse>(h, 'POST', '/tour/unlock', {
+      id: wall.id,
+    });
+    expect(open.json.profile.badges).toBe(250 - wall.cost);
+    expect(open.json.stops.find((s) => s.id === wall.id)?.unlocked).toBe(true);
+    expect(
+      (await call(h, 'POST', '/tour/unlock', { id: wall.id })).status
+    ).toBe(409);
+
+    const first = await call<TourRunResponse>(h, 'POST', '/tour/run', {
+      id: wall.id,
+      plan: defaultPlan(wall.stage),
+      moves: [],
+    });
+    expect(first.json.stamped).toBe(true);
+    expect(first.json.reward).toBe(TOUR_STAMP_REWARD);
+    expect(first.json.profile.badges).toBe(250 - wall.cost + TOUR_STAMP_REWARD);
+    expect(first.json.rank).toBe(1);
+
+    // A slower run is not kept, and the stamp is paid once.
+    const slow = await call<TourRunResponse>(h, 'POST', '/tour/run', {
+      id: wall.id,
+      plan: { paces: wall.stage.grades.map(() => 'easy'), drinks: [] },
+      moves: [],
+    });
+    expect(slow.json.stamped).toBe(false);
+    expect(slow.json.improved).toBe(false);
+    expect(slow.json.best).toBe(first.json.seconds);
+
+    // Tour runs never touch the daily stage.
+    const init = await call<InitResponse>(h, 'GET', '/init');
+    expect(init.json.myRun).toBeNull();
+    expect(init.json.profile.streak).toBe(0);
+  });
+
+  it('puts the best runs at a stop on the road as ghosts', async () => {
+    await h.deps.store.set(keys.user('bob'), JSON.stringify({ badges: 500 }));
+    await call(h.as('bob'), 'POST', '/tour/unlock', { id: wall.id });
+    await call(h.as('bob'), 'POST', '/tour/run', {
+      id: wall.id,
+      plan: defaultPlan(wall.stage),
+      moves: [{ step: 50, lane: 1 }],
+    });
+    const stop = await call<TourStopResponse>(
+      h.as('alice'),
+      'GET',
+      `/tour/stop?id=${wall.id}`
+    );
+    expect(stop.json.runners.map((r) => r.username)).toEqual(['bob']);
+    expect(stop.json.best).toBeNull();
+    expect((await call(h, 'GET', '/tour/stop?id=atlantis')).status).toBe(404);
   });
 });

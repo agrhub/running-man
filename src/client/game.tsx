@@ -29,6 +29,11 @@ import type {
   MeResponse,
   ArcadeResponse,
   ArcadeBoardResponse,
+  RunnerTrack,
+  TourResponse,
+  TourRow,
+  TourRunResponse,
+  TourStopResponse,
 } from '../shared/api';
 import { dayInfo, isTriathlon } from '../shared/content';
 import { simulate } from '../shared/sim';
@@ -36,6 +41,8 @@ import type { PetChoice } from '../shared/economy';
 import type { NextCityId } from '../shared/vote';
 import type { Plan } from '../shared/sim';
 import { ApiError, request } from './lib/api';
+import { TourScreen } from './screens/TourScreen';
+import { tourById, tourDay } from '../shared/tour';
 import { applyCityTheme } from './lib/theme';
 import { Leaderboard } from './components/Leaderboard';
 import { LockerScreen } from './screens/LockerScreen';
@@ -75,6 +82,9 @@ type Screen =
   | 'arcade'
   | 'friends'
   | 'me'
+  | 'tour'
+  | 'tourPlan'
+  | 'tourRun'
   | 'closed';
 
 // The race screen carries three.js: it loads on demand, and is fetched early in idle time.
@@ -103,6 +113,8 @@ const HUB: Screen[] = [
   'play',
   'friends',
   'me',
+  'tour',
+  'tourPlan',
 ];
 const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop', 'me'];
 const tabOf = (s: Screen): Tab =>
@@ -110,7 +122,7 @@ const tabOf = (s: Screen): Tab =>
     ? 'shop'
     : s === 'quests'
       ? 'quests'
-      : s === 'play'
+      : s === 'play' || s === 'tour' || s === 'tourPlan'
         ? 'play'
         : s === 'friends'
           ? 'friends'
@@ -272,6 +284,88 @@ export const App = () => {
       setLivePlan(null);
       if (e instanceof ApiError && e.status === 409) void load();
       else setScreen('plan');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ---- World Tour
+  const [tourStops, setTourStops] = useState<TourRow[] | null>(null);
+  const [tourId, setTourId] = useState<string | null>(null);
+  const [tourGhosts, setTourGhosts] = useState<RunnerTrack[]>([]);
+  const [tourPlan, setTourPlan] = useState<Plan | null>(null);
+  const [tourResult, setTourResult] = useState<TourRunResponse | null>(null);
+  const tourStopNow = tourId ? tourById(tourId) : undefined;
+  const tourDayNow = useMemo(
+    () => (tourStopNow ? tourDay(tourStopNow) : null),
+    [tourStopNow]
+  );
+
+  const openTour = () => {
+    setTourResult(null);
+    setScreen('tour');
+    request<TourResponse>('/tour')
+      .then((r) => {
+        setTourStops(r.stops);
+        patch({ profile: r.profile });
+      })
+      .catch((e: unknown) => showToast(message(e)));
+  };
+
+  const unlockTour = async (id: string) => {
+    setBusy(true);
+    try {
+      const r = await request<TourResponse>('/tour/unlock', { id });
+      setTourStops(r.stops);
+      patch({ profile: r.profile });
+      showToast('Unlocked! Run it any time.');
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pickTour = async (id: string) => {
+    setBusy(true);
+    try {
+      const r = await request<TourStopResponse>(
+        `/tour/stop?id=${encodeURIComponent(id)}`
+      );
+      setTourGhosts(r.runners);
+      setTourId(id);
+      setTourResult(null);
+      preloadRace();
+      setScreen('tourPlan');
+    } catch (e) {
+      showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitTour = async (plan: Plan, outcome: RaceOutcome) => {
+    if (!tourId) return;
+    setBusy(true);
+    try {
+      const r = await request<TourRunResponse>('/tour/run', {
+        id: tourId,
+        plan,
+        moves: outcome.moves,
+        rivals: outcome.rivals,
+      });
+      patch({ profile: r.profile });
+      setTourResult(r);
+      setTourPlan(null);
+      request<TourResponse>('/tour')
+        .then((l) => setTourStops(l.stops))
+        .catch(() => undefined);
+      setScreen('tour');
+    } catch (e) {
+      showToast(message(e));
+      setTourPlan(null);
+      setScreen('tourPlan');
     } finally {
       setBusy(false);
     }
@@ -719,6 +813,56 @@ export const App = () => {
             />
           </FriendsScreen>
         );
+      case 'tour':
+        return (
+          <TourScreen
+            profile={data.profile}
+            stops={tourStops}
+            busy={busy}
+            result={tourResult}
+            onUnlock={(id) => void unlockTour(id)}
+            onRun={(id) => void pickTour(id)}
+            onBack={() => setScreen('play')}
+          />
+        );
+      case 'tourPlan':
+        return tourDayNow && tourStopNow ? (
+          <PlanScreen
+            key={tourStopNow.id}
+            day={tourDayNow}
+            profile={data.profile}
+            tour={{
+              label: `${tourStopNow.flag} World Tour`,
+              onBack: () => setScreen('tour'),
+            }}
+            roadLife={data.settings.roadLife}
+            starting={busy}
+            onStart={(plan) => {
+              if (data.profile.username === 'guest') {
+                showLoginPrompt();
+                return;
+              }
+              setTourPlan(plan);
+              setScreen('tourRun');
+            }}
+            onLocker={openLocker}
+          />
+        ) : null;
+      case 'tourRun':
+        return tourDayNow && tourPlan ? (
+          <RunScreen
+            day={tourDayNow}
+            profile={data.profile}
+            plan={tourPlan}
+            rivals={tourGhosts}
+            mode="live"
+            firstRun={false}
+            quickChat={false}
+            roadLife={data.settings.roadLife}
+            saving={busy}
+            onFinish={(outcome) => void submitTour(tourPlan, outcome)}
+          />
+        ) : null;
       case 'play':
         return (
           <PlayScreen
@@ -738,6 +882,7 @@ export const App = () => {
               setDashLast(null);
               setScreen(playGame === 'dash' ? 'dash' : 'arcade');
             }}
+            onTour={openTour}
           />
         );
       case 'arcade': {

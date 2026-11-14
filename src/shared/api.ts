@@ -31,6 +31,9 @@ export type Profile = {
   lastRunDate: string | null;
   owned: string[];
   ownedPets: PetId[];
+  /** World Tour stops unlocked with coins, and the ones finished (stamped). */
+  tourUnlocked: string[];
+  tourStamps: string[];
   look: Look;
   petAffinity: number;
   petCaredOn: string | null;
@@ -428,3 +431,39 @@ export type ShareResponse = {
 };
 
 export type ErrorResponse = { status: 'error'; message: string };
+
+/** One World Tour stop as the tour list shows it. */
+export type TourRow = {
+  id: string;
+  unlocked: boolean;
+  stamped: boolean;
+  /** Your best time here, in seconds. */
+  best: number | null;
+  rank: number | null;
+  runners: number;
+  top: { username: string; seconds: number } | null;
+};
+
+export type TourResponse = { type: 'tour'; stops: TourRow[]; profile: Profile };
+
+/** Everything needed to race a stop: the best runs there become your ghosts. */
+export type TourStopResponse = {
+  type: 'tourStop';
+  id: string;
+  runners: RunnerTrack[];
+  best: number | null;
+};
+
+export type TourRunResponse = {
+  type: 'tourRun';
+  id: string;
+  profile: Profile;
+  seconds: number;
+  best: number;
+  improved: boolean;
+  rank: number;
+  total: number;
+  /** First finish here: passport stamp and coins. */
+  stamped: boolean;
+  reward: number;
+};

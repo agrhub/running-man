@@ -12,6 +12,9 @@ export const keys = {
   dayPost: (dateKey: string) => `day:${dateKey}:post`,
   /** The date of this subreddit's first stage post: its Day 1. */
   firstDay: () => 'sub:firstDay',
+  /** World Tour: best times per stop, and each runner's best run there. */
+  tourBoard: (id: string) => `tour:${id}:board`,
+  tourTracks: (id: string) => `tour:${id}:tracks`,
   /** Counters for the day's recap: crashes per runner, snacks, high fives, chat lines. */
   dayStats: (dateKey: string) => `stats:${dateKey}`,
   /** Set once the day's recap comment is posted. */

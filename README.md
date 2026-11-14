@@ -29,6 +29,10 @@ Built on [Devvit Web](https://developers.reddit.com/docs/capabilities/devvit-web
 | ---------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------- | ------------------------------------------- |
 | ![Triathlon](docs/screenshots/19-triathlon-swim.png) | ![Storm](docs/screenshots/20-storm-evening.png) | ![Christmas](docs/screenshots/21-christmas-run.png) | ![Profile](docs/screenshots/23-profile.png) |
 
+| World Tour                                        | Pyramids of Giza                                 | Route map                                       | Amazon week                                             |
+| ------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------- |
+| ![World Tour](docs/screenshots/27-world-tour.png) | ![Giza](docs/screenshots/28-world-tour-giza.png) | ![Route map](docs/screenshots/29-route-map.png) | ![Amazon](docs/screenshots/25-amazon-stilt-village.png) |
+
 ## How to play
 
 1. **Make your runner.** The first time you open the game you pick skin, hair style and colour, a shirt and a running
@@ -112,6 +116,12 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Three more mini games:** Hurdle Hop (tap to jump, faster and faster), Rhythm Steps (tap on a rising beat) and Pet
   Fetch (stop the power bar to throw for your pet, with wind), each scored on the server from its tap times, with
   coins for the first rounds and a daily top five.
+- **World Tour:** twelve famous places to run any time, outside the daily calendar: the Great Wall, the Pyramids of
+  Giza, Machu Picchu, the Colosseum, the Taj Mahal, Angkor Wat, Stonehenge, Petra, Ha Long Bay, the Grand Canyon,
+  Niagara Falls and the Moai of Easter Island, each with its own low-poly 3D wonder, terrain, weather and hour.
+  Unlock a place with coins (200 to 350), run it as often as you like against the best runs there as ghosts (the
+  server replays every run), and the first finish stamps your passport for 60 coins. Tour runs never touch the daily
+  leaderboard, streak or crew goal.
 - **Friends:** add friends by username or from today's runners, see their day, race them on the Friends board. Friends
   who ran today join your road first with their own tag colour.
 - **Call your time:** guess your finish in the start corral; within 10 seconds pays 30 coins, within 3 pays 60.

@@ -139,7 +139,7 @@ export class GameError extends Error {
 const RUNNER_LIMIT = 12;
 const LEADERBOARD_LIMIT = 10;
 
-const parse = <T>(raw: string | undefined | null): T | null => {
+export const parse = <T>(raw: string | undefined | null): T | null => {
   if (!raw) return null;
   try {
     return JSON.parse(raw) as T;
@@ -158,6 +158,8 @@ export const freshProfile = (username: string): Profile => ({
   lastRunDate: null,
   owned: ITEMS.filter((i) => i.unlock.kind === 'free').map((i) => i.id),
   ownedPets: PETS.filter((p) => p.unlock.kind === 'free').map((p) => p.id),
+  tourUnlocked: [],
+  tourStamps: [],
   look: defaultLook(hashString(username)),
   petAffinity: 0,
   petCaredOn: null,
@@ -205,7 +207,7 @@ export const loadProfile = async (
   };
 };
 
-const saveProfile = (store: Store, profile: Profile) =>
+export const saveProfile = (store: Store, profile: Profile) =>
   store.set(keys.user(profile.username), JSON.stringify(profile));
 
 const progressOf = (p: Profile): Progress => ({
@@ -245,7 +247,10 @@ export const grantEarnedUnlocks = (profile: Profile): string[] => {
 };
 
 /** Hands out the next bib number. Bibs are never reused. */
-const ensureBib = async (store: Store, profile: Profile): Promise<boolean> => {
+export const ensureBib = async (
+  store: Store,
+  profile: Profile
+): Promise<boolean> => {
   if (profile.bib !== null) return false;
   profile.bib = await store.incrBy(keys.bibs(), 1);
   return true;
@@ -378,7 +383,7 @@ export const postDateKey = async (deps: Deps): Promise<string> => {
   return (await deps.store.get(keys.postDate(postId))) ?? today;
 };
 
-const requireUser = async (deps: Deps): Promise<string> => {
+export const requireUser = async (deps: Deps): Promise<string> => {
   const username = await deps.username();
   if (!username) throw new GameError('Log in to Reddit to run.', 401);
   return username;

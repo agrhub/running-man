@@ -35,7 +35,20 @@ export type LandmarkKind =
   | 'stilt'
   | 'meeting'
   | 'river'
-  | 'lilies';
+  | 'lilies'
+  // World Tour
+  | 'wall'
+  | 'pyramid'
+  | 'terraces'
+  | 'colosseum'
+  | 'mausoleum'
+  | 'angkor'
+  | 'stones'
+  | 'treasury'
+  | 'karst'
+  | 'canyon'
+  | 'falls'
+  | 'moai';
 
 export type Landmark = {
   name: string;
@@ -53,6 +66,8 @@ export type Stage = {
   waterAfterKm: number[];
   landmark: Landmark;
   terrain: Terrain;
+  /** No town in sight: no beachfront hotels or distant skyline (World Tour wonders). */
+  wild?: boolean;
 };
 
 export type CityPalette = {

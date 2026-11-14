@@ -1,3 +1,9 @@
+import { tourList, tourRun, tourStop, unlockTour } from '../core/tour';
+import type {
+  TourResponse,
+  TourRunResponse,
+  TourStopResponse,
+} from '../../shared/api';
 import { Hono, type Context } from 'hono';
 import type {
   CheerRequest,
@@ -349,6 +355,48 @@ export const createApi = (deps: Deps): Hono => {
         String(res.score)
       );
       return c.json<ArcadeResponse>({ type: 'arcade', ...res });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  // ---- World Tour
+  api.get('/tour', async (c) => {
+    try {
+      return c.json<TourResponse>(await tourList(deps));
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/tour/unlock', async (c) => {
+    try {
+      const body = await readJson<{ id?: unknown }>(c);
+      return c.json<TourResponse>(await unlockTour(deps, body.id));
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/tour/stop', async (c) => {
+    try {
+      return c.json<TourStopResponse>(await tourStop(deps, c.req.query('id')));
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/tour/run', async (c) => {
+    try {
+      const body = await readJson<{
+        id?: unknown;
+        plan?: unknown;
+        moves?: unknown;
+        rivals?: unknown;
+      }>(c);
+      return c.json<TourRunResponse>(
+        await tourRun(deps, body.id, body.plan, body.moves ?? [], body.rivals)
+      );
     } catch (e) {
       return fail(c, e);
     }

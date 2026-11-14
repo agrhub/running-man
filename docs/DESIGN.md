@@ -372,7 +372,7 @@ We brute-forced every pace plan for each stage and weather to make sure the best
 
 ## Languages
 
-The game ships in English, Spanish and Vietnamese. Translation is gettext style: the English text is the key, so English needs
+The game ships in English, Spanish, Brazilian Portuguese and Vietnamese. Translation is gettext style: the English text is the key, so English needs
 no table and anything untranslated falls back to English. `{name}` marks values filled in at run time, and server
 messages that carry values are matched by pattern. The language follows the device and can be changed in Me →
 Options (kept in the browser). Public Reddit posts and comments stay in English, since the whole community reads

@@ -378,6 +378,15 @@ with sync_playwright() as p:
     page.screenshot(path=f'{OUT}/14-splash-es.png')
     ctx.close()
 
+    # Brazilian Portuguese.
+    ctx = browser.new_context(viewport={'width': 390, 'height': 844}, locale='pt-BR')
+    page = ctx.new_page()
+    page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
+    page.goto(f'{BASE}/splash.html?user=brasil&date=2026-11-12&post=')
+    page.wait_for_selector('text=Corra a etapa de hoje')
+    check('a Brazilian phone gets the feed card in Portuguese', page.is_visible('text=Meta da equipe'))
+    ctx.close()
+
     browser.close()
 
 print('\nconsole/page errors:', len(errors))

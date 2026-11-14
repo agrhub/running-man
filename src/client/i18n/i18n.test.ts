@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { setLang, tr, trServer } from './index';
 import { VI } from './vi';
 import { ES } from './es';
+import { PT } from './pt';
 
 const holes = (s: string) =>
   [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -44,6 +45,19 @@ describe('i18n', () => {
     expect(trServer('Quest done: +20 coins')).toBe(
       'Misión cumplida: +20 monedas'
     );
+  });
+
+  it('translates to Brazilian Portuguese', async () => {
+    await setLang('pt');
+    expect(tr('Run today’s stage')).toBe('Corra a etapa de hoje');
+    expect(tr('Day {n} of 7', { n: 3 })).toBe('Dia 3 de 7');
+  });
+
+  it('keeps every {value} in every Portuguese text', () => {
+    const bad = Object.entries(PT).filter(
+      ([k, v]) => holes(k).join() !== holes(v).join()
+    );
+    expect(bad).toEqual([]);
   });
 
   it('keeps every {value} in every Spanish text', () => {

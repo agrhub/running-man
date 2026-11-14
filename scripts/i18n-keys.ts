@@ -30,6 +30,7 @@ import { NEXT_CITIES } from '../src/shared/vote';
 import { holidayBanner, holidayShort } from '../src/shared/festive';
 import { VI } from '../src/client/i18n/vi';
 import { ES } from '../src/client/i18n/es';
+import { PT } from '../src/client/i18n/pt';
 
 const files = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
@@ -193,6 +194,7 @@ const all = [...keys].filter((k) => /[A-Za-z]/.test(k)).sort();
 const tables: [string, Record<string, string>][] = [
   ['Vietnamese', VI],
   ['Spanish', ES],
+  ['Portuguese', PT],
 ];
 if (process.argv.includes('--all')) console.log(JSON.stringify(all, null, 1));
 for (const [name, table] of tables) {

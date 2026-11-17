@@ -191,7 +191,7 @@ vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, 
 Playwright for Python):
 
 ```bash
-npm run dev:local
+SEED_DATE=2026-11-13 npm run dev:local
 python3 tests/e2e/play.py e2e-out/
 ```
 

@@ -1,11 +1,12 @@
 """End-to-end check of the whole game against the local harness.
 
-    npm run dev:local                      # in one terminal (serves http://localhost:5178)
+    SEED_DATE=2026-11-13 npm run dev:local # in one terminal (serves http://localhost:5178)
     pip install playwright && playwright install chromium
     python3 tests/e2e/play.py out/         # screenshots land in out/
 
 Set CHROME_PATH to use an installed Chrome instead of Playwright's Chromium.
-Start from a fresh harness: the script plays as u/you on 2026-11-12 and 2026-11-13.
+Start from a fresh harness seeded for 2026-11-13 (SEED_DATE): the script plays as
+u/you on 2026-11-12 and 2026-11-13 and needs the seeded runners on those days.
 """
 import json, os, re, sys, time, urllib.request
 from playwright.sync_api import sync_playwright
@@ -54,6 +55,11 @@ def new_page(browser, w=390, h=844):
     page.on('console', lambda m: errors.append(f'console.{m.type}: {m.text} @ {m.location.get("url", "")}') if m.type == 'error' and 'favicon' not in str(m.location) else None)
     page.on('pageerror', lambda e: errors.append(f'pageerror: {e}'))
     return ctx, page
+
+# The harness seeds runners around SEED_DATE (the real today by default).
+_page = urllib.request.urlopen(f'{BASE}/api/splash?date=2026-11-12').read().decode()
+if json.loads(_page).get('totalRunners', 0) == 0:
+    sys.exit('No seeded runners on 2026-11-12: start the harness with SEED_DATE=2026-11-13 npm run dev:local')
 
 with sync_playwright() as p:
     launch = {'args': ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']}

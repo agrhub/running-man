@@ -34,7 +34,7 @@ export const Sheet = ({
   if (!open) return null;
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[#2a2340]/45"
+      className="fixed inset-x-0 top-0 bottom-[var(--hidden-bottom,0px)] z-50 flex items-end justify-center bg-[#2a2340]/45"
       onClick={onClose}
     >
       <div

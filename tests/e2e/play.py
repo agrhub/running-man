@@ -417,6 +417,25 @@ with sync_playwright() as p:
     check('the language can be switched in Options', page.is_visible('text=Language'))
     ctx.close()
 
+    # A browser toolbar over the bottom of the frame (Chrome on Android with the
+    # address bar at the bottom): the tab bar and sheets must move above it.
+    ctx = browser.new_context(viewport={'width': 390, 'height': 760})
+    page = ctx.new_page()
+    page.set_content(f'<body style="margin:0;overflow:hidden"><iframe id="f" src="{BASE}/game.html?user=toolbar&date=2026-11-12&post=" '
+                     'style="position:absolute;top:56px;left:0;width:390px;height:788px;border:0"></iframe></body>')
+    frame = next(f for f in page.frames if 'game.html' in f.url)
+    # Real Chrome blocks the harness cookie in a frame, so this plays as the default u/you.
+    frame.wait_for_selector('nav', timeout=60000)
+    page.wait_for_timeout(800)
+    nav = frame.locator('nav').last.bounding_box()
+    check('a bottom toolbar does not hide the tab bar', nav['y'] + nav['height'] <= 761, nav)
+    frame.locator('nav').last.get_by_role('button').nth(5).click()
+    frame.get_by_role('button', name='Options', exact=True).click()
+    page.wait_for_timeout(500)  # let the sheet finish sliding in
+    sheet = frame.get_by_role('dialog').bounding_box()
+    check('a bottom toolbar does not hide the bottom of a sheet', sheet['y'] + sheet['height'] <= 761, sheet)
+    ctx.close()
+
     # Spanish: a phone set to Spanish gets the feed card and the game in Spanish.
     ctx = browser.new_context(viewport={'width': 390, 'height': 844}, locale='es-MX')
     page = ctx.new_page()

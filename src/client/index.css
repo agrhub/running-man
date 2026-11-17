@@ -37,6 +37,13 @@ body,
   margin: 0;
 }
 
+/* Keep clear of a browser toolbar over the bottom of the frame (lib/hiddenBottom.ts). */
+#root {
+  box-sizing: border-box;
+  padding-bottom: var(--hidden-bottom, 0px);
+  transition: padding-bottom 150ms ease-out;
+}
+
 body {
   font-family: var(--font-body);
   color: var(--color-ink);

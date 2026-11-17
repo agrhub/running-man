@@ -74,6 +74,7 @@ import { achievementById } from '../shared/achievements';
 import { ClubSection } from './components/ClubSection';
 import type { DashMove } from '../shared/dash';
 import { tr, trServer, useLang, i18nReady } from './i18n';
+import { watchHiddenBottom } from './lib/hiddenBottom';
 
 type Screen =
   | 'register'
@@ -1032,6 +1033,7 @@ export const App = () => {
   );
 };
 
+watchHiddenBottom();
 void i18nReady().then(() =>
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

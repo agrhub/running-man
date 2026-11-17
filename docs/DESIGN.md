@@ -157,6 +157,12 @@ report, the full leaderboard, the vote, achievements, best times, options and ea
 (under 700 px tall) spacing tightens. Only lists that are lists by nature, such as the shop's items, scroll inside
 their own panel.
 
+Reddit sizes the expanded game like `100vh`, so in a mobile browser with a bottom toolbar (Chrome on Android with
+the address bar at the bottom) the bottom of the frame sits under the toolbar. An IntersectionObserver with no root
+measures the frame against the top-level viewport, even across origins (`src/client/lib/hiddenBottom.ts`); the hidden
+strip goes into `--hidden-bottom`, which pads the app and the sheets, so the tab bar, the steering buttons and the
+bottom of every sheet stay above the toolbar. In the Reddit apps nothing is hidden and nothing moves.
+
 ### Daily check-in
 
 A 7-day calendar: 20, 30, 40, 50, 60, 80 and 150 coins on consecutive UTC days. After day 7, or after a missed day,

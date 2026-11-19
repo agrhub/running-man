@@ -133,7 +133,7 @@ clubmates share your road, clubs compete on weekly km, and the first three clubm
 relay. In the start corral you can call your finish time for bonus coins. The **Shop** turns coins into 33 outfit items, 7 pets
 (corgi, tabby cat, shiba, penguin, bunny, fox, panda) and gear for your pet: a bandana, a bow, a tiny crown. Every
 name in the game shows the player's own Reddit avatar. Nothing you buy changes race times. **Me** shows your run
-calendar, your best time in each city, fourteen achievements that pay coins, and comfort options (calm motion,
+calendar, your best time in each city, sixteen achievements that pay coins, and comfort options (calm motion,
 bigger buttons, one-thumb steering, language). The whole game is in English, Spanish, Brazilian Portuguese and
 Vietnamese and follows the phone's language; public posts stay in English.
 
@@ -161,7 +161,7 @@ Moderators can switch quick chat, road life, pinning, recaps, app posts and runn
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   every runner wears a live user flair (bib, stages run, passport stamps, latest finished city), and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 147 unit tests and a 68-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 149 unit tests and a 68-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the feed card needs about 80 KB gzipped; each translation loads only
   on phones that use it), and the race drops to a lower resolution, then no shadows, when a phone's frame rate falls.
 - Real maps are built from Natural Earth data at build time into small SVG paths, so they cost no requests.

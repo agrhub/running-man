@@ -133,7 +133,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   a 6-character code. Clubmates share your road with purple tags, and clubs compete on weekly km.
 - **Reddit avatars:** each player's own Reddit avatar appears next to their name, looked up by the server and cached
   for a day, with a coloured initial when there is none.
-- **Profile and achievements:** a Me tab with your run calendar, bests per city, fourteen achievements that pay
+- **Profile and achievements:** a Me tab with your run calendar, bests per city, sixteen achievements that pay
   coins, and comfort options (calm motion, bigger buttons, one-thumb steering, vibration, language). Colour contrast,
   zoom, landmarks and dialogs pass axe-core's WCAG A and AA checks.
 - **English, Spanish, Brazilian Portuguese and Vietnamese:** every screen, tip, toast and piece of game data (stages, landmarks, weather, items,
@@ -152,13 +152,14 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   you ("u/bob, I challenge you!"), so Reddit notifies them; the feed card and their plan screen show the challenge, and beating your time
   pays them 30 coins. When they finish, the app replies with the outcome and mentions you back.
 - **Week champions:** when a city's week ends, its three best runners (most stages, then the lowest total time)
-  win 150, 90 and 60 coins; the recap comment and the next day's Yesterday sheet name them.
+  win 150, 90 and 60 coins; the recap comment and the next day's Yesterday sheet name them, and the winner gets
+  the Week Champion achievement and a 👑 in their flair.
 - **Moderator settings:** quick chat, road life, pinning, recaps, app posts and runner flair can each be switched off.
 - **Moderator tools:** the subreddit menu item **Ban or unban a runner** (or **Ban this runner** on any comment) stops a spam or cheating account from racing
   and takes it off today's and this week's boards; unbanning lets it race again.
 - **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
   strategy thread, a how-to-play post pinned on install, result sharing as a
-  comment, a live runner user flair (`🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo Finisher`), and Devvit Journeys events for analytics.
+  comment, a live runner user flair (`🏃 #0019 · 12 stages · 👑 Champion · 🛂 3 · 🏅 Tokyo Finisher`), and Devvit Journeys events for analytics.
 
 ## Tech
 
@@ -184,7 +185,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 147 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 149 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

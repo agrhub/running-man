@@ -29,6 +29,8 @@ export const flairText = (profile: Profile): string | null => {
     `🏃 #${String(profile.bib).padStart(4, '0')}`,
     runs > 0 ? `${runs} ${runs === 1 ? 'stage' : 'stages'}` : 'New runner',
   ];
+  const wins = profile.weekWins ?? 0;
+  if (wins > 0) parts.push(wins === 1 ? '👑 Champion' : `👑 ${wins}× Champion`);
   const stamps = profile.tourStamps.length;
   if (stamps > 0) parts.push(`🛂 ${stamps}`);
   const city = finisherCity(profile);

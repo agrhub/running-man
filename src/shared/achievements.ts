@@ -23,6 +23,8 @@ export type RunnerSummary = {
   dashBest: number;
   /** Finish-time guesses within 3 seconds. */
   calledIt: number;
+  /** Weeks won (first in a city's week standings). */
+  weekWins: number;
 };
 
 export type Achievement = {
@@ -150,6 +152,15 @@ export const ACHIEVEMENTS: Achievement[] = [
   ),
   a('snow-runner', '❄️', 'Snow Runner', 'Run a stage in December', 1, (s) =>
     s.holidayRun ? 1 : 0
+  ),
+  a(
+    'week-champion',
+    '👑',
+    'Week Champion',
+    'Top a city’s week standings',
+    1,
+    (s) => s.weekWins,
+    100
   ),
 ];
 

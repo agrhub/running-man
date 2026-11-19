@@ -182,6 +182,7 @@ export const freshProfile = (username: string): Profile => ({
   ownedPets: PETS.filter((p) => p.unlock.kind === 'free').map((p) => p.id),
   tourUnlocked: [],
   tourStamps: [],
+  weekWins: 0,
   archiveDone: [],
   look: defaultLook(hashString(username)),
   petAffinity: 0,
@@ -647,10 +648,13 @@ export const awardWeek = async (
   // Written first, so a retry never pays twice.
   await store.set(keys.weekResult(season), JSON.stringify(result));
   await retain(store, keys.weekResult(season));
-  for (const p of result.podium) {
+  for (const [i, p] of result.podium.entries()) {
     const profile = await loadProfile(store, p.username);
     profile.badges += p.prize;
+    if (i === 0) profile.weekWins = (profile.weekWins ?? 0) + 1;
     await saveProfile(store, profile);
+    // The champion's flair gains a crown.
+    if (i === 0) await updateFlair(deps, profile);
   }
   return result;
 };
@@ -734,6 +738,7 @@ export const summaryOf = (
   holidayRun: profile.holidayRun,
   dashBest: profile.stats.dashBest,
   calledIt: profile.stats.calledIt ?? 0,
+  weekWins: profile.weekWins ?? 0,
 });
 
 /** Pays every newly completed achievement once. Returns the new ids. */

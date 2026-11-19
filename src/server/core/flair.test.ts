@@ -22,6 +22,21 @@ describe('runner flair', () => {
     );
   });
 
+  it('crowns week champions and keeps the finished city', () => {
+    const base = {
+      ...freshProfile('a'),
+      bib: 19,
+      totalRuns: 12,
+      tourStamps: ['giza', 'petra', 'fuji'],
+      stagesBySeason: { '0': 5 },
+    };
+    const city = finisherCity(base);
+    expect(flairText({ ...base, weekWins: 1 })).toBe(
+      `🏃 #0019 · 12 stages · 👑 Champion · 🛂 3 · 🏅 ${city} Finisher`
+    );
+    expect(flairText({ ...base, weekWins: 3 })).toContain('👑 3× Champion');
+  });
+
   it('never runs past Reddit’s limit and has no commas', () => {
     const p = {
       ...freshProfile('a'),

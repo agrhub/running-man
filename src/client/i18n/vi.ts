@@ -375,6 +375,8 @@ export const VI: Record<string, string> = {
   'Your prize is already in your coins.':
     'Giải thưởng đã được cộng vào xu của bạn.',
   '🏆 {city} week champions': '🏆 Vô địch tuần {city}',
+  'Week Champion': 'Vô địch tuần',
+  'Top a city’s week standings': 'Đứng đầu bảng tuần của một thành phố',
   'Log in to Reddit to run.': 'Đăng nhập Reddit để chạy.',
   'Log in to Reddit to see your quests.': 'Đăng nhập Reddit để xem nhiệm vụ.',
   'Log in to check in': 'Đăng nhập để điểm danh',

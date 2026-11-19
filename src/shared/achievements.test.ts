@@ -22,6 +22,7 @@ const empty: RunnerSummary = {
   holidayRun: false,
   dashBest: 0,
   calledIt: 0,
+  weekWins: 0,
 };
 
 describe('achievements', () => {
@@ -29,6 +30,12 @@ describe('achievements', () => {
     const ids = new Set(ACHIEVEMENTS.map((x) => x.id));
     expect(ids.size).toBe(ACHIEVEMENTS.length);
     for (const x of ACHIEVEMENTS) expect(x.target).toBeGreaterThan(0);
+  });
+
+  it('crowns a week champion', () => {
+    expect(newlyEarned({ ...empty, weekWins: 1 }, [])).toEqual([
+      'week-champion',
+    ]);
   });
 
   it('are earned once, and show progress until then', () => {

@@ -1935,6 +1935,11 @@ describe('week champions', () => {
     expect(await coins('carol')).toBe(before.carol + WEEK_PRIZES[1]);
     expect(await coins('bob')).toBe(before.bob + WEEK_PRIZES[2]);
     expect(await coins('dave')).toBe(before.dave);
+    // The champion's flair gains a crown, and Me pays the achievement.
+    expect(h.flairs.at(-1)).toMatchObject({ username: 'alice' });
+    expect(h.flairs.at(-1)?.text).toContain('👑 Champion');
+    const me = await call<{ earned: string[] }>(h.as('alice'), 'GET', '/me');
+    expect(me.json.earned).toContain('week-champion');
 
     const recap = h.appComments.at(-1)?.text ?? '';
     expect(recap).toContain('🏆 **Tokyo week champions**');

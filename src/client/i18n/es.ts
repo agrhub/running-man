@@ -405,6 +405,8 @@ export const ES: Record<string, string> = {
     'Un moderador te ha impedido correr en esta comunidad.',
   'Your prize is already in your coins.': 'Tu premio ya está en tus monedas.',
   '🏆 {city} week champions': '🏆 Campeones de la semana en {city}',
+  'Week Champion': 'Campeón de la semana',
+  'Top a city’s week standings': 'Gana la clasificación semanal de una ciudad',
   'Log in to Reddit to run.': 'Inicia sesión en Reddit para correr.',
   'Log in to Reddit to see your quests.':
     'Inicia sesión en Reddit para ver tus misiones.',

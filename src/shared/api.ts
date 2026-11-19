@@ -37,6 +37,8 @@ export type Profile = {
   /** World Tour stops unlocked with coins, and the ones finished (stamped). */
   tourUnlocked: string[];
   tourStamps: string[];
+  /** Weeks won: first in a city's week standings. */
+  weekWins?: number;
   /** Past stages finished in the archive (date keys), for the one-time reward. */
   archiveDone: string[];
   look: Look;

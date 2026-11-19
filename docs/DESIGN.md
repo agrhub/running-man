@@ -137,7 +137,8 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
   percentages and the city in the lead.
 - **Week champions:** when a city's last stage closes, the daily scheduler pays the week's three best runners (most
   stages, then the lowest total time) 150, 90 and 60 coins, once (`weeklb:{season}:result`). The recap comment
-  names them, and the next morning the plan screen's Yesterday sheet shows them, with your row highlighted.
+  names them, and the next morning the plan screen's Yesterday sheet shows them, with your row highlighted. The
+  winner earns the Week Champion achievement and a crown in their user flair (`👑 Champion`, then `👑 3× Champion`).
 - **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time, crash penalties
   included) and a Friends board, all with each player's own Reddit avatar.
 - **Friends:** add runners by Reddit username or from today's runners (up to 50). Their day shows on the Friends tab
@@ -258,8 +259,8 @@ want more running, the Play tab has a World Tour: famous places outside the cale
 
 - Your numbers (stages, km, best streak, best place), the last four weeks as a run calendar, and your best time in
   each city.
-- Fourteen achievements with progress bars (First Steps, Marathoner, Week Warrior, Globetrotter, On the Podium, High
-  Five Hero, Snack Attack, Bumper Car, Chatterbox, Dash Master, Team Player, Social Runner, Snow Runner…). Each pays
+- Sixteen achievements with progress bars (First Steps, Marathoner, Week Warrior, Globetrotter, On the Podium, High
+  Five Hero, Snack Attack, Bumper Car, Chatterbox, Dash Master, Team Player, Social Runner, Snow Runner, Week Champion…). Each pays
   50 to 150 coins once, the moment the server sees it done; the result screen lists the ones a run earned.
 
 ## Holiday season (December)
@@ -453,7 +454,7 @@ as they were, so recaps and history do not change. Unbanning lets them race agai
   needs about 100 KB gzipped. In a race the world watches the frame rate and drops to a lower resolution, then no
   shadows, on slow phones.
 - **Devvit Journeys:** start, plan, finish and every interaction are tracked.
-- **Reddit API:** the runner user flair (`🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo Finisher`, refreshed on registration, every daily run and each new passport stamp; moderators can switch it off) and result comments.
+- **Reddit API:** the runner user flair (`🏃 #0019 · 12 stages · 👑 Champion · 🛂 3 · 🏅 Tokyo Finisher`, refreshed on registration, every daily run, each new passport stamp and each week won; moderators can switch it off) and result comments.
 
 ### Redis keys
 

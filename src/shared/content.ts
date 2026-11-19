@@ -798,9 +798,72 @@ export type DayInfo = {
   season: number;
   city: City;
   stageIndex: number;
+  /** The stage as run that day: remixed after the first lap of the calendar. */
   stage: Stage;
   weather: Weather;
   time: TimeOfDay;
+  remix: Remix;
+};
+
+/**
+ * The calendar is five cities of seven stages. After the first lap (35 days)
+ * every city comes back remixed, so a stage is never the same twice in a row:
+ * odd laps run the course backwards, and from the third lap on the hills get
+ * steeper. Lap 0 is the original, so every stage already run stays as it was.
+ */
+export type Remix = { lap: number; reverse: boolean; steeper: boolean };
+
+export const remixOf = (season: number): Remix => {
+  const lap = Math.floor(Math.max(0, season) / CITIES.length);
+  return { lap, reverse: lap % 2 === 1, steeper: lap >= 2 };
+};
+
+/** A short English label for a remix, or null on the first lap. */
+export const remixLabel = (r: Remix): string | null =>
+  r.reverse && r.steeper
+    ? '🔁 Reverse, steeper hills'
+    : r.reverse
+      ? '🔁 Reverse run'
+      : r.steeper
+        ? '⛰️ Steeper hills'
+        : null;
+
+/** A sentence explaining a remix, or null on the first lap. */
+export const remixHint = (r: Remix): string | null =>
+  r.reverse && r.steeper
+    ? 'This city is back on its next lap: the course runs backwards and the hills are steeper.'
+    : r.reverse
+      ? 'This city is back on its next lap: the course runs backwards, so the climbs are descents and the water and the landmark swap ends.'
+      : r.steeper
+        ? 'This city is back on its next lap: same course, steeper hills.'
+        : null;
+
+/** How much steeper the hills are on a lap (1 = as built). */
+export const hillFactor = (r: Remix): number =>
+  r.steeper ? Math.min(1.6, 1 + 0.2 * Math.floor(r.lap / 2)) : 1;
+
+export const remixStage = (stage: Stage, r: Remix): Stage => {
+  if (!r.reverse && !r.steeper) return stage;
+  let grades: number[] = [...stage.grades];
+  let water = [...stage.waterAfterKm];
+  let km = stage.landmark.km;
+  if (r.reverse) {
+    // Run it the other way: the last km comes first and every climb is a descent.
+    grades = grades.reverse().map((g) => (g === 0 ? 0 : -g));
+    water = water
+      .map((w) => KM_PER_STAGE - w)
+      .filter((w) => w >= 1 && w < KM_PER_STAGE)
+      .sort((a, b) => a - b);
+    km = Math.round((KM_PER_STAGE - km) * 10) / 10;
+  }
+  const f = hillFactor(r);
+  if (f !== 1) grades = grades.map((g) => Math.round(g * f * 10) / 10);
+  return {
+    ...stage,
+    grades: grades as Stage['grades'],
+    waterAfterKm: water,
+    landmark: { ...stage.landmark, km },
+  };
 };
 
 export const dayInfo = (dateKey: string): DayInfo => {
@@ -809,7 +872,8 @@ export const dayInfo = (dateKey: string): DayInfo => {
   const season = Math.floor(dayIndex / STAGES_PER_CITY);
   const city = CITIES[season % CITIES.length] ?? CITIES[0]!;
   const stageIndex = dayIndex % STAGES_PER_CITY;
-  const stage = city.stages[stageIndex] ?? city.stages[0]!;
+  const remix = remixOf(season);
+  const stage = remixStage(city.stages[stageIndex] ?? city.stages[0]!, remix);
   const rand = mulberry32(hashString(`weather:${dateKey}`));
   const weatherId =
     WEATHER_BAG[Math.floor(rand() * WEATHER_BAG.length)] ?? 'cool';
@@ -824,6 +888,7 @@ export const dayInfo = (dateKey: string): DayInfo => {
     stage,
     weather: WEATHER[weatherId],
     time,
+    remix,
   };
 };
 

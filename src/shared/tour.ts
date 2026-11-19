@@ -817,6 +817,7 @@ export const tourDay = (stop: TourStop): DayInfo => {
     stage: stop.stage,
     weather: WEATHER[stop.weather],
     time: stop.time,
+    remix: { lap: 0, reverse: false, steeper: false },
   };
 };
 

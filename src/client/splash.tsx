@@ -12,6 +12,7 @@ import {
   dayInfo,
   toDateKey,
   type City,
+  remixLabel,
 } from '../shared/content';
 import { hashString, mulberry32 } from '../shared/rng';
 import { CrewBar } from './components/CrewBar';
@@ -181,6 +182,11 @@ export const Splash = () => {
           <h1 className="font-display text-[30px] font-extrabold leading-[1.02]">
             {tr(day.stage.name)}
           </h1>
+          {remixLabel(day.remix) && (
+            <p className="self-start rounded-full bg-[#fff4cf] px-2 py-0.5 text-[12px] font-extrabold">
+              {tr(remixLabel(day.remix)!)}
+            </p>
+          )}
           <p className="text-[13px] font-bold">
             {TERRAIN[day.stage.terrain].icon}{' '}
             {tr(TERRAIN[day.stage.terrain].label)} · {day.weather.icon}{' '}

@@ -11,6 +11,8 @@ import {
   dayInfo,
   toDateKey,
   type DayInfo,
+  remixHint,
+  remixLabel,
 } from '../../shared/content';
 import {
   NEXT_CITIES,
@@ -2144,7 +2146,7 @@ export const dayNumber = async (deps: Deps, dateKey: string): Promise<number> =>
   );
 
 export const postTitle = (day: DayInfo, number = day.dayIndex + 1): string =>
-  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${number} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
+  `${isChristmasRun(day.dateKey) ? '🎄 Christmas Run · ' : ''}${isTriathlon(day) ? '🏊🚴🏃 Triathlon Finale · ' : ''}Day ${number} · ${day.city.flag} ${day.city.name} ${day.stageIndex + 1}/7: ${day.stage.name}${remixLabel(day.remix) ? ` · ${remixLabel(day.remix)}` : ''} · ${day.weather.icon} ${day.weather.label} · ${TIMES[day.time].icon} ${TIMES[day.time].label}`;
 
 /** Creates the post for a day once; later calls return the same post. */
 export const gameSettings = async (deps: Deps): Promise<GameSettings> => ({
@@ -2162,7 +2164,7 @@ export const ensureDailyPost = async (
   const postId = await deps.createPost({
     title: postTitle(day, await dayNumber(deps, dateKey)),
     fallbackText: `Today's 6 km stage runs through ${day.city.name}: ${day.stage.name}. Weather: ${day.weather.label}. Plan your pace, then race the crew.`,
-    pinnedComment: `**Strategy talk for ${day.stage.name}** ${day.weather.icon}\n\n${day.weather.hint} Where do you push, and where do you save your legs? Share your plan below.\n\n⭐ Free on the World Tour this week: ${featuredStop(dateKey).flag} ${featuredStop(dateKey).stage.landmark.name}. Open the game, then Play → World Tour.`,
+    pinnedComment: `**Strategy talk for ${day.stage.name}** ${day.weather.icon}\n\n${remixHint(day.remix) ? `${remixHint(day.remix)} ` : ''}${day.weather.hint} Where do you push, and where do you save your legs? Share your plan below.\n\n⭐ Free on the World Tour this week: ${featuredStop(dateKey).flag} ${featuredStop(dateKey).stage.landmark.name}. Open the game, then Play → World Tour.`,
   });
   await Promise.all([
     deps.store.set(keys.dayPost(dateKey), postId),

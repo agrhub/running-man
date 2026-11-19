@@ -1154,4 +1154,15 @@ export const ES: Record<string, string> = {
   'Yesterday': 'Ayer',
   'Your run': 'Tu carrera',
   'Next stage in {time}': 'Próxima etapa en {time}',
+  'Reverse': 'Al revés',
+  'Steeper': 'Más empinado',
+  '🔁 Reverse, steeper hills': '🔁 Al revés, cuestas más empinadas',
+  '🔁 Reverse run': '🔁 Carrera al revés',
+  '⛰️ Steeper hills': '⛰️ Cuestas más empinadas',
+  'This city is back on its next lap: the course runs backwards and the hills are steeper.':
+    'Esta ciudad vuelve en su siguiente vuelta: el recorrido va al revés y las cuestas son más empinadas.',
+  'This city is back on its next lap: the course runs backwards, so the climbs are descents and the water and the landmark swap ends.':
+    'Esta ciudad vuelve en su siguiente vuelta: el recorrido va al revés, así que las subidas son bajadas y el agua y el monumento cambian de lado.',
+  'This city is back on its next lap: same course, steeper hills.':
+    'Esta ciudad vuelve en su siguiente vuelta: mismo recorrido, cuestas más empinadas.',
 };

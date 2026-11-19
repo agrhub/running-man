@@ -1143,4 +1143,15 @@ export const VI: Record<string, string> = {
   'Yesterday': 'Hôm qua',
   'Your run': 'Lượt chạy của bạn',
   'Next stage in {time}': 'Chặng sau sau {time}',
+  'Reverse': 'Chạy ngược',
+  'Steeper': 'Dốc hơn',
+  '🔁 Reverse, steeper hills': '🔁 Chạy ngược, dốc hơn',
+  '🔁 Reverse run': '🔁 Chạy ngược chiều',
+  '⛰️ Steeper hills': '⛰️ Dốc hơn',
+  'This city is back on its next lap: the course runs backwards and the hills are steeper.':
+    'Thành phố này quay lại ở vòng mới: đường chạy đi ngược chiều và dốc hơn.',
+  'This city is back on its next lap: the course runs backwards, so the climbs are descents and the water and the landmark swap ends.':
+    'Thành phố này quay lại ở vòng mới: đường chạy đi ngược chiều, dốc lên thành dốc xuống, trạm nước và công trình đổi đầu.',
+  'This city is back on its next lap: same course, steeper hills.':
+    'Thành phố này quay lại ở vòng mới: cùng đường chạy, dốc hơn.',
 };

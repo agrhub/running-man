@@ -11,6 +11,8 @@ import {
   isTriathlon,
   legAt,
   type DayInfo,
+  remixHint,
+  remixLabel,
 } from '../../shared/content';
 import {
   PACES,
@@ -165,6 +167,14 @@ export const PlanScreen = ({
           label={TIMES[day.time].clock}
           onClick={() => setSheet('today')}
         />
+        {remixLabel(day.remix) && (
+          <Chip
+            icon={day.remix.reverse ? '🔁' : '⛰️'}
+            label={tr(day.remix.reverse ? 'Reverse' : 'Steeper')}
+            tone="gold"
+            onClick={() => setSheet('today')}
+          />
+        )}
         {tri && (
           <Chip
             icon="🏊"
@@ -309,6 +319,14 @@ export const PlanScreen = ({
           </strong>{' '}
           {tr(TIMES[day.time].hint)}
         </p>
+        {remixHint(day.remix) && (
+          <p className="rounded-2xl border-2 border-ink bg-[#fff4cf] px-3 py-2 text-[13px] leading-snug">
+            <strong className="font-extrabold">
+              {tr(remixLabel(day.remix)!)}.
+            </strong>{' '}
+            {tr(remixHint(day.remix)!)}
+          </p>
+        )}
         {tri && (
           <section
             className="rounded-2xl border-2 border-ink bg-[#e3f6ff] px-3 py-2"

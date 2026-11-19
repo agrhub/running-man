@@ -208,6 +208,16 @@ who challenged them and the time to beat; their run reports each challenge as be
 30 coins (three at most per run). You cannot challenge yourself, the same runner twice, or someone who already ran
 today. When a challenged runner finishes, the app comments the outcome and mentions each challenger ("🏁 u/bob answered the challenge in 17:50: ✅ beat u/alice"), so the challenger is pulled back in too; the app-posts setting switches this off. Challenges live in `challenges:{date}` (lower-case username → list of challengers and times).
 
+### Laps and remixes
+
+The calendar is five cities of seven stages, 35 days, and then it starts again. A city that comes back is not the
+same stage twice in a row: odd laps run the course backwards (the last kilometre first, every climb a descent, the
+water stations and the landmark at the other end), and from the third lap the hills get steeper, up to 1.6 times.
+Weather, start time, obstacles and snacks change every day as before, and every leaderboard and crew goal is new.
+The remix is a pure function of the date (`remixOf` and `remixStage` in `src/shared/content.ts`), so the client, the
+server's replay and the 3D world all see the same course; lap 0 is the stage as built, so nothing already run
+changes. The post title, the feed card, the plan screen and the strategy comment name the remix ("🔁 Reverse run").
+
 ### World Tour
 
 Waiting a day for the next stage is the point of the daily loop, so the next stage never opens early. For players who

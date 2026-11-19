@@ -1910,8 +1910,20 @@ describe('moderation', () => {
     const h = makeHarness();
     const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
     const res = await internal.request('/menu/ban-runner', { method: 'POST' });
-    const json = (await res.json()) as { showForm: { name: string } };
+    const json = (await res.json()) as {
+      showForm: { name: string; form: { description: string } };
+    };
     expect(json.showForm.name).toBe('banRunner');
+    expect(json.showForm.form.description).toMatch(/Nobody is banned/);
+    await ban(h.as('mod'), 'Zed');
+    await ban(h.as('mod'), 'u/amy');
+    const again = await internal.request('/menu/ban-runner', {
+      method: 'POST',
+    });
+    const after = (await again.json()) as typeof json;
+    expect(after.showForm.form.description).toMatch(
+      /Banned now: u\/amy, u\/Zed\.$/
+    );
   });
 
   it('takes a banned runner off today and stops them racing until unbanned', async () => {

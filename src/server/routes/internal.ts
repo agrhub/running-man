@@ -1,4 +1,9 @@
-import { banRunner, unbanRunner } from '../core/moderation';
+import {
+  banRunner,
+  bannedLine,
+  bannedRunners,
+  unbanRunner,
+} from '../core/moderation';
 import { awardTourWeek } from '../core/tour';
 import { featuredUntil, featuredWeek } from '../../shared/tour';
 import { Hono, type Context } from 'hono';
@@ -51,7 +56,7 @@ export const createInternal = (
   });
 
   // Moderators: stop a runner from racing here, or let them race again.
-  internal.post('/menu/ban-runner', (c) =>
+  internal.post('/menu/ban-runner', async (c) =>
     c.json<UiResponse>(
       {
         showForm: {
@@ -59,7 +64,8 @@ export const createInternal = (
           form: {
             title: 'Ban or unban a runner',
             description:
-              'A banned runner can still open the posts but cannot race, chat, cheer or challenge here, and is taken off today’s and this week’s boards. Past days stay as they were.',
+              'A banned runner can still open the posts but cannot race, chat, cheer or challenge here, and is taken off today’s and this week’s boards. Past days stay as they were. ' +
+              bannedLine(await bannedRunners(deps)),
             acceptLabel: 'Apply',
             fields: [
               {

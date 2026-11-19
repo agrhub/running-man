@@ -47,6 +47,29 @@ export const banRunner = async (
   return `u/${name} can no longer race here, and is off today's and this week's boards.`;
 };
 
+/** The banned runners as they were typed, for the moderator form. */
+export const bannedRunners = async (deps: Deps): Promise<string[]> =>
+  Object.entries(await deps.store.hGetAll(keys.banned()))
+    .map(([lower, raw]) => {
+      try {
+        return (JSON.parse(raw) as { name?: string }).name ?? lower;
+      } catch {
+        return lower;
+      }
+    })
+    .sort((a, b) => a.localeCompare(b));
+
+/** One line for the form: who is banned now. */
+export const bannedLine = (names: string[]): string =>
+  names.length === 0
+    ? 'Nobody is banned right now.'
+    : names.length <= 12
+      ? `Banned now: ${names.map((n) => `u/${n}`).join(', ')}.`
+      : `Banned now: ${names
+          .slice(0, 12)
+          .map((n) => `u/${n}`)
+          .join(', ')} and ${names.length - 12} more.`;
+
 export const unbanRunner = async (
   deps: Deps,
   raw: unknown

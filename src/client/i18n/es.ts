@@ -608,7 +608,7 @@ export const ES: Record<string, string> = {
   'Run as a group: clubmates share your road and a weekly total.':
     'Correr en grupo: los compañeros de club comparten tu carretera y un total semanal.',
   'Run here': 'Correr aquí',
-  'Run in all four cities': 'Corre en las cuatro ciudades',
+  'Run in four different cities': 'Corre en cuatro ciudades distintas',
   'Run on your own today.': 'Hoy corres por tu cuenta.',
   'Run the stage before sharing.': 'Corre la etapa antes de compartir.',
   'Run the stage before you challenge.': 'Corre la etapa antes de retar.',

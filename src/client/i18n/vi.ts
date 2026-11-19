@@ -568,7 +568,7 @@ export const VI: Record<string, string> = {
   'Run as a group: clubmates share your road and a weekly total.':
     'Chạy theo nhóm: thành viên câu lạc bộ cùng đường chạy và cùng tổng km mỗi tuần.',
   'Run here': 'Chạy ở đây',
-  'Run in all four cities': 'Chạy ở cả bốn thành phố',
+  'Run in four different cities': 'Chạy ở bốn thành phố khác nhau',
   'Run on your own today.': 'Hôm nay chạy một mình.',
   'Run the stage before sharing.': 'Hãy chạy chặng trước khi chia sẻ.',
   'Run today’s stage': 'Chạy chặng hôm nay',

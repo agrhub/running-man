@@ -81,7 +81,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     'globetrotter',
     '🌏',
     'Globetrotter',
-    'Run in all four cities',
+    'Run in four different cities',
     4,
     (s) => s.cities.length,
     150

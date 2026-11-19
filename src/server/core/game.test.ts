@@ -1968,6 +1968,28 @@ describe('moderation', () => {
     expect(tomorrow.status).toBe(200);
   });
 
+  it('fills in the author when banned from a comment’s menu', async () => {
+    const h = makeHarness();
+    h.deps.commentAuthor = async (id) =>
+      id === 't1_abc' ? 'spammer' : undefined;
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const open = async (targetId: string) =>
+      (await (
+        await internal.request('/menu/ban-author', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ location: 'comment', targetId }),
+        })
+      ).json()) as {
+        showToast?: string;
+        showForm?: { form: { fields: { defaultValue?: unknown }[] } };
+      };
+    const form = await open('t1_abc');
+    expect(form.showForm?.form.fields[0]?.defaultValue).toBe('spammer');
+    const gone = await open('t1_zzz');
+    expect(gone.showToast).toBe('Could not find who wrote that comment.');
+  });
+
   it('refuses a name that is not a Reddit username', async () => {
     const h = makeHarness();
     const res = await ban(h.as('mod'), 'not a name!');

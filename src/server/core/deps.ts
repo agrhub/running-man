@@ -43,6 +43,8 @@ export type Deps = {
   /** Posts a comment as the app (the daily recap). Returns the comment id. */
   appComment?(postId: string, text: string): Promise<string>;
   setFlair(username: string, text: string): Promise<void>;
+  /** The author of a comment (`t1_…`), for moderator tools. */
+  commentAuthor?(commentId: string): Promise<string | undefined>;
   /** The subreddit's moderator settings; missing values mean the default. */
   settings?(): Promise<Partial<GameSettings>>;
   /** The player's own Reddit avatar image, when they have one. */

@@ -56,42 +56,59 @@ export const createInternal = (
   });
 
   // Moderators: stop a runner from racing here, or let them race again.
-  internal.post('/menu/ban-runner', async (c) =>
-    c.json<UiResponse>(
-      {
-        showForm: {
-          name: 'banRunner',
-          form: {
-            title: 'Ban or unban a runner',
-            description:
-              'A banned runner can still open the posts but cannot race, chat, cheer or challenge here, and is taken off today’s and this week’s boards. Past days stay as they were. ' +
-              bannedLine(await bannedRunners(deps)),
-            acceptLabel: 'Apply',
-            fields: [
-              {
-                type: 'string',
-                name: 'username',
-                label: 'Reddit username',
-                required: true,
-              },
-              {
-                type: 'select',
-                name: 'action',
-                label: 'Action',
-                options: [
-                  { label: 'Ban from racing', value: 'ban' },
-                  { label: 'Unban', value: 'unban' },
-                ],
-                defaultValue: ['ban'],
-                required: true,
-              },
-            ],
+  const banForm = async (username = ''): Promise<UiResponse> => ({
+    showForm: {
+      name: 'banRunner',
+      form: {
+        title: 'Ban or unban a runner',
+        description:
+          'A banned runner can still open the posts but cannot race, chat, cheer or challenge here, and is taken off today’s and this week’s boards. Past days stay as they were. ' +
+          bannedLine(await bannedRunners(deps)),
+        acceptLabel: 'Apply',
+        fields: [
+          {
+            type: 'string',
+            name: 'username',
+            label: 'Reddit username',
+            required: true,
+            ...(username ? { defaultValue: username } : {}),
           },
-        },
+          {
+            type: 'select',
+            name: 'action',
+            label: 'Action',
+            options: [
+              { label: 'Ban from racing', value: 'ban' },
+              { label: 'Unban', value: 'unban' },
+            ],
+            defaultValue: ['ban'],
+            required: true,
+          },
+        ],
       },
-      200
-    )
+    },
+  });
+
+  internal.post('/menu/ban-runner', async (c) =>
+    c.json<UiResponse>(await banForm(), 200)
   );
+
+  // The same form from a comment's menu, with its author filled in.
+  internal.post('/menu/ban-author', async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      targetId?: unknown;
+    };
+    const id = typeof body.targetId === 'string' ? body.targetId : '';
+    const author = id.startsWith('t1_')
+      ? await deps.commentAuthor?.(id).catch(() => undefined)
+      : undefined;
+    if (!author || author === '[deleted]')
+      return c.json<UiResponse>(
+        { showToast: 'Could not find who wrote that comment.' },
+        200
+      );
+    return c.json<UiResponse>(await banForm(author), 200);
+  });
 
   internal.post('/form/ban-runner', async (c) => {
     try {

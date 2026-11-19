@@ -426,7 +426,8 @@ with the game is about 79 KB gzipped instead of 97 KB).
 ## Moderation
 
 Moderators get two subreddit menu items: **Post today's marathon stage** and **Ban or unban a runner**. The second
-opens a form for a username and an action, and lists who is banned right now. A banned runner can still open the posts and watch, but the server turns
+opens a form for a username and an action, and lists who is banned right now. Each comment's mod menu also has
+**Ban this runner**, which opens the same form with the comment's author filled in. A banned runner can still open the posts and watch, but the server turns
 down every action that needs an account (racing, chat, cheers, challenges, shop, quests, mini games, World Tour and
 past stages) with a 403 and a translated message. The ban also takes them off today's leaderboard and ghosts, this
 week's board and the free World Tour stop's weekly board, matching the name without regard to case. Earlier days stay

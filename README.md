@@ -152,7 +152,7 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   you ("u/bob, I challenge you!"), so Reddit notifies them; the feed card and their plan screen show the challenge, and beating your time
   pays them 30 coins. When they finish, the app replies with the outcome and mentions you back.
 - **Moderator settings:** quick chat, road life, pinning, recaps, app posts and runner flair can each be switched off.
-- **Moderator tools:** the subreddit menu item **Ban or unban a runner** stops a spam or cheating account from racing
+- **Moderator tools:** the subreddit menu item **Ban or unban a runner** (or **Ban this runner** on any comment) stops a spam or cheating account from racing
   and takes it off today's and this week's boards; unbanning lets it race again.
 - **Reddit-native:** one post per day created by the scheduler and pinned to the top of the subreddit, with a pinned
   strategy thread, a how-to-play post pinned on install, result sharing as a
@@ -182,7 +182,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 144 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 145 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

@@ -72,6 +72,14 @@ export const devvitDeps: Deps = {
     const post = await reddit.getPostById(asT3(postId));
     await post.sticky(slot);
   },
+  commentAuthor: async (commentId) => {
+    const comment = await reddit.getCommentById(
+      commentId.startsWith('t1_')
+        ? (commentId as `t1_${string}`)
+        : `t1_${commentId}`
+    );
+    return comment.authorName || undefined;
+  },
   appComment: async (postId, text) => {
     const comment = await reddit.submitComment({
       id: asT3(postId),

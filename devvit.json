@@ -80,6 +80,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/ban-runner"
+      },
+      {
+        "label": "Ban this runner",
+        "description": "Stop this comment's author from racing here",
+        "location": "comment",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/ban-author"
       }
     ]
   },

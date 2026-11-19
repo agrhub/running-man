@@ -21,7 +21,7 @@ Everything needed to submit Running Man to
 - [x] Record the demo video (script below) and upload it to YouTube: https://youtu.be/CTI8BU9ABzw
 - [ ] Upload the 2:40 cut (challenges, the free World Tour week, rest days, four languages, the one-screen layout with sheets) and swap the Devpost video link.
 - [ ] Update the Devpost page with the text below (it now covers challenges, the free World Tour week, rest days,
-      flair and the four languages) and add screenshots 27 to 31 to the gallery.
+      flair and the four languages) and add screenshots 27 to 32 to the gallery.
 - [ ] Fill in the optional [developer satisfaction survey](https://forms.gle/dW45UgK6SctevE756) for the
       Feedback award.
 - [ ] Help others in r/Devvit and the Devvit Discord during the hackathon (Devvit Helper award).
@@ -105,6 +105,12 @@ Grand Canyon, Mount Fuji, the Statue of Liberty and more, each with its own low-
 Unlock a place with coins and run it as often as you like against the best runs there as ghosts; your first finish
 stamps your passport. One place is free for everyone each week, with its own board, and its three fastest runners
 win coins when the week ends; Monday's recap names them.
+
+A missed day is not lost either. **Past stages** keeps every earlier stage of the subreddit playable: race it against
+that day's fastest runners as ghosts, on a board of its own that never touches the day's leaderboard or your streak,
+and see where your time would have finished on the day. A new player can catch up on the whole week after today's
+stage. And the calendar never simply repeats: after 35 days the five cities come round again **remixed**, the course
+run backwards on odd laps and the hills steeper from the third.
 
 Streaks matter, so the shop sells **rest days**: hold up to two, and a missed day uses one up on its own so the streak
 carries on. Every runner wears a live **user flair** in the subreddit ("🏃 #0019 · 12 stages · 🛂 3 · 🏅 Tokyo
@@ -256,6 +262,7 @@ In `docs/screenshots/` (portrait, 2x):
 29. `29-route-map.png`: the real world and city maps and today's course map
 30. `30-challenge-feed-card.png`: a challenge waiting on the feed card
 31. `31-challenge-a-friend.png`: challenging a friend from the race bib
+32. `32-past-stages.png`: past stages, a replay's result and the next stage to race again
 
 Devpost shows the first image as the thumbnail: use `03-race-tokyo.png` or `10-quick-chat.png`.
 

@@ -1143,8 +1143,37 @@ export const VI: Record<string, string> = {
   'Yesterday': 'Hôm qua',
   'Your run': 'Lượt chạy của bạn',
   'Next stage in {time}': 'Chặng sau sau {time}',
+  'Every earlier stage of this subreddit stays open here. Race it against that day’s fastest runners, who run again as ghosts.':
+    'Mọi chặng trước đây của subreddit vẫn mở ở đây. Hãy đua với những người nhanh nhất hôm đó, họ chạy lại dưới dạng bóng ma.',
+  'Loading…': 'Đang tải…',
+  'Missed a day? Race any earlier stage against its ghosts':
+    'Lỡ một ngày? Đua lại bất kỳ chặng cũ nào với bóng ma của nó',
+  'New best replay!': 'Kỷ lục chạy lại mới!',
+  'No past stages yet. Today is this subreddit’s first stage: come back tomorrow.':
+    'Chưa có chặng cũ nào. Hôm nay là chặng đầu tiên của subreddit: mai quay lại nhé.',
+  'Nobody ran it on the day': 'Hôm đó chưa ai chạy',
+  'On the day that was #{rank} of {total}.':
+    'Nếu là hôm đó thì bạn hạng #{rank}/{total}.',
+  'Past stages': 'Chặng cũ',
+  'Race any earlier day against its fastest runners.':
+    'Đua lại bất kỳ ngày nào với những người nhanh nhất hôm đó.',
+  'Race it again': 'Đua lại',
+  'Race this stage again': 'Đua lại chặng này',
+  'Replays have their own board: they never change the day’s leaderboard, your streak, quests or the crew goal. Your first finish of each past stage pays {n} {coin}.':
+    'Lượt chạy lại có bảng riêng: không làm thay đổi bảng xếp hạng ngày đó, chuỗi ngày, nhiệm vụ hay mục tiêu nhóm. Lần đầu về đích mỗi chặng cũ được {n} {coin}.',
   'Reverse': 'Chạy ngược',
   'Steeper': 'Dốc hơn',
+  'That is not a stage date.': 'Đó không phải ngày có chặng.',
+  'That stage is not in this subreddit’s archive.':
+    'Chặng đó không có trong kho của subreddit này.',
+  'That stage is still open today.': 'Chặng đó vẫn đang mở hôm nay.',
+  'You ran {time} on the day': 'Hôm đó bạn chạy {time}',
+  'Your best replay stays {time}.': 'Kỷ lục chạy lại vẫn là {time}.',
+  'Your best replay {time}': 'Kỷ lục chạy lại {time}',
+  'Your replay': 'Lượt chạy lại của bạn',
+  '{n} runner on the day': '{n} người chạy hôm đó',
+  '{n} runners on the day': '{n} người chạy hôm đó',
+  '🗂️ Past stages': '🗂️ Chặng cũ',
   '🔁 Reverse, steeper hills': '🔁 Chạy ngược, dốc hơn',
   '🔁 Reverse run': '🔁 Chạy ngược chiều',
   '⛰️ Steeper hills': '⛰️ Dốc hơn',

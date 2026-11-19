@@ -8,6 +8,7 @@ import {
 } from '../../shared/tour';
 import { streakAlive } from '../../shared/streak';
 import { CHALLENGE_REWARD } from '../../shared/challenge';
+import { ARCHIVE_REWARD } from './archive';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -27,6 +28,9 @@ import type {
   ShareResponse,
   SplashResponse,
   ChallengeResponse,
+  ArchiveResponse,
+  ArchiveRunResponse,
+  ArchiveStageResponse,
   VoteResponse,
   QuestsResponse,
   DashResponse,
@@ -1765,5 +1769,96 @@ describe('World Tour', () => {
     expect(stop.json.runners.map((r) => r.username)).toEqual(['bob']);
     expect(stop.json.best).toBeNull();
     expect((await call(h, 'GET', '/tour/stop?id=atlantis')).status).toBe(404);
+  });
+});
+
+describe('Archive of past stages', () => {
+  let h: Harness;
+  beforeEach(() => {
+    h = makeHarness();
+  });
+  const post = async (date: string) => {
+    h.at(date);
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    await internal.request('/scheduler/daily-stage', { method: 'POST' });
+  };
+
+  it('lists the past stages of this subreddit and replays them on their own board', async () => {
+    await post('2026-11-10');
+    await post('2026-11-11');
+    // Bob ran on the day; Alice is new and only plays the archive.
+    await call(h.as('bob').at('2026-11-11').on('t3_post2'), 'POST', '/run', {
+      plan: planFor('2026-11-11'),
+    });
+    await post('2026-11-12');
+
+    const list = await call<ArchiveResponse>(
+      h.as('alice').at('2026-11-12'),
+      'GET',
+      '/archive'
+    );
+    expect(list.json.days.map((d) => [d.dateKey, d.number])).toEqual([
+      ['2026-11-11', 2],
+      ['2026-11-10', 1],
+    ]);
+    expect(list.json.days[0]).toMatchObject({
+      runners: 1,
+      onTheDay: null,
+      done: false,
+    });
+
+    const stage = await call<ArchiveStageResponse>(
+      h,
+      'GET',
+      '/archive/stage?day=2026-11-11'
+    );
+    expect(stage.json.runners.map((r) => r.username)).toEqual(['bob']);
+
+    const plan = planFor('2026-11-11');
+    const first = await call<ArchiveRunResponse>(h, 'POST', '/archive/run', {
+      date: '2026-11-11',
+      plan,
+      moves: [],
+      rivals: ['bob'],
+    });
+    expect(first.status).toBe(200);
+    expect(first.json).toMatchObject({
+      improved: true,
+      dayRunners: 1,
+      reward: ARCHIVE_REWARD,
+    });
+    const again = await call<ArchiveRunResponse>(h, 'POST', '/archive/run', {
+      date: '2026-11-11',
+      plan,
+      moves: [],
+      rivals: ['bob'],
+    });
+    expect(again.json.reward).toBe(0);
+
+    // The day's own board, streak and history are untouched.
+    expect(await h.deps.store.zCard(keys.leaderboard('2026-11-11'))).toBe(1);
+    const me = await call<InitResponse>(h, 'GET', '/init');
+    expect(me.json.profile.totalRuns).toBe(0);
+    expect(me.json.profile.streak).toBe(0);
+  });
+
+  it('refuses today, the future and days before this subreddit began', async () => {
+    await post('2026-11-10');
+    await post('2026-11-11');
+    h.at('2026-11-11');
+    const plan = planFor('2026-11-11');
+    for (const date of [
+      '2026-11-11',
+      '2026-11-12',
+      '2026-11-09',
+      'yesterday',
+    ]) {
+      const r = await call(h, 'POST', '/archive/run', {
+        date,
+        plan,
+        moves: [],
+      });
+      expect(r.status).toBeGreaterThanOrEqual(400);
+    }
   });
 });

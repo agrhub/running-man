@@ -1,3 +1,4 @@
+import { archiveList, archiveRun, archiveStage } from '../core/archive';
 import { tourList, tourRun, tourStop, unlockTour } from '../core/tour';
 import type {
   TourResponse,
@@ -16,6 +17,9 @@ import type {
   RunRequest,
   ShareResponse,
   ChallengeResponse,
+  ArchiveResponse,
+  ArchiveRunResponse,
+  ArchiveStageResponse,
   VoteRequest,
   QuestClaimRequest,
   AvatarsResponse,
@@ -484,6 +488,40 @@ export const createApi = (deps: Deps): Hono => {
       const { vote, message } = await castVote(deps, String(body.cityId ?? ''));
       await track(deps, body.journeyId, 'city_voted', String(body.cityId));
       return c.json<VoteResponse>({ type: 'vote', vote, message });
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/archive', async (c) => {
+    try {
+      return c.json<ArchiveResponse>(await archiveList(deps));
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.get('/archive/stage', async (c) => {
+    try {
+      return c.json<ArchiveStageResponse>(
+        await archiveStage(deps, c.req.query('day'))
+      );
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+
+  api.post('/archive/run', async (c) => {
+    try {
+      const body = await readJson<{
+        date?: string;
+        plan?: unknown;
+        moves?: unknown;
+        rivals?: unknown;
+      }>(c);
+      return c.json<ArchiveRunResponse>(
+        await archiveRun(deps, body.date, body.plan, body.moves, body.rivals)
+      );
     } catch (e) {
       return fail(c, e);
     }

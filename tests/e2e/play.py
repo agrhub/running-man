@@ -381,6 +381,26 @@ with sync_playwright() as p:
     page.click('text=Skip to results')
     page.wait_for_selector('section[aria-label="Your race bib"]', timeout=60000)
     check('replay of my run plays and returns to results', True)
+
+    # Past stages: yesterday stays playable against its ghosts, on its own board.
+    page.locator('nav').last.get_by_role('button', name=re.compile('Play')).click()
+    check('the Play tab fits on one screen', fits(page))
+    page.get_by_role('button', name=re.compile('Past stages')).click()
+    page.wait_for_selector('ul[aria-label="Past stages"]')
+    page.screenshot(path=f'{OUT}/10b-archive.png')
+    rows = page.locator('ul[aria-label="Past stages"] > li')
+    check('the archive lists yesterday first', rows.count() >= 1 and 'Meiji Forest' in rows.first.inner_text(), rows.first.inner_text())
+    rows.first.get_by_role('button').click()
+    page.get_by_role('dialog').get_by_role('button', name='Race it again').click()
+    page.wait_for_selector('text=Start the race')
+    page.click('text=Start the race')  # like the World Tour, straight to the race
+    page.wait_for_selector('text=Finish without steering', timeout=60000)
+    page.click('text=Finish without steering')
+    page.wait_for_selector('section[aria-label="Your replay"]', timeout=60000)
+    replay = page.inner_text('section[aria-label="Your replay"]')
+    page.screenshot(path=f'{OUT}/10c-archive-replay.png')
+    check('a replay of a past stage shows where it would have finished', 'On the day that was #' in replay, replay)
+    check('the archive has no accessibility violations', (v := a11y(page)) == [], v)
     ctx.close()
 
     # 10. Paris (week 2) and Hanoi (week 3) scenes

@@ -1154,8 +1154,37 @@ export const ES: Record<string, string> = {
   'Yesterday': 'Ayer',
   'Your run': 'Tu carrera',
   'Next stage in {time}': 'Próxima etapa en {time}',
+  'Every earlier stage of this subreddit stays open here. Race it against that day’s fastest runners, who run again as ghosts.':
+    'Todas las etapas anteriores de este subreddit siguen abiertas aquí. Corre contra los más rápidos de ese día, que vuelven a correr como fantasmas.',
+  'Loading…': 'Cargando…',
+  'Missed a day? Race any earlier stage against its ghosts':
+    '¿Te perdiste un día? Corre cualquier etapa anterior contra sus fantasmas',
+  'New best replay!': '¡Nueva mejor repetición!',
+  'No past stages yet. Today is this subreddit’s first stage: come back tomorrow.':
+    'Aún no hay etapas anteriores. Hoy es la primera etapa de este subreddit: vuelve mañana.',
+  'Nobody ran it on the day': 'Nadie la corrió ese día',
+  'On the day that was #{rank} of {total}.':
+    'Ese día habría sido el #{rank} de {total}.',
+  'Past stages': 'Etapas anteriores',
+  'Race any earlier day against its fastest runners.':
+    'Corre cualquier día anterior contra sus corredores más rápidos.',
+  'Race it again': 'Correr otra vez',
+  'Race this stage again': 'Correr esta etapa otra vez',
+  'Replays have their own board: they never change the day’s leaderboard, your streak, quests or the crew goal. Your first finish of each past stage pays {n} {coin}.':
+    'Las repeticiones tienen su propia tabla: nunca cambian la clasificación del día, tu racha, las misiones ni la meta del equipo. Tu primera llegada en cada etapa anterior paga {n} {coin}.',
   'Reverse': 'Al revés',
   'Steeper': 'Más empinado',
+  'That is not a stage date.': 'Esa no es una fecha de etapa.',
+  'That stage is not in this subreddit’s archive.':
+    'Esa etapa no está en el archivo de este subreddit.',
+  'That stage is still open today.': 'Esa etapa sigue abierta hoy.',
+  'You ran {time} on the day': 'Ese día corriste {time}',
+  'Your best replay stays {time}.': 'Tu mejor repetición sigue en {time}.',
+  'Your best replay {time}': 'Tu mejor repetición {time}',
+  'Your replay': 'Tu repetición',
+  '{n} runner on the day': '{n} corredor ese día',
+  '{n} runners on the day': '{n} corredores ese día',
+  '🗂️ Past stages': '🗂️ Etapas anteriores',
   '🔁 Reverse, steeper hills': '🔁 Al revés, cuestas más empinadas',
   '🔁 Reverse run': '🔁 Carrera al revés',
   '⛰️ Steeper hills': '⛰️ Cuestas más empinadas',

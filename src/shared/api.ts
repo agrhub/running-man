@@ -37,6 +37,8 @@ export type Profile = {
   /** World Tour stops unlocked with coins, and the ones finished (stamped). */
   tourUnlocked: string[];
   tourStamps: string[];
+  /** Past stages finished in the archive (date keys), for the one-time reward. */
+  archiveDone: string[];
   look: Look;
   petAffinity: number;
   petCaredOn: string | null;
@@ -439,6 +441,47 @@ export type ProfileResponse = {
   type: 'profile';
   profile: Profile;
   message?: string;
+};
+
+/** A past stage in the archive. */
+export type ArchiveRow = {
+  dateKey: string;
+  /** Day number in this subreddit. */
+  number: number;
+  runners: number;
+  top: { username: string; seconds: number } | null;
+  /** Your time on the day, if you ran it then. */
+  onTheDay: number | null;
+  /** Your best replay in the archive. */
+  best: number | null;
+  done: boolean;
+};
+
+export type ArchiveResponse = {
+  type: 'archive';
+  days: ArchiveRow[];
+  profile: Profile;
+};
+
+export type ArchiveStageResponse = {
+  type: 'archiveStage';
+  dateKey: string;
+  /** The day's fastest runs, raced again as ghosts. */
+  runners: RunnerTrack[];
+  best: number | null;
+};
+
+export type ArchiveRunResponse = {
+  type: 'archiveRun';
+  dateKey: string;
+  profile: Profile;
+  seconds: number;
+  best: number;
+  improved: boolean;
+  /** Where this time would have finished on the day. */
+  dayRank: number;
+  dayRunners: number;
+  reward: number;
 };
 
 export type ChallengeResponse = {

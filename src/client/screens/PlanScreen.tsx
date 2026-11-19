@@ -37,7 +37,8 @@ type Props = {
   crew?: CrewProgress;
   totalRunners?: number;
   /** World Tour: the place's name replaces the daily stage line. */
-  tour?: { label: string; stopId: string; onBack: () => void };
+  /** A run outside the daily race: a World Tour stop, or a past stage (no stopId). */
+  tour?: { label: string; stopId?: string; onBack: () => void };
   yesterday?: DayRecap | null;
   /** Runners who challenged you today. */
   challenges?: Challenge[];

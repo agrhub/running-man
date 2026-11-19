@@ -144,6 +144,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   Christmas Run with double coins on the 25th.
 - **Daily recap and celebrations:** the app comments a recap under each closed stage and posts when the crew
   finishes a city; the plan screen shows yesterday's podium.
+- **Past stages:** missed a day, or new here? Race any earlier stage of the subreddit against that day's fastest
+  runners as ghosts, on a board of its own that never touches the day's leaderboard or your streak.
 - **Laps and remixes:** after 35 days the five cities come round again, remixed: the course runs backwards on odd laps
   and the hills get steeper from the third.
 - **Challenge a friend:** after your run, call out up to three redditors by name. The app comments in today's post as
@@ -178,7 +180,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 136 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 138 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -188,7 +190,7 @@ The local harness seeds four days of fake runners. Query parameters (kept as coo
 `?user=alice` (empty for a logged-out guest), `?date=2026-11-13`, `?post=t3_dev1`. It also has helpers:
 `POST /__dev/seed`, `POST /__dev/badges?n=1000`, `POST /__dev/crew?meters=400000`, `GET /__dev/state`.
 
-Browser end-to-end check (64 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
+Browser end-to-end check (68 checks: register, check-in, corral, first-race coach, steering, sound, chat, result,
 vote, weekly and friends boards, quests, Snack Dash, Pet Fetch, friends, clubs, profile and options, shop, replay; needs
 Playwright for Python):
 

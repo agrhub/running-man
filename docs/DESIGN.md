@@ -218,6 +218,16 @@ The remix is a pure function of the date (`remixOf` and `remixStage` in `src/sha
 server's replay and the 3D world all see the same course; lap 0 is the stage as built, so nothing already run
 changes. The post title, the feed card, the plan screen and the strategy comment name the remix ("🔁 Reverse run").
 
+### Past stages
+
+The daily race stays one try on the day, but a day you missed is not lost. Play → Past stages lists this subreddit's
+earlier stages (the last six weeks), each with its record and your times. Race any of them again against that day's
+fastest runners as ghosts, checked by the same server replay as the day itself. Replays have their own board
+(`archive:{date}:board`) and never touch the day's leaderboard, your streak, quests, the crew goal or the weekly
+standings; the first finish of each past stage pays 10 coins, and the result says where the time would have finished
+on the day. A closed post offers "Race this stage again". This is what a new player does after today's stage: catch
+up on the week.
+
 ### World Tour
 
 Waiting a day for the next stage is the point of the daily loop, so the next stage never opens early. For players who

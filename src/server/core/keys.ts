@@ -15,6 +15,8 @@ export const keys = {
   /** World Tour: best times per stop, and each runner's best run there. */
   tourBoard: (id: string) => `tour:${id}:board`,
   tourTracks: (id: string) => `tour:${id}:tracks`,
+  /** Archive replays of a past stage: best time per runner (never the day's own board). */
+  archiveBoard: (dateKey: string) => `archive:${dateKey}:board`,
   /** Best times at the free stop during its week (Monday date key), and the week's prizes once paid. */
   tourWeek: (monday: string) => `tour:week:${monday}`,
   tourWeekPaid: (monday: string) => `tour:week:${monday}:paid`,

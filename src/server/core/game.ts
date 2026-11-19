@@ -180,6 +180,7 @@ export const freshProfile = (username: string): Profile => ({
   ownedPets: PETS.filter((p) => p.unlock.kind === 'free').map((p) => p.id),
   tourUnlocked: [],
   tourStamps: [],
+  archiveDone: [],
   look: defaultLook(hashString(username)),
   petAffinity: 0,
   petCaredOn: null,

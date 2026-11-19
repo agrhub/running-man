@@ -38,6 +38,10 @@ import type {
   TourResponse,
   TourRow,
   TourRunResponse,
+  ArchiveResponse,
+  ArchiveRow,
+  ArchiveRunResponse,
+  ArchiveStageResponse,
   TourStopResponse,
 } from '../shared/api';
 import { dayInfo, isTriathlon } from '../shared/content';
@@ -47,6 +51,7 @@ import type { NextCityId } from '../shared/vote';
 import type { Plan } from '../shared/sim';
 import { ApiError, request } from './lib/api';
 import { TourScreen } from './screens/TourScreen';
+import { ArchiveScreen } from './screens/ArchiveScreen';
 import { tourById, tourDay } from '../shared/tour';
 import { applyCityTheme } from './lib/theme';
 import { Leaderboard } from './components/Leaderboard';
@@ -92,6 +97,9 @@ type Screen =
   | 'tour'
   | 'tourPlan'
   | 'tourRun'
+  | 'archive'
+  | 'archivePlan'
+  | 'archiveRun'
   | 'closed';
 
 // The race screen carries three.js: it loads on demand, and is fetched early in idle time.
@@ -122,6 +130,8 @@ const HUB: Screen[] = [
   'me',
   'tour',
   'tourPlan',
+  'archive',
+  'archivePlan',
 ];
 const SHIPPED_TABS: Tab[] = ['race', 'quests', 'play', 'friends', 'shop', 'me'];
 const tabOf = (s: Screen): Tab =>
@@ -129,7 +139,11 @@ const tabOf = (s: Screen): Tab =>
     ? 'shop'
     : s === 'quests'
       ? 'quests'
-      : s === 'play' || s === 'tour' || s === 'tourPlan'
+      : s === 'play' ||
+          s === 'tour' ||
+          s === 'tourPlan' ||
+          s === 'archive' ||
+          s === 'archivePlan'
         ? 'play'
         : s === 'friends'
           ? 'friends'
@@ -384,6 +398,76 @@ export const App = () => {
       showToast(message(e));
       setTourPlan(null);
       setScreen('tourPlan');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ---- Archive of past stages
+  const [archiveDays, setArchiveDays] = useState<ArchiveRow[] | null>(null);
+  const [archiveDate, setArchiveDate] = useState<string | null>(null);
+  const [archiveGhosts, setArchiveGhosts] = useState<RunnerTrack[]>([]);
+  const [archivePlan, setArchivePlan] = useState<Plan | null>(null);
+  const [archiveResult, setArchiveResult] = useState<ArchiveRunResponse | null>(
+    null
+  );
+  const archiveDay = useMemo(
+    () => (archiveDate ? dayInfo(archiveDate) : null),
+    [archiveDate]
+  );
+
+  const loadArchive = () =>
+    request<ArchiveResponse>('/archive')
+      .then((r) => {
+        setArchiveDays(r.days);
+        patch({ profile: r.profile });
+      })
+      .catch((e: unknown) => showToast(message(e)));
+
+  const openArchive = () => {
+    setArchiveResult(null);
+    setScreen('archive');
+    void loadArchive();
+  };
+
+  const pickArchive = async (dateKey: string) => {
+    setBusy(true);
+    try {
+      const r = await request<ArchiveStageResponse>(
+        `/archive/stage?day=${encodeURIComponent(dateKey)}`
+      );
+      setArchiveGhosts(r.runners);
+      setArchiveDate(dateKey);
+      setArchiveResult(null);
+      preloadRace();
+      setScreen('archivePlan');
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) showLoginPrompt();
+      else showToast(message(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitArchive = async (plan: Plan, outcome: RaceOutcome) => {
+    if (!archiveDate) return;
+    setBusy(true);
+    try {
+      const r = await request<ArchiveRunResponse>('/archive/run', {
+        date: archiveDate,
+        plan,
+        moves: outcome.moves,
+        rivals: outcome.rivals,
+      });
+      patch({ profile: r.profile });
+      setArchiveResult(r);
+      setArchivePlan(null);
+      setScreen('archive');
+      void loadArchive();
+    } catch (e) {
+      showToast(message(e));
+      setArchivePlan(null);
+      setScreen('archivePlan');
     } finally {
       setBusy(false);
     }
@@ -728,6 +812,14 @@ export const App = () => {
                 {tr('Go to today’s stage')}
               </button>
             )}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void pickArchive(day.dateKey)}
+              className="chunky rounded-2xl bg-white py-2.5 font-display text-[17px] font-extrabold"
+            >
+              🗂️ {tr('Race this stage again')}
+            </button>
             <section className="rounded-2xl border-2 border-ink bg-white/80 p-2">
               <Leaderboard
                 rows={data.leaderboard}
@@ -925,6 +1017,55 @@ export const App = () => {
             onFinish={(outcome) => void submitTour(tourPlan, outcome)}
           />
         ) : null;
+      case 'archive':
+        return (
+          <ArchiveScreen
+            profile={data.profile}
+            days={archiveDays}
+            busy={busy}
+            result={archiveResult}
+            onRun={(d) => void pickArchive(d)}
+            onBack={() => setScreen('play')}
+          />
+        );
+      case 'archivePlan':
+        return archiveDay ? (
+          <PlanScreen
+            key={archiveDay.dateKey}
+            day={archiveDay}
+            profile={data.profile}
+            tour={{
+              label: `🗂️ ${tr('Past stages')}`,
+              onBack: () => setScreen('archive'),
+            }}
+            roadLife={data.settings.roadLife}
+            starting={busy}
+            onStart={(plan) => {
+              if (data.profile.username === 'guest') {
+                showLoginPrompt();
+                return;
+              }
+              setArchivePlan(plan);
+              setScreen('archiveRun');
+            }}
+            onLocker={openLocker}
+          />
+        ) : null;
+      case 'archiveRun':
+        return archiveDay && archivePlan ? (
+          <RunScreen
+            day={archiveDay}
+            profile={data.profile}
+            plan={archivePlan}
+            rivals={archiveGhosts}
+            mode="live"
+            firstRun={false}
+            quickChat={false}
+            roadLife={data.settings.roadLife}
+            saving={busy}
+            onFinish={(outcome) => void submitArchive(archivePlan, outcome)}
+          />
+        ) : null;
       case 'play':
         return (
           <PlayScreen
@@ -945,6 +1086,7 @@ export const App = () => {
               setScreen(playGame === 'dash' ? 'dash' : 'arcade');
             }}
             onTour={openTour}
+            onArchive={openArchive}
           />
         );
       case 'arcade': {

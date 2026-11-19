@@ -29,6 +29,7 @@ type Props = {
   onSelect: (game: PlayGame) => void;
   onPlay: () => void;
   onTour: () => void;
+  onArchive: () => void;
 };
 
 const dayOf = (p: Profile, g: PlayGame, today: string) => {
@@ -46,6 +47,7 @@ export const PlayScreen = ({
   onSelect,
   onPlay,
   onTour,
+  onArchive,
 }: Props) => {
   const guest = profile.username === 'guest';
   const info = GAME_INFO[game];
@@ -65,35 +67,40 @@ export const PlayScreen = ({
           {COIN} {profile.badges}
         </p>
       </header>
-      <button
-        type="button"
-        onClick={onTour}
-        className="chunky flex items-center gap-3 rounded-2xl bg-[#e3f6ff] px-3 py-2 text-left"
-      >
-        <span className="text-[34px] leading-none" aria-hidden>
-          🌍
-        </span>
-        <span className="flex-1">
-          <span className="block font-display text-[19px] font-extrabold leading-tight">
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={onTour}
+          className="chunky flex flex-col rounded-2xl bg-[#e3f6ff] px-3 py-2 text-left"
+        >
+          <span className="font-display text-[17px] font-extrabold leading-tight">
+            <span aria-hidden>🌍 </span>
             {tr('World Tour')}
           </span>
-          <span className="block text-[12px] leading-snug text-ink-soft short:hidden">
-            {tr(
-              'The Great Wall, the Pyramids, Machu Picchu and more. Unlock with coins, run any time'
-            )}{' '}
-            · 🛂 {profile.tourStamps.length}/{TOUR.length}
+          <span className="text-[12px] font-bold leading-snug text-ink-soft">
+            🛂 {profile.tourStamps.length}/{TOUR.length}
           </span>
-          <span className="mt-0.5 block text-[12px] font-extrabold">
+          <span className="mt-0.5 text-[11px] font-extrabold leading-snug">
             ⭐{' '}
             {tr('Free this week: {place}', {
               place: `${featuredStop(today).flag} ${tr(featuredStop(today).stage.landmark.name)}`,
             })}
           </span>
-        </span>
-        <span className="font-display text-[22px] font-extrabold" aria-hidden>
-          ›
-        </span>
-      </button>
+        </button>
+        <button
+          type="button"
+          onClick={onArchive}
+          className="chunky flex flex-col rounded-2xl bg-white px-3 py-2 text-left"
+        >
+          <span className="font-display text-[17px] font-extrabold leading-tight">
+            <span aria-hidden>🗂️ </span>
+            {tr('Past stages')}
+          </span>
+          <span className="mt-0.5 text-[12px] leading-snug text-ink-soft">
+            {tr('Missed a day? Race any earlier stage against its ghosts')}
+          </span>
+        </button>
+      </div>
 
       <div
         className="grid grid-cols-2 gap-1.5"

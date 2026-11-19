@@ -105,7 +105,7 @@ export const ArchiveScreen = ({
         </p>
       ) : (
         <ul
-          className="min-h-0 flex-1 overflow-y-auto rounded-2xl border-2 border-ink bg-white/70 p-1.5"
+          className="min-h-0 shrink overflow-y-auto rounded-2xl border-2 border-ink bg-white/70 p-1.5"
           aria-label={tr('Past stages')}
         >
           {days.map((row) => {

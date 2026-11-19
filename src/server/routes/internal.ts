@@ -14,6 +14,7 @@ import {
   dayNumber,
   ensureDailyPost,
   ensureWelcomePost,
+  awardWeek,
   postRecap,
   postTitle,
   refreshWelcomePost,
@@ -148,6 +149,12 @@ export const createInternal = (
               }
             )
           : null;
+      // A city's week ends with its last stage: pay the week's champions.
+      const lastSeason = dayInfo(yesterday).season;
+      if (lastSeason !== dayInfo(toDateKey(deps.now())).season)
+        await awardWeek(deps, lastSeason).catch((error: unknown) => {
+          console.error('Could not close the week', error);
+        });
       await postRecap(deps, yesterday, tourWeek).catch((error: unknown) => {
         console.error('Could not post the recap', error);
       });

@@ -135,6 +135,9 @@ The whole subreddit is one running club. Every finished stage adds 6 km to the c
 - **Next-city vote:** on the result screen, everyone who ran a stage that week gets one vote for the next city to
   build: London, New York, Seoul or Rio. Votes are counted on the server, one per runner per week, with live
   percentages and the city in the lead.
+- **Week champions:** when a city's last stage closes, the daily scheduler pays the week's three best runners (most
+  stages, then the lowest total time) 150, 90 and 60 coins, once (`weeklb:{season}:result`). The recap comment
+  names them, and the next morning the plan screen's Yesterday sheet shows them, with your row highlighted.
 - **Leaderboards:** today's top 10, this week's standings (most stages, then the lowest total time, crash penalties
   included) and a Friends board, all with each player's own Reddit avatar.
 - **Friends:** add runners by Reddit username or from today's runners (up to 50). Their day shows on the Friends tab
@@ -334,6 +337,7 @@ One currency, coins 🪙, earned only by playing. (Profiles store it under the o
 | Rank: top 10% / top 50%                                         | +50 / +20                       |
 | Streak                                                          | +10 per streak day, at most +70 |
 | Crew finishes the city (each runner)                            | 200                             |
+| Week champions (1st, 2nd, 3rd)                                  | 150, 90, 60                     |
 | Cheer another runner                                            | 5                               |
 | Daily check-in (day 1 to 7)                                     | 20, 30, 40, 50, 60, 80, 150     |
 | Daily quests                                                    | 20 to 60 each                   |
@@ -478,6 +482,7 @@ this would have finished on the day" is a binary search over the day's board, ab
 | `voters:{season}`         | hash       | Who voted for which city that week (one vote each)                           |
 | `week:{season}`           | hash       | Stages and total seconds this week per runner                                |
 | `weeklb:{season}`         | sorted set | This week's standings                                                        |
+| `weeklb:{season}:result`  | string     | The closed week's champions and prizes, written once                         |
 | `dashlb:{date}`           | sorted set | Best Snack Dash score per runner that day                                    |
 | `arcadelb:{game}:{date}`  | sorted set | Best Hurdle Hop, Rhythm Steps or Pet Fetch score that day                    |
 | `club:{code}`             | string     | A running club: name, owner, members                                         |

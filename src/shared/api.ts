@@ -217,6 +217,8 @@ export type DayRecap = {
   crew: CrewProgress;
   /** On the day a free World Tour week ends: that week's podium. */
   tourWeek?: TourWeekResult | null;
+  /** On a city's last day: the week's champions and their prizes. */
+  week?: WeekResult | null;
 };
 
 export type InitResponse = {
@@ -518,6 +520,17 @@ export type TourResponse = {
   featured: string;
   /** The fastest runners at the free stop this week. */
   week: { username: string; seconds: number }[];
+};
+
+/** A city's week, closed: its three best runners and the coins each won. */
+export type WeekResult = {
+  season: number;
+  podium: {
+    username: string;
+    stages: number;
+    seconds: number;
+    prize: number;
+  }[];
 };
 
 /** The free stop's week, closed: its podium and the coins each runner won. */

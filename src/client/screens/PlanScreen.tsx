@@ -195,7 +195,8 @@ export const PlanScreen = ({
         <Chip icon="🗺️" label={tr('Maps')} onClick={() => setSheet('maps')} />
         {yesterday && (
           <Chip
-            icon="🥇"
+            icon={yesterday.week?.podium.length ? '🏆' : '🥇'}
+            tone={yesterday.week?.podium.length ? 'gold' : 'white'}
             label={tr('Yesterday')}
             onClick={() => setSheet('yesterday')}
           />
@@ -373,7 +374,7 @@ export const PlanScreen = ({
         title={tr('Yesterday’s stage')}
         onClose={closeSheet}
       >
-        {yesterday && <YesterdayCard recap={yesterday} />}
+        {yesterday && <YesterdayCard recap={yesterday} me={profile.username} />}
       </Sheet>
 
       <Sheet

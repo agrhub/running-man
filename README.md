@@ -151,6 +151,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 - **Challenge a friend:** after your run, call out up to three redditors by name. The app comments in today's post as
   you ("u/bob, I challenge you!"), so Reddit notifies them; the feed card and their plan screen show the challenge, and beating your time
   pays them 30 coins. When they finish, the app replies with the outcome and mentions you back.
+- **Week champions:** when a city's week ends, its three best runners (most stages, then the lowest total time)
+  win 150, 90 and 60 coins; the recap comment and the next day's Yesterday sheet name them.
 - **Moderator settings:** quick chat, road life, pinning, recaps, app posts and runner flair can each be switched off.
 - **Moderator tools:** the subreddit menu item **Ban or unban a runner** (or **Ban this runner** on any comment) stops a spam or cheating account from racing
   and takes it off today's and this week's boards; unbanning lets it race again.
@@ -182,7 +184,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 145 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 147 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit

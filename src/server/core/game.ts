@@ -49,6 +49,7 @@ import {
   HAIR_TONES,
   SKIN_TONES,
   CREW_FINISH_REWARD,
+  WEEK_PRIZES,
   ITEMS,
   PETS,
   conditionMet,
@@ -107,6 +108,7 @@ import type {
   RelayRow,
   DayRecap,
   TourWeekResult,
+  WeekResult,
   GameSettings,
   HistoryRow,
   MeResponse,
@@ -611,6 +613,48 @@ export const weeklyBoard = async (
   return { season, rows, mine };
 };
 
+/**
+ * Closes a city's week: pays its three best runners once and keeps the
+ * result for the recap. Returns null when nobody ran or it was already paid.
+ */
+export const awardWeek = async (
+  deps: Deps,
+  season: number
+): Promise<WeekResult | null> => {
+  const { store } = deps;
+  if (await store.get(keys.weekResult(season))) return null;
+  const top = await store.zRange(keys.weekBoard(season), 0, 2, {
+    by: 'rank',
+  });
+  if (!top.length) return null;
+  const names = top.map((t) => t.member);
+  const raw = await store.hMGet(keys.week(season), names);
+  const result: WeekResult = {
+    season,
+    podium: names.map((username, i) => {
+      const e = parse<WeekEntry>(raw[i] ?? undefined) ?? {
+        stages: 0,
+        seconds: 0,
+      };
+      return {
+        username,
+        stages: e.stages,
+        seconds: e.seconds,
+        prize: WEEK_PRIZES[i] ?? 0,
+      };
+    }),
+  };
+  // Written first, so a retry never pays twice.
+  await store.set(keys.weekResult(season), JSON.stringify(result));
+  await retain(store, keys.weekResult(season));
+  for (const p of result.podium) {
+    const profile = await loadProfile(store, p.username);
+    profile.badges += p.prize;
+    await saveProfile(store, profile);
+  }
+  return result;
+};
+
 const applyIncident = async (
   store: Store,
   dateKey: string,
@@ -806,6 +850,11 @@ export const dayRecap = async (
   };
   const crash = best('crash:');
   const line = best('chat:');
+  // A city's last day also carries its week's champions, once they are paid.
+  const week =
+    dayInfo(addDays(dateKey, 1)).season !== day.season
+      ? parse<WeekResult>(await store.get(keys.weekResult(day.season)))
+      : null;
   const lineText = line ? QUICK_CHAT[Number(line[0])] : undefined;
   return {
     dateKey,
@@ -817,6 +866,7 @@ export const dayRecap = async (
     crashKing: crash ? { username: crash[0], crashes: crash[1] } : null,
     topLine: line && lineText ? { line: lineText, times: line[1] } : null,
     crew,
+    week: week ?? null,
   };
 };
 
@@ -852,6 +902,18 @@ export const recapText = (r: DayRecap): string => {
       '',
       `Most shouted: "${r.topLine.line}" (${r.topLine.times} ${r.topLine.times === 1 ? 'time' : 'times'})`
     );
+  if (r.week && r.week.podium.length) {
+    lines.push(
+      '',
+      `🏆 **${day.city.name} week champions**`,
+      r.week.podium
+        .map(
+          (p, i) =>
+            `${MEDALS[i] ?? ''} u/${p.username} ${p.stages} ${p.stages === 1 ? 'stage' : 'stages'}, ${formatTime(p.seconds)} (+${p.prize} coins)`
+        )
+        .join(' · ')
+    );
+  }
   if (r.tourWeek) {
     const stop = tourById(r.tourWeek.stop);
     lines.push(

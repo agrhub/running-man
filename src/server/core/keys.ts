@@ -62,5 +62,7 @@ export const keys = {
   week: (season: number) => `week:${season}`,
   /** This week's standings: more stages first, then less total time. */
   weekBoard: (season: number) => `weeklb:${season}`,
+  /** The closed week's podium and prizes, written once when the week ends. */
+  weekResult: (season: number) => `weeklb:${season}:result`,
   voters: (season: number) => `voters:${season}`,
 };

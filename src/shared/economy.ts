@@ -665,6 +665,8 @@ export const isValidGuess = (
   Number.isInteger(guess) &&
   Math.abs(guess - projected) <= GUESS_WINDOW;
 export const CREW_FINISH_REWARD = 200;
+/** Coins for the week's three best runners (most stages, then least time). */
+export const WEEK_PRIZES = [150, 90, 60] as const;
 export const CHEER_REWARD = 5;
 
 /** Daily check-in: coins for day 1..7 of a streak, then the calendar starts over. */

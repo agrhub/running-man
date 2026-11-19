@@ -8,6 +8,7 @@ import {
 } from '../../shared/tour';
 import { streakAlive } from '../../shared/streak';
 import { CHALLENGE_REWARD } from '../../shared/challenge';
+import { WEEK_PRIZES } from '../../shared/economy';
 import { ARCHIVE_DAYS, ARCHIVE_REWARD } from './archive';
 import type { MemoryStore } from './store';
 import { addDays, dayInfo } from '../../shared/content';
@@ -1733,7 +1734,10 @@ describe('World Tour', () => {
     h.at('2026-11-16');
     await internal.request('/scheduler/daily-stage', { method: 'POST' });
     await internal.request('/scheduler/daily-stage', { method: 'POST' });
-    expect(await coins('alice')).toBe(before.alice + TOUR_WEEK_PRIZES[0]!);
+    // Sunday was also Tokyo's last stage: alice won that week too.
+    expect(await coins('alice')).toBe(
+      before.alice + TOUR_WEEK_PRIZES[0]! + WEEK_PRIZES[0]
+    );
     expect(await coins('bob')).toBe(before.bob + TOUR_WEEK_PRIZES[1]!);
     const recap = h.appComments.at(-1)?.text ?? '';
     expect(recap).toContain(
@@ -1890,6 +1894,69 @@ describe('Data lifetime', () => {
 
   it('keeps ghosts for every stage the archive lists', () => {
     expect(RETAIN_DAYS).toBeGreaterThan(ARCHIVE_DAYS + 7);
+  });
+});
+
+describe('week champions', () => {
+  it('pays the week’s three best runners once when the city ends', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const daily = () =>
+      internal.request('/scheduler/daily-stage', { method: 'POST' });
+    const runOn = (u: string, date: string, easy = false) =>
+      call(h.as(u).at(date), 'POST', '/run', {
+        plan: easy
+          ? planFor(date, ['easy', 'easy', 'easy', 'easy', 'easy', 'easy'])
+          : planFor(date),
+      });
+    // Tokyo's week ends on Sunday the 15th.
+    for (const date of ['2026-11-14', '2026-11-15']) {
+      h.at(date);
+      await daily();
+      await runOn('alice', date);
+      await runOn('carol', date, true);
+    }
+    await runOn('bob', '2026-11-15');
+    await runOn('dave', '2026-11-15', true);
+    const coins = async (u: string) =>
+      (await call<InitResponse>(h.as(u), 'GET', '/init')).json.profile.badges;
+    const before = {
+      alice: await coins('alice'),
+      carol: await coins('carol'),
+      bob: await coins('bob'),
+      dave: await coins('dave'),
+    };
+
+    h.at('2026-11-16');
+    await daily();
+    await daily();
+    // Two stages beat one; then less time wins.
+    expect(await coins('alice')).toBe(before.alice + WEEK_PRIZES[0]);
+    expect(await coins('carol')).toBe(before.carol + WEEK_PRIZES[1]);
+    expect(await coins('bob')).toBe(before.bob + WEEK_PRIZES[2]);
+    expect(await coins('dave')).toBe(before.dave);
+
+    const recap = h.appComments.at(-1)?.text ?? '';
+    expect(recap).toContain('🏆 **Tokyo week champions**');
+    expect(recap).toMatch(/🥇 u\/alice 2 stages, \d+:\d\d \(\+150 coins\)/);
+
+    const init = await call<InitResponse>(h.as('carol'), 'GET', '/init');
+    expect(init.json.yesterday?.week?.podium.map((p) => p.username)).toEqual([
+      'alice',
+      'carol',
+      'bob',
+    ]);
+  });
+
+  it('names no champions on an ordinary day', async () => {
+    const h = makeHarness();
+    await call(h.as('alice'), 'POST', '/run', { plan: planFor('2026-11-12') });
+    const init = await call<InitResponse>(
+      h.as('alice').at('2026-11-13'),
+      'GET',
+      '/init'
+    );
+    expect(init.json.yesterday?.week).toBeNull();
   });
 });
 

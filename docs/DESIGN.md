@@ -449,6 +449,10 @@ longer than the six weeks the past-stages archive lists, so every listed stage k
 flat however long the game runs. Every rewrite with SET gives the expiry back, since SET clears it. Leaderboards,
 day posts, recaps and profiles are small and stay.
 
+Requests read a bounded amount however many people play: boards are read a page at a time, and the archive's "where
+this would have finished on the day" is a binary search over the day's board, about 14 reads for 10,000 runners
+(Devvit's Redis has no ZCOUNT).
+
 | Key                       | Type       | Contents                                                                     |
 | ------------------------- | ---------- | ---------------------------------------------------------------------------- |
 | `user:{name}`             | string     | Profile: badges, streak, look, items, pet, bib                               |

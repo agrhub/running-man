@@ -21,6 +21,7 @@ import {
 } from '../../shared/race';
 import { checkpoints, isValidPlan, simulate } from '../../shared/sim';
 import type { Deps } from './deps';
+import type { Store } from './store';
 import {
   GameError,
   ensureBib,
@@ -32,6 +33,28 @@ import {
   saveProfile,
 } from './game';
 import { keys } from './keys';
+
+/**
+ * How many members of a board (sorted by time, `size` long) are faster than
+ * `seconds`: a binary search reading one member per step, so about 14 reads
+ * for 10,000 runners instead of loading them all. Devvit's Redis has no ZCOUNT.
+ */
+export const fasterThan = async (
+  store: Store,
+  key: string,
+  size: number,
+  seconds: number
+): Promise<number> => {
+  let lo = 0;
+  let hi = size;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    const [m] = await store.zRange(key, mid, mid, { by: 'rank' });
+    if (m && m.score < seconds) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+};
 
 /** Coins for the first archive finish of each past stage. */
 export const ARCHIVE_REWARD = 10;
@@ -61,12 +84,17 @@ export const archiveList = async (deps: Deps): Promise<ArchiveResponse> => {
   const today = toDateKey(deps.now());
   const first = await firstDay(deps, today);
   const profile = await loadProfile(store, username);
-  const dates: string[] = [];
+  const candidates: string[] = [];
   for (let i = 1; i <= ARCHIVE_DAYS; i++) {
     const d = addDays(today, -i);
     if (d < first) break;
-    if (await store.get(keys.dayPost(d))) dates.push(d);
+    candidates.push(d);
   }
+  // One round trip for all the days, not one after another.
+  const posts = await Promise.all(
+    candidates.map((d) => store.get(keys.dayPost(d)))
+  );
+  const dates = candidates.filter((_, i) => posts[i]);
   const days: ArchiveRow[] = await Promise.all(
     dates.map(async (dateKey) => {
       const lb = keys.leaderboard(dateKey);
@@ -177,11 +205,12 @@ export const archiveRun = async (
   // Where this time would have finished among the day's runners.
   const lb = keys.leaderboard(dateKey);
   const dayRunners = await store.zCard(lb);
-  const faster = dayRunners
-    ? await store.zRange(lb, 0, dayRunners - 1, { by: 'rank' })
-    : [];
-  const dayRank =
-    faster.filter((r) => r.member !== username && r.score < seconds).length + 1;
+  const [faster, mine] = await Promise.all([
+    fasterThan(store, lb, dayRunners, seconds),
+    store.zScore(lb, username),
+  ]);
+  // Your own run on the day does not count against your replay.
+  const dayRank = faster - (mine !== undefined && mine < seconds ? 1 : 0) + 1;
   return {
     type: 'archiveRun',
     dateKey,

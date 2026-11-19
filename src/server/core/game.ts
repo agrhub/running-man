@@ -743,8 +743,8 @@ const celebrateCity = async (deps: Deps, day: DayInfo, finisher: string) => {
   const key = keys.celebration(day.season);
   if (await deps.store.get(key)) return;
   await deps.store.set(key, 'posting');
-  const raw = await deps.store.hGetAll(keys.week(day.season));
-  const runners = Object.keys(raw).length;
+  // Everyone who ran this week is on the week's board: count it, don't load it.
+  const runners = await deps.store.zCard(keys.weekBoard(day.season));
   const postId = await deps.createTextPost(
     `🎉 The crew finished ${day.city.name}!`,
     celebrationText(day, finisher, runners)

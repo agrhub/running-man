@@ -13,6 +13,7 @@ export type Store = {
   hMGet(key: string, fields: string[]): Promise<(string | null)[]>;
   hGetAll(key: string): Promise<Record<string, string>>;
   hIncrBy(key: string, field: string, value: number): Promise<number>;
+  hDel(key: string, fields: string[]): Promise<unknown>;
   zAdd(key: string, ...members: ZMember[]): Promise<unknown>;
   zRange(
     key: string,
@@ -23,6 +24,7 @@ export type Store = {
   zRank(key: string, member: string): Promise<number | undefined>;
   zScore(key: string, member: string): Promise<number | undefined>;
   zCard(key: string): Promise<number>;
+  zRem(key: string, members: string[]): Promise<unknown>;
   /** Deletes the key after this many seconds (Redis EXPIRE). */
   expire(key: string, seconds: number): Promise<unknown>;
 };
@@ -100,6 +102,18 @@ export const createMemoryStore = (): MemoryStore => {
     },
     zScore: async (key, member) => zset(key).get(member),
     zCard: async (key) => zset(key).size,
+    zRem: async (key, members) => {
+      const z = zset(key);
+      let n = 0;
+      for (const m of members) if (z.delete(m)) n++;
+      return n;
+    },
+    hDel: async (key, fields) => {
+      const h = hash(key);
+      let n = 0;
+      for (const f of fields) if (h.delete(f)) n++;
+      return n;
+    },
     expire: async (key, seconds) => {
       ttls.set(key, seconds);
     },

@@ -64,7 +64,8 @@ npx devvit install r/RunningManGame daily-running-man
 Installing runs the `onAppInstall` trigger, which creates today's stage post and pins it to the top of the
 subreddit, then posts a **How to play Running Man** guide in the second pinned slot (only once). From then on the
 `daily-stage` scheduler task creates a new post every day at 00:01 UTC and pins it in place of yesterday's. If a post is ever missing, a moderator can use the mod menu
-item **Post today's marathon stage** (it never creates a second post for the same day).
+item **Post today's marathon stage** (it never creates a second post for the same day). The item **Ban or unban
+a runner** stops an account from racing and takes it off today's and this week's boards.
 
 To install a newer upload later, run the same command again; it installs the latest version.
 

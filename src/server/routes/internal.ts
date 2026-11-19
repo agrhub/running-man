@@ -1,3 +1,4 @@
+import { banRunner, unbanRunner } from '../core/moderation';
 import { awardTourWeek } from '../core/tour';
 import { featuredUntil, featuredWeek } from '../../shared/tour';
 import { Hono, type Context } from 'hono';
@@ -46,6 +47,65 @@ export const createInternal = (
         { showToast: 'Could not create today’s post' },
         400
       );
+    }
+  });
+
+  // Moderators: stop a runner from racing here, or let them race again.
+  internal.post('/menu/ban-runner', (c) =>
+    c.json<UiResponse>(
+      {
+        showForm: {
+          name: 'banRunner',
+          form: {
+            title: 'Ban or unban a runner',
+            description:
+              'A banned runner can still open the posts but cannot race, chat, cheer or challenge here, and is taken off today’s and this week’s boards. Past days stay as they were.',
+            acceptLabel: 'Apply',
+            fields: [
+              {
+                type: 'string',
+                name: 'username',
+                label: 'Reddit username',
+                required: true,
+              },
+              {
+                type: 'select',
+                name: 'action',
+                label: 'Action',
+                options: [
+                  { label: 'Ban from racing', value: 'ban' },
+                  { label: 'Unban', value: 'unban' },
+                ],
+                defaultValue: ['ban'],
+                required: true,
+              },
+            ],
+          },
+        },
+      },
+      200
+    )
+  );
+
+  internal.post('/form/ban-runner', async (c) => {
+    try {
+      const body = (await c.req.json().catch(() => ({}))) as {
+        username?: unknown;
+        action?: unknown;
+      };
+      const action = Array.isArray(body.action) ? body.action[0] : body.action;
+      const text =
+        action === 'unban'
+          ? await unbanRunner(deps, body.username)
+          : await banRunner(deps, body.username, (await deps.username()) ?? '');
+      return c.json<UiResponse>(
+        { showToast: { text, appearance: 'success' } },
+        200
+      );
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : 'Could not change the ban.';
+      return c.json<UiResponse>({ showToast: text }, 200);
     }
   });
 

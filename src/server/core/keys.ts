@@ -8,6 +8,8 @@ export const RETAIN_DAYS = 60;
 export const RETAIN_SECONDS = RETAIN_DAYS * 24 * 60 * 60;
 
 export const keys = {
+  /** Runners a moderator stopped from racing: lower-case username -> JSON {name, by, at}. */
+  banned: () => 'mod:banned',
   user: (username: string) => `user:${username}`,
   /** A runner's past stages: dateKey -> {seconds, rank, runners}. */
   history: (username: string) => `history:${username}`,

@@ -423,6 +423,15 @@ Each table loads on its own only on devices that use it: the feed card and the g
 render, so there is no flash of English, and English players never download it (the bundle the feed card shares
 with the game is about 79 KB gzipped instead of 97 KB).
 
+## Moderation
+
+Moderators get two subreddit menu items: **Post today's marathon stage** and **Ban or unban a runner**. The second
+opens a form for a username and an action. A banned runner can still open the posts and watch, but the server turns
+down every action that needs an account (racing, chat, cheers, challenges, shop, quests, mini games, World Tour and
+past stages) with a 403 and a translated message. The ban also takes them off today's leaderboard and ghosts, this
+week's board and the free World Tour stop's weekly board, matching the name without regard to case. Earlier days stay
+as they were, so recaps and history do not change. Unbanning lets them race again from their next run.
+
 ## Technology
 
 - **Client:** React for the interface, three.js for the runners, pets, cities and terrains. All 3D is procedural
@@ -484,6 +493,7 @@ this would have finished on the day" is a binary search over the day's board, ab
 | `tour:week:{monday}`      | sorted set | Best time per runner at the free stop during its week                        |
 | `tour:week:{monday}:paid` | string     | Set once that week's podium is paid                                          |
 | `challenges:{date}`       | hash       | Lower-case username → runners who challenged them that day, with their times |
+| `mod:banned`              | hash       | Lower-case username → who banned them and when (kept until unbanned)         |
 
 ### Stage simulation (deterministic, runs on client and server)
 

@@ -149,7 +149,7 @@ import type { Store } from './store';
 export class GameError extends Error {
   constructor(
     message: string,
-    readonly status: 400 | 401 | 404 | 409 = 400
+    readonly status: 400 | 401 | 403 | 404 | 409 = 400
   ) {
     super(message);
   }
@@ -408,6 +408,11 @@ export const postDateKey = async (deps: Deps): Promise<string> => {
 export const requireUser = async (deps: Deps): Promise<string> => {
   const username = await deps.username();
   if (!username) throw new GameError('Log in to Reddit to run.', 401);
+  if (await deps.store.hGet(keys.banned(), username.toLowerCase()))
+    throw new GameError(
+      'A moderator has stopped you from racing in this community.',
+      403
+    );
   return username;
 };
 

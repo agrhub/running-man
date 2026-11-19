@@ -370,6 +370,8 @@ export const VI: Record<string, string> = {
   'Log in to Reddit to get daily quests.':
     'Đăng nhập Reddit để nhận nhiệm vụ hằng ngày.',
   'Log in to Reddit to keep a profile.': 'Đăng nhập Reddit để lưu hồ sơ.',
+  'A moderator has stopped you from racing in this community.':
+    'Một moderator đã chặn bạn chạy đua trong cộng đồng này.',
   'Log in to Reddit to run.': 'Đăng nhập Reddit để chạy.',
   'Log in to Reddit to see your quests.': 'Đăng nhập Reddit để xem nhiệm vụ.',
   'Log in to check in': 'Đăng nhập để điểm danh',

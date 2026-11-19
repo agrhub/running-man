@@ -401,6 +401,8 @@ export const ES: Record<string, string> = {
     'Inicia sesión en Reddit para tener misiones diarias.',
   'Log in to Reddit to keep a profile.':
     'Inicia sesión en Reddit para guardar un perfil.',
+  'A moderator has stopped you from racing in this community.':
+    'Un moderador te ha impedido correr en esta comunidad.',
   'Log in to Reddit to run.': 'Inicia sesión en Reddit para correr.',
   'Log in to Reddit to see your quests.':
     'Inicia sesión en Reddit para ver tus misiones.',

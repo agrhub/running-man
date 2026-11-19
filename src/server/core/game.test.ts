@@ -1892,3 +1892,74 @@ describe('Data lifetime', () => {
     expect(RETAIN_DAYS).toBeGreaterThan(ARCHIVE_DAYS + 7);
   });
 });
+
+describe('moderation', () => {
+  const ban = async (h: Harness, username: string, action = ['ban']) => {
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const res = await internal.request('/form/ban-runner', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username, action }),
+    });
+    return (await res.json()) as { showToast: string | { text: string } };
+  };
+  const text = (t: string | { text: string }) =>
+    typeof t === 'string' ? t : t.text;
+
+  it('opens the ban form from the moderator menu', async () => {
+    const h = makeHarness();
+    const internal = createInternal(h.deps, (id) => `https://reddit.com/${id}`);
+    const res = await internal.request('/menu/ban-runner', { method: 'POST' });
+    const json = (await res.json()) as { showForm: { name: string } };
+    expect(json.showForm.name).toBe('banRunner');
+  });
+
+  it('takes a banned runner off today and stops them racing until unbanned', async () => {
+    const h = makeHarness();
+    const date = '2026-11-12';
+    await call(h.as('alice'), 'POST', '/run', { plan: planFor(date) });
+    await call(h.as('bob'), 'POST', '/run', { plan: planFor(date) });
+
+    const done = await ban(h.as('mod'), 'u/ALICE');
+    expect(text(done.showToast)).toMatch(/u\/ALICE can no longer race/);
+    const board = await h.deps.store.zRange(keys.leaderboard(date), 0, -1, {
+      by: 'rank',
+    });
+    expect(board.map((r) => r.member)).toEqual(['bob']);
+    expect(await h.deps.store.hGet(keys.tracks(date), 'alice')).toBeUndefined();
+
+    const blocked = await call<{ message: string }>(
+      h.as('alice'),
+      'POST',
+      '/run',
+      { plan: planFor(date) }
+    );
+    expect(blocked.status).toBe(403);
+    expect(blocked.json.message).toMatch(/moderator/);
+    // Opening the post still works.
+    expect((await call(h.as('alice'), 'GET', '/init')).status).toBe(200);
+
+    // Unbanned, she can act again; today's run stays used, so that is a 409.
+    await ban(h.as('mod'), 'alice', ['unban']);
+    const back = await call(h.as('alice'), 'POST', '/run', {
+      plan: planFor(date),
+    });
+    expect(back.status).toBe(409);
+    const tomorrow = await call(
+      h.as('alice').at('2026-11-13'),
+      'POST',
+      '/run',
+      {
+        plan: planFor('2026-11-13'),
+      }
+    );
+    expect(tomorrow.status).toBe(200);
+  });
+
+  it('refuses a name that is not a Reddit username', async () => {
+    const h = makeHarness();
+    const res = await ban(h.as('mod'), 'not a name!');
+    expect(text(res.showToast)).toBe('That is not a Reddit username.');
+    expect(await h.deps.store.hGetAll(keys.banned())).toEqual({});
+  });
+});

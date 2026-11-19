@@ -73,6 +73,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-today"
+      },
+      {
+        "label": "Ban or unban a runner",
+        "description": "Stop someone from racing here, or let them race again",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/ban-runner"
       }
     ]
   },
@@ -91,5 +98,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch"
+  },
+  "forms": {
+    "banRunner": "/internal/form/ban-runner"
   }
 }

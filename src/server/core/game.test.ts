@@ -8,7 +8,8 @@ import {
 } from '../../shared/tour';
 import { streakAlive } from '../../shared/streak';
 import { CHALLENGE_REWARD } from '../../shared/challenge';
-import { ARCHIVE_REWARD } from './archive';
+import { ARCHIVE_DAYS, ARCHIVE_REWARD } from './archive';
+import type { MemoryStore } from './store';
 import { addDays, dayInfo } from '../../shared/content';
 import {
   checkpoints,
@@ -52,7 +53,7 @@ import { createInternal } from '../routes/internal';
 import { postTitle } from './game';
 import { noTelemetry, type Deps, type NewPost } from './deps';
 import { createMemoryStore } from './store';
-import { keys } from './keys';
+import { keys, RETAIN_DAYS, RETAIN_SECONDS } from './keys';
 import { dashCourse, dashReward, replayDash } from '../../shared/dash';
 import { botMoves } from '../../shared/dashBot';
 
@@ -1860,5 +1861,34 @@ describe('Archive of past stages', () => {
       });
       expect(r.status).toBeGreaterThanOrEqual(400);
     }
+  });
+});
+
+describe('Data lifetime', () => {
+  let h: Harness;
+  beforeEach(() => {
+    h = makeHarness();
+  });
+
+  it('lets heavy per-day data expire, and keeps boards and posts', async () => {
+    const store = h.deps.store as MemoryStore;
+    const date = '2026-11-12';
+    await call(h.on('t3_post1'), 'POST', '/run', { plan: planFor(date) });
+    for (const k of [
+      keys.run(date, 'alice'),
+      keys.tracks(date),
+      keys.dayStats(date),
+    ])
+      expect(store.ttl(k)).toBe(RETAIN_SECONDS);
+    expect(store.ttl(keys.leaderboard(date))).toBeUndefined();
+
+    // SET clears an expiry: sharing rewrites the run record, which must keep one.
+    await store.expire(keys.run(date, 'alice'), 0);
+    await call(h, 'POST', '/share', {});
+    expect(store.ttl(keys.run(date, 'alice'))).toBe(RETAIN_SECONDS);
+  });
+
+  it('keeps ghosts for every stage the archive lists', () => {
+    expect(RETAIN_DAYS).toBeGreaterThan(ARCHIVE_DAYS + 7);
   });
 });

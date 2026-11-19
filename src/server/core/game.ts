@@ -143,7 +143,7 @@ import {
   streakAlive,
 } from '../../shared/streak';
 import { featuredStop, tourById } from '../../shared/tour';
-import { keys } from './keys';
+import { RETAIN_SECONDS, keys } from './keys';
 import type { Store } from './store';
 
 export class GameError extends Error {
@@ -638,6 +638,8 @@ const applyIncident = async (
     }),
     addToWeek(store, dayInfo(dateKey).season, username, 0, add),
   ]);
+  // SET clears a key's expiry, so give it back.
+  await retain(store, keys.run(dateKey, username));
   const past = parse<Omit<HistoryRow, 'dateKey'>>(
     await store.hGet(keys.history(username), dateKey)
   );
@@ -1174,6 +1176,13 @@ export const run = async (
     store.set(keys.run(dateKey, username), JSON.stringify(record)),
     saveProfile(store, profile),
   ]);
+  await retain(
+    store,
+    keys.run(dateKey, username),
+    keys.tracks(dateKey),
+    keys.dayStats(dateKey),
+    keys.challenges(dateKey)
+  );
   // Your stage counts for your club's week too.
   const myClubNow = await loadClub(store, profile.club);
   if (myClubNow) await updateClubWeek(store, myClubNow, today);
@@ -1328,6 +1337,7 @@ export const cheer = async (
   if (ranToday === undefined)
     throw new GameError('That runner has not run today’s stage.', 404);
   await deps.store.hIncrBy(keys.cheers(today), target, 1);
+  await retain(deps.store, keys.cheers(today));
   profile.cheeredOn = today;
   profile.badges += CHEER_REWARD;
   await saveProfile(deps.store, profile);
@@ -1540,6 +1550,7 @@ export const playDash = async (deps: Deps, round: unknown, moves: unknown) => {
       member: username,
       score: -result.score,
     });
+  await retain(deps.store, keys.dashBoard(today));
   return {
     score: result.score,
     reward,
@@ -1592,6 +1603,7 @@ export const playArcade = async (
   const prev = await deps.store.zScore(key, username);
   if (prev === undefined || -prev < result.score)
     await deps.store.zAdd(key, { member: username, score: -result.score });
+  await retain(deps.store, key);
   return {
     game,
     score: result.score,
@@ -1728,6 +1740,7 @@ const runRelayLeg = async (
     return null;
   legs.push({ username: runner.username, seconds });
   await store.hSet(keys.relay(dateKey), { [club.code]: JSON.stringify(legs) });
+  await retain(store, keys.relay(dateKey), keys.relayBoard(dateKey));
   if (legs.length < RELAY_LEGS)
     return { leg: legs.length, done: false, coins: 0 };
   const total = Math.round(legs.reduce((t, l) => t + l.seconds, 0) * 10) / 10;
@@ -2019,9 +2032,18 @@ export const share = async (
   if (posted) {
     record.shared = true;
     await deps.store.set(keys.run(dateKey, username), JSON.stringify(record));
+    // SET clears a key's expiry, so give it back.
+    await retain(deps.store, keys.run(dateKey, username));
   }
   return { commentPosted: posted, text };
 };
+
+/**
+ * Gives a day's heavy keys their lifetime (RETAIN_DAYS after the last write).
+ * Re-setting it on every write is cheap and keeps the newest data longest.
+ */
+const retain = (store: Store, ...list: string[]) =>
+  Promise.all(list.map((k) => store.expire(k, RETAIN_SECONDS)));
 
 export const challengeText = (
   day: DayInfo,
@@ -2114,6 +2136,7 @@ export const challenge = async (
     store.hSet(keys.challenges(dateKey), { [field]: JSON.stringify(list) }),
     store.set(keys.run(dateKey, username), JSON.stringify(record)),
   ]);
+  await retain(store, keys.challenges(dateKey), keys.run(dateKey, username));
   return { record, target };
 };
 

@@ -1,3 +1,12 @@
+/**
+ * How long the heavy per-day data lives: ghost tracks, run records, chat and
+ * event stats, cheers, challenges, relays and arcade boards. A little longer
+ * than the six weeks the archive shows, so every listed stage still has its
+ * ghosts. Leaderboards, day posts and recaps are small and stay.
+ */
+export const RETAIN_DAYS = 60;
+export const RETAIN_SECONDS = RETAIN_DAYS * 24 * 60 * 60;
+
 export const keys = {
   user: (username: string) => `user:${username}`,
   /** A runner's past stages: dateKey -> {seconds, rank, runners}. */

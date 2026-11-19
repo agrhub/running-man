@@ -443,6 +443,12 @@ with the game is about 79 KB gzipped instead of 97 KB).
 
 ### Redis keys
 
+The heavy per-day keys expire 60 days after their last write (`RETAIN_DAYS` in `src/server/core/keys.ts`): run
+records, ghost tracks, chat and event stats, cheers, challenges, relays and the arcade and Snack Dash boards. That is
+longer than the six weeks the past-stages archive lists, so every listed stage keeps its ghosts, while storage stays
+flat however long the game runs. Every rewrite with SET gives the expiry back, since SET clears it. Leaderboards,
+day posts, recaps and profiles are small and stay.
+
 | Key                       | Type       | Contents                                                                     |
 | ------------------------- | ---------- | ---------------------------------------------------------------------------- |
 | `user:{name}`             | string     | Profile: badges, streak, look, items, pet, bib                               |

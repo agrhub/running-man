@@ -23,10 +23,18 @@ export type Store = {
   zRank(key: string, member: string): Promise<number | undefined>;
   zScore(key: string, member: string): Promise<number | undefined>;
   zCard(key: string): Promise<number>;
+  /** Deletes the key after this many seconds (Redis EXPIRE). */
+  expire(key: string, seconds: number): Promise<unknown>;
 };
 
-export const createMemoryStore = (): Store => {
+/** The in-memory store also reports the expiry it was given, for tests. */
+export type MemoryStore = Store & { ttl(key: string): number | undefined };
+
+export const createMemoryStore = (): MemoryStore => {
   const strings = new Map<string, string>();
+  // Expiries are recorded, not enforced: tests and the local harness run on
+  // made-up dates, so nothing would ever age out in a session anyway.
+  const ttls = new Map<string, number>();
   const hashes = new Map<string, Map<string, string>>();
   const zsets = new Map<string, Map<string, number>>();
 
@@ -92,5 +100,9 @@ export const createMemoryStore = (): Store => {
     },
     zScore: async (key, member) => zset(key).get(member),
     zCard: async (key) => zset(key).size,
+    expire: async (key, seconds) => {
+      ttls.set(key, seconds);
+    },
+    ttl: (key) => ttls.get(key),
   };
 };

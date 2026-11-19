@@ -29,6 +29,8 @@ type Props = {
   run: RunRecord;
   leaderboard: LeaderRow[];
   myRank: number | null;
+  /** Everyone who has run today so far, not just when you finished. */
+  totalRunners?: number;
   crew: CrewProgress;
   cheersReceived: number;
   justFinished: boolean;
@@ -164,7 +166,7 @@ export const ResultScreen = (p: Props) => {
           </div>
           <div>
             <p className="font-display text-[24px] font-extrabold leading-none tabular">
-              {run.totalRunners}
+              {Math.max(p.totalRunners ?? run.totalRunners, rank)}
             </p>
             <p className="text-[12px] text-ink-soft">{tr('runners today')}</p>
           </div>

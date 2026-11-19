@@ -904,6 +904,7 @@ export const App = () => {
             run={data.myRun}
             leaderboard={data.leaderboard}
             myRank={data.myRank}
+            totalRunners={data.totalRunners}
             crew={data.crew}
             cheersReceived={data.cheersReceived}
             justFinished={justFinished}

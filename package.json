@@ -15,7 +15,8 @@
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "prettier": "prettier --write .",
     "test:types": "tsc --build",
-    "test:unit": "vitest run --dir src"
+    "test:unit": "vitest run --dir src",
+    "build:props": "tsx scripts/build-props.ts && prettier --write src/client/three/props/packed.ts THIRD_PARTY_NOTICES.md"
   },
   "engines": {
     "node": ">=24.0.0"

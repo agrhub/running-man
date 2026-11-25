@@ -408,6 +408,9 @@ export const PT: Record<string, string> = {
   '🏆 {city} week champions': '🏆 Campeões da semana em {city}',
   'Week Champion': 'Campeão da semana',
   'Top a city’s week standings': 'Lidere a classificação semanal de uma cidade',
+  '3D model credits': 'Créditos dos modelos 3D',
+  'Roadside models by Polyfork (polyfork.dev), CC BY 4.0, converted to this game’s format with their shapes and colours kept.':
+    'Modelos da rua por Polyfork (polyfork.dev), CC BY 4.0, convertidos para o formato do jogo mantendo formas e cores.',
   'Log in to Reddit to run.': 'Entre no Reddit para correr.',
   'Log in to Reddit to see your quests.':
     'Entre no Reddit para ver suas missões.',

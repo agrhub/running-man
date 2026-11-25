@@ -58,6 +58,10 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
   terrains (city, park, forest, zoo, hills, beach, desert, rainforest), with 6 weather types (sunny, heat, rain, thunderstorm, headwind,
   tailwind) and 4 start times (morning, noon, afternoon, evening) picked by a date-seeded random so everyone gets the
   same conditions. You see them on the road: sun and sky follow the clock, rain falls, storms flash, leaves blow.
+- **Street life by city:** low-poly roadside props by [Polyfork](https://polyfork.dev) set each stage apart: ramen
+  stalls, vending machines and parked bicycles in Tokyo, café terraces in Paris, market stalls in Hanoi, palms and
+  fountains in Dubai, mercado stalls in Manaus, and pines, oaks, parasols, lifeguard towers and hammocks off the
+  streets.
 - **Triathlon Finale:** stage 7 of every city is swim, bike, run: a pool with lane ropes and buoys for the first km,
   bikes from T1 to T2, then the run, each leg with its own pace model.
 - **The Amazon:** Manaus and the rainforest: an opera house with a tiled dome, a giant kapok tree, a canopy walkway,
@@ -164,7 +168,8 @@ One counted run per person per day. A new stage opens at 00:00 UTC.
 ## Tech
 
 - Devvit Web: Interactive Post with a light inline feed card (`splash.html`) and an expanded game (`game.html`).
-- Client: React 19, Tailwind CSS 4, three.js (all 3D is procedural; no model files).
+- Client: React 19, Tailwind CSS 4, three.js. Cities, runners and pets are procedural; the roadside props are 47
+  low-poly [Polyfork](https://polyfork.dev) models packed into one 380 KB file (`npm run build:props`).
 - Server: Hono on Devvit's serverless Node, Redis for state, Devvit scheduler, Reddit API, `@devvit/analytics` journeys.
 - Shared: the stage content, the race simulation and the economy run on both client and server.
 
@@ -185,7 +190,7 @@ Requires Node 22+ (Devvit's CLI recommends Node 24).
 
 ```bash
 npm install
-npm run test:unit      # 149 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
+npm run test:unit      # 155 unit tests: simulation, race replay, collisions, rules, API, daily posts, i18n
 npm run test:types     # TypeScript
 npm run lint
 npm run dev:local      # play the whole game at http://localhost:5178 without Reddit
@@ -224,6 +229,8 @@ Installing the app creates today's post. Moderators can also use the subreddit m
 - Map outlines: [Natural Earth](https://www.naturalearthdata.com/) (public domain) via
   [world-atlas](https://github.com/topojson/world-atlas) (ISC), built into `src/client/lib/mapData.ts` by
   `npm run build:maps`. Rivers and lakes on the city maps are traced by hand from their real coordinates.
+- Roadside 3D props: 47 free low-poly models by [Polyfork](https://polyfork.dev), CC BY 4.0. Each credit line is in
+  `THIRD_PARTY_NOTICES.md` and in the game under Me → Options → 3D model credits.
 - Code: MIT, see `LICENSE`.
 - Project template: Reddit's Devvit Web React template (BSD-3-Clause), see `THIRD_PARTY_NOTICES.md`.
 - The city's facade technique (one floor-by-bay facade module repeated by UV, tinted per building, merged per material)

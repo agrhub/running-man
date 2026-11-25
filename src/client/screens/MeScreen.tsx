@@ -6,6 +6,7 @@ import { formatTime } from '../../shared/sim';
 import { Avatar } from '../components/Avatar';
 import { ComfortOptions } from '../components/ComfortOptions';
 import { currentLang, tr } from '../i18n';
+import { ModelCredits } from '../components/ModelCredits';
 import { Sheet, Tile } from '../components/Sheet';
 import { useState } from 'react';
 
@@ -247,6 +248,7 @@ export const MeScreen = ({ me, today }: Props) => {
         onClose={closeSheet}
       >
         <ComfortOptions heading={false} />
+        <ModelCredits />
       </Sheet>
     </div>
   );

@@ -377,6 +377,9 @@ export const VI: Record<string, string> = {
   '🏆 {city} week champions': '🏆 Vô địch tuần {city}',
   'Week Champion': 'Vô địch tuần',
   'Top a city’s week standings': 'Đứng đầu bảng tuần của một thành phố',
+  '3D model credits': 'Ghi công mô hình 3D',
+  'Roadside models by Polyfork (polyfork.dev), CC BY 4.0, converted to this game’s format with their shapes and colours kept.':
+    'Mô hình bên đường của Polyfork (polyfork.dev), giấy phép CC BY 4.0, được chuyển sang định dạng của game, giữ nguyên hình dạng và màu sắc.',
   'Log in to Reddit to run.': 'Đăng nhập Reddit để chạy.',
   'Log in to Reddit to see your quests.': 'Đăng nhập Reddit để xem nhiệm vụ.',
   'Log in to check in': 'Đăng nhập để điểm danh',

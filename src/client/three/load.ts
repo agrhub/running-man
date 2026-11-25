@@ -8,7 +8,9 @@ let pending: Promise<typeof import('./world')> | null = null;
 export const loadWorld = () => (pending ??= import('./world'));
 
 export const preloadWorld = () => {
-  void loadWorld().catch(() => {
-    pending = null;
-  });
+  void loadWorld()
+    .then((world) => world.preloadProps())
+    .catch(() => {
+      pending = null;
+    });
 };

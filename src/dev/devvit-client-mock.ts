@@ -39,5 +39,10 @@ export const navigateToPost = (postId: string) => {
   window.location.href = `/game.html?${params.toString()}`;
 };
 
+/** Outside Reddit a link just opens in a new tab. */
+export const navigateTo = (url: string | { url: string }) => {
+  window.open(typeof url === 'string' ? url : url.url, '_blank', 'noopener');
+};
+
 export const showLoginPrompt = () =>
   showToast('[dev] Reddit would ask you to log in here.');

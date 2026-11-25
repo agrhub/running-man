@@ -145,7 +145,9 @@ Moderators can switch quick chat, road life, pinning, recaps, app posts and runn
 **How we built it**
 
 - Devvit Web Interactive Post: a light React feed card, and an expanded React and three.js game.
-- All 3D is procedural three.js: chibis, pets, landmarks and the city. Buildings are built at real floor scale from
+- The chibis, pets, landmarks and city are procedural three.js; 47 low-poly Polyfork models (CC BY 4.0) dress the
+  roadside with each city's street life.
+- Buildings are built at real floor scale from
   a canvas-drawn facade module repeated by UV, tinted per building and merged per material, so a whole city costs a
   handful of draw calls on a phone. Each city has its own look: glass towers and vertical signs in Tokyo,
   Haussmann blocks with slate roofs in Paris, narrow colourful tube houses with balconies and cables in Hanoi, sand
@@ -161,7 +163,7 @@ Moderators can switch quick chat, road life, pinning, recaps, app posts and runn
   comment; installing also posts and pins a how-to-play guide. Results are shared as comments,
   every runner wears a live user flair (bib, stages run, passport stamps, latest finished city), and Devvit Journeys track start, plan, finish and every interaction.
 - A local harness runs the real API with an in-memory Redis and a browser mock of the client SDK, so the whole game
-  can be played and tested without Reddit: 149 unit tests and a 68-check Playwright run cover the full loop.
+  can be played and tested without Reddit: 155 unit tests and a 68-check Playwright run cover the full loop.
 - three.js loads as its own chunk in idle time (the feed card needs about 80 KB gzipped; each translation loads only
   on phones that use it), and the race drops to a lower resolution, then no shadows, when a phone's frame rate falls.
 - Real maps are built from Natural Earth data at build time into small SVG paths, so they cost no requests.

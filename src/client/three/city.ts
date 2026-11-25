@@ -7,6 +7,8 @@ import { isBooster, isPickup, type CourseItem } from '../../shared/course';
 import { buildBoosterItem } from './boosters';
 import { buildObstacle } from './obstacles';
 import { hashString, mulberry32 } from '../../shared/rng';
+import { layoutProps } from './props/layout';
+import type { PropLibrary } from './props/library';
 
 /*
  * The race course as a city street, seen from behind the runner.
@@ -321,6 +323,8 @@ export type CityBuild = {
   update(t: number, dt: number, camZ: number, finished: boolean): void;
   /** Evening: lamps and shop windows glow (0 day .. 1 night). */
   setNight(k: number): void;
+  /** Roadside props (Polyfork models), added once they have loaded. */
+  dress(lib: PropLibrary): THREE.Group;
 };
 
 export const buildCity = (
@@ -904,7 +908,9 @@ export const buildCity = (
     }
   }
   const streetTrees = urban || terrain === 'park' || terrain === 'hills';
+  const treeZs: number[] = [];
   for (let z = zStart - 6; streetTrees && z > zEnd; z -= 9.5) {
+    treeZs.push(z);
     for (const side of [-1, 1]) {
       if (inCross(z - 2, z + 2) || inPlaza(side, z - 2, z + 2)) continue;
       const tx = side * (FRONT_X - 0.9);
@@ -1215,6 +1221,39 @@ export const buildCity = (
       life?.update(t, dt, camZ);
       sky(t, dt, camZ);
       party(t, dt, camZ, finished);
+    },
+    dress: (lib) => {
+      const props = new THREE.Group();
+      props.name = 'props';
+      const placed = layoutProps({
+        cityId: city.id,
+        stageName: stage.name,
+        terrain,
+        roadHalf: ROAD_HALF,
+        frontX: FRONT_X,
+        zStart,
+        zEnd,
+        treeZs,
+        inCross,
+        inPlaza,
+        crowded: (z) => busy(z) > 0.5,
+        waterZs: stage.waterAfterKm.map((km) => kmZ(km) + 3),
+      });
+      const propBatch = new Batch();
+      for (const p of placed) {
+        const geo = lib.get(p.id);
+        if (!geo) continue;
+        propBatch.push(
+          solid,
+          geo
+            .clone()
+            .scale(p.scale, p.scale, p.scale)
+            .rotateY(p.turn)
+            .translate(p.x, Math.abs(p.x) < FRONT_X ? 0.12 : 0, p.z)
+        );
+      }
+      propBatch.flush(props, shadows);
+      return props;
     },
     setNight: (k: number) => {
       glow.color.setScalar(1 + k * 1.5);

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadProps } from './props/library';
 import type { City, Stage, TimeOfDay, WeatherId } from '../../shared/content';
 import type { CourseItem } from '../../shared/course';
 import type { Look } from '../../shared/economy';
@@ -24,6 +25,11 @@ import { buildAtmosphere, type Atmosphere } from './atmosphere';
 export { UNITS_PER_KM };
 
 /** Distance between lane centres, in world units. */
+/** Starts fetching the roadside props while the player reads the plan. */
+export const preloadProps = () => {
+  loadProps().catch(() => undefined);
+};
+
 export const LANE_WIDTH = 2.3;
 
 export type Runner = {
@@ -244,6 +250,15 @@ export class RunWorld {
         opts.triathlon ?? false
       );
       this.scene.add(this.city.group);
+      // Roadside props arrive a moment later; the race does not wait for them.
+      const city = this.city;
+      loadProps()
+        .then((lib) => {
+          if (!this.disposed) this.scene.add(city.dress(lib));
+        })
+        .catch((error: unknown) => {
+          console.warn('Roadside props did not load', error);
+        });
       if (opts.festive) {
         this.festive = buildFestive(
           opts.festive === 'christmas',

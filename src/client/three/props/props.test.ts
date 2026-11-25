@@ -18,7 +18,10 @@ const street = (over: Partial<LayoutInput> = {}): LayoutInput => {
   for (let z = 34; z > -300; z -= 9.5) treeZs.push(z);
   const crossZs: number[] = [];
   for (let z = 22; z > -300; z -= 34) crossZs.push(z);
+  const lampZs: number[] = [];
+  for (let z = 40; z > -300; z -= 13) lampZs.push(z);
   return {
+    lampZs,
     cityId: 'paris',
     stageName: 'Champs-Élysées',
     terrain: 'city',
@@ -73,19 +76,29 @@ describe('roadside props', () => {
     for (const id of named) expect(ids.has(id), id).toBe(true);
   });
 
+  it('dress the first stretch too, where the camera spends the most time', () => {
+    const near = layoutProps(street()).filter((p) => p.z < 0 && p.z > -40);
+    expect(near.length).toBeGreaterThan(2);
+  });
+
   it('dress a street the same way for everyone, off the road and the crossings', () => {
     const input = street();
     const a = layoutProps(input);
     expect(layoutProps(street())).toEqual(a);
     expect(a.length).toBeGreaterThan(20);
     for (const p of a) {
-      expect(Math.abs(p.x)).toBeGreaterThan(input.roadHalf + 1.5);
+      expect(Math.abs(p.x)).toBeGreaterThan(input.roadHalf + 0.6);
       expect(Math.abs(p.x)).toBeLessThan(input.frontX + 0.5);
       if (p.id !== 'water-bottle-crate-78c8db') {
         expect(input.inCross(p.z - 0.4, p.z + 0.4), `${p.id} at ${p.z}`).toBe(
           false
         );
-        expect(input.crowded(p.z)).toBe(false);
+        // Clear of the lamps at the kerb.
+        if (Math.abs(p.x) < input.frontX - 1)
+          expect(input.lampZs.some((l) => Math.abs(l - p.z) < 0.7)).toBe(false);
+        // In the thick crowds only single props, pressed to the walls.
+        if (input.crowded(p.z))
+          expect(Math.abs(p.x)).toBeGreaterThan(input.frontX - 0.5);
       }
     }
     // Crates of bottles at both water stations.

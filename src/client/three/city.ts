@@ -878,7 +878,9 @@ export const buildCity = (
         ? ['#7fae6a', '#8bbd73', '#6f9e5d']
         : ['#3f9a4e', '#4caf50', '#2e8540'];
   const lamps = terrain !== 'forest' && terrain !== 'desert';
+  const lampZs: number[] = [];
   for (let z = zStart; lamps && z > zEnd; z -= 13) {
+    lampZs.push(z);
     for (const side of [-1, 1]) {
       if (inCross(z - 1, z + 1)) continue;
       const lx = side * (ROAD_HALF + 0.55);
@@ -952,6 +954,34 @@ export const buildCity = (
       );
     }
   }
+  // Crowds stand thick at the start, the finish and around the landmark.
+  const busy = (z: number) => {
+    const fromStart = Math.abs(z);
+    const fromFinish = Math.abs(z - kmZ(COURSE_KM));
+    const fromLm = Math.abs(z - lmZ);
+    return fromStart < 30 || fromFinish < 40 || fromLm < 18 ? 0.8 : 0.12;
+  };
+  // Roadside props (Polyfork models) are laid out now, so the scooters and the
+  // spectators below keep out of their way; the models arrive later (`dress`).
+  const placed = layoutProps({
+    cityId: city.id,
+    stageName: stage.name,
+    terrain,
+    roadHalf: ROAD_HALF,
+    frontX: FRONT_X,
+    zStart,
+    zEnd,
+    treeZs,
+    lampZs,
+    inCross,
+    inPlaza,
+    crowded: (z) => busy(z) > 0.5,
+    waterZs: stage.waterAfterKm.map((km) => kmZ(km) + 3),
+  });
+  const propNear = (x: number, z: number, reach: number) =>
+    placed.some(
+      (p) => Math.abs(p.z - z) < reach && Math.abs(p.x - x) < reach + 0.4
+    );
   if (urban && city.id === 'hanoi') {
     // scooters parked on the sidewalk
     for (let z = zStart; z > zEnd; z -= 3.5) {
@@ -959,6 +989,7 @@ export const buildCity = (
       const side = rand() < 0.5 ? -1 : 1;
       const sx = side * (FRONT_X - 1.9);
       const col = pick(['#e63946', '#1d3557', '#f1faee', '#2a9d8f', '#ffb703']);
+      if (propNear(sx, z, 1.3)) continue;
       batch.push(solid, box(0.4, 0.45, 1.4, sx, 0.55, z, col));
       batch.push(solid, box(0.35, 0.15, 0.6, sx, 0.85, z + 0.2, '#222'));
       batch.push(
@@ -983,12 +1014,6 @@ export const buildCity = (
   }
 
   // Crowd barriers and spectators: thick at the start, the finish and around the landmark
-  const busy = (z: number) => {
-    const fromStart = Math.abs(z);
-    const fromFinish = Math.abs(z - kmZ(COURSE_KM));
-    const fromLm = Math.abs(z - lmZ);
-    return fromStart < 30 || fromFinish < 40 || fromLm < 18 ? 0.8 : 0.12;
-  };
   const shirts = [
     '#ff5d73',
     '#ffd166',
@@ -1014,6 +1039,7 @@ export const buildCity = (
       if (rand() > p) continue;
       const px = side * (ROAD_HALF + 0.75 + rand() * 1.4);
       const pz = z + range(-0.3, 0.3);
+      if (propNear(px, pz, 0.9)) continue;
       const s = range(0.85, 1.1);
       const crowd = crowdParts[crowdN++ % 3] ?? [];
       crowd.push(
@@ -1225,20 +1251,6 @@ export const buildCity = (
     dress: (lib) => {
       const props = new THREE.Group();
       props.name = 'props';
-      const placed = layoutProps({
-        cityId: city.id,
-        stageName: stage.name,
-        terrain,
-        roadHalf: ROAD_HALF,
-        frontX: FRONT_X,
-        zStart,
-        zEnd,
-        treeZs,
-        inCross,
-        inPlaza,
-        crowded: (z) => busy(z) > 0.5,
-        waterZs: stage.waterAfterKm.map((km) => kmZ(km) + 3),
-      });
       const propBatch = new Batch();
       for (const p of placed) {
         const geo = lib.get(p.id);

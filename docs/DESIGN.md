@@ -444,14 +444,16 @@ as they were, so recaps and history do not change. Unbanning lets them race agai
   runners and pets are procedural. Geometry is merged per material, so a whole city is about 270 draw calls on a phone.
 - **Roadside props:** 47 free low-poly models from [Polyfork](https://polyfork.dev) (CC BY 4.0) dress each stage:
   ramen stalls, vending machines and bicycles in Tokyo, café terraces in Paris, market and fruit stalls in Hanoi,
-  palms and fountains in Dubai, mercado stalls and banana plants in Manaus, and pines, oaks, boulders, beach
-  parasols, lifeguard towers, hammocks and canoes on the open stages, plus crates of bottles at every water station.
-  `npm run build:props` downloads them once, merges each model into one mesh, quantises positions to 16 bits and
-  colours to 8-bit sRGB and drops normals (the game recomputes flat ones): 3.8 MB of GLB become one 380 KB file
-  (210 KB gzipped), fetched while the player reads the plan and added to the world when it arrives, so a race never
-  waits for it. The layout is seeded by the stage, so everyone sees the same street; props keep off the road,
-  crossings, the landmark plaza, water stations and the thick crowds at the start and finish, and merge into the
-  city's draw-call chunks. Credits are in `THIRD_PARTY_NOTICES.md` and in the game (Me → Options).
+  palms and fountains in Dubai, mercado stalls and banana plants in Manaus, and pines, oaks, boulders, beach parasols,
+  lifeguard towers, hammocks and canoes on the open stages, plus crates of bottles at every water station.
+  `npm run build:props` downloads them once, merges each model into one mesh, quantises positions to 16 bits and colours to
+  8-bit sRGB and drops normals (the game recomputes flat ones): 3.8 MB of GLB become one 380 KB file (210 KB gzipped),
+  fetched while the player reads the plan and added to the world when it arrives, so a race never waits for it. The
+  layout is seeded by the stage, so everyone sees the same street; props stand near the kerb between the lamps, where
+  a phone held upright sees them, and keep off the road, crossings, the landmark plaza and water stations; in the
+  thick crowds at the start and finish only single props stand, against the walls, and spectators and parked scooters
+  leave room for them. They merge into the city's draw-call chunks. Credits are in `THIRD_PARTY_NOTICES.md` and in the
+  game (Me → Options).
 - **Server (Devvit Web, Hono):** receives the pace plan, the lane changes and the chat lines, replays the whole race
   step by step with the same items and the same runners, and records the time it computes, including the time
   added to anyone you crashed into. The client only displays; it never decides a score.

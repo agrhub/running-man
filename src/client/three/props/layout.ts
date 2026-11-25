@@ -20,8 +20,10 @@ export type LayoutInput = {
   frontX: number;
   zStart: number;
   zEnd: number;
-  /** Street trees stand at these z, on both sides, at `treeX`. */
+  /** Street trees stand at these z, on both sides, near the buildings. */
   treeZs: number[];
+  /** Street lamps stand at these z, on both sides, at the kerb. */
+  lampZs: number[];
   inCross: (z0: number, z1: number) => boolean;
   inPlaza: (side: number, z0: number, z1: number) => boolean;
   /** Thick crowds (start, finish, landmark): left to the spectators. */
@@ -66,8 +68,6 @@ export const layoutProps = (input: LayoutInput): Placement[] => {
   const clear = (side: number, z0: number, z1: number) =>
     !input.inCross(z0 - 0.5, z1 + 0.5) &&
     !input.inPlaza(side, z0, z1) &&
-    !input.crowded(z0) &&
-    !input.crowded(z1) &&
     dry(z1) &&
     !(side > 0 && input.waterZs.some((w) => z1 > w - 5 && z0 < w + 5));
 
@@ -86,7 +86,14 @@ export const layoutProps = (input: LayoutInput): Placement[] => {
 
   if (input.terrain === 'city') {
     const street = STREET[input.cityId];
-    const baseX = input.frontX - 0.75;
+    // A phone held upright mostly sees the road, so props stand near the
+    // kerb, between the lamps, where the camera catches them. Where the crowd
+    // stands thick (the first and last stretch) only single props, pressed to
+    // the walls; tall trees always stand back there too.
+    const kerbX = input.roadHalf + 1.25;
+    const wallX = input.frontX - 0.45;
+    const offLamps = (z0: number, z1: number) =>
+      !input.lampZs.some((l) => z1 > l - 0.8 && z0 < l + 0.8);
     // Between two street trees there are about seven units of free sidewalk.
     const gaps = input.treeZs.slice(0, -1).map((z, i) => ({
       z0: input.treeZs[i + 1]! + 1.3,
@@ -98,24 +105,27 @@ export const layoutProps = (input: LayoutInput): Placement[] => {
         const room = gap.z1 - gap.z0;
         const roll = rand();
         const vignette = pick(street.vignettes);
-        if (roll < 0.4 && vignette.length <= room) {
+        const crowd = input.crowded(gap.z0) || input.crowded(gap.z1);
+        if (!crowd && roll < 0.45 && vignette.length <= room) {
           const z0 = mid - vignette.length / 2;
-          if (!clear(side, z0, z0 + vignette.length)) continue;
+          const z1 = z0 + vignette.length;
+          if (!clear(side, z0, z1) || !offLamps(z0, z1)) continue;
           for (const part of vignette.parts)
             out.push({
               id: part.id,
-              x: side * (baseX + part.x * 0.6),
+              x: side * (kerbX + part.x * 0.6),
               z: mid + part.z,
               turn: face(part.id, side, part.turn ?? 0),
               scale: 1,
             });
-        } else if (roll < 0.75) {
+        } else if (roll < 0.95) {
           const id = pick(street.singles);
           const z = mid + (rand() - 0.5) * (room - 2);
-          if (!clear(side, z - 1, z + 1)) continue;
+          if (!clear(side, z - 1, z + 1) || !offLamps(z - 0.6, z + 0.6))
+            continue;
           out.push({
             id,
-            x: side * baseX,
+            x: side * (crowd || TALL.has(id) ? wallX : kerbX),
             z,
             turn: face(id, side),
             scale: FACING.has(id) ? 1 : 0.9 + rand() * 0.2,
